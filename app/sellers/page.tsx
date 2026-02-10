@@ -14,48 +14,18 @@ import {
   DollarSign,
   Upload
 } from 'lucide-react';
+import PROCESS_STEPS_DATA from "@/data/process-steps.json";
+import EVENT_TYPES from "@/data/event-types.json";
 
-const PROCESS_STEPS = [
-  { step: "01", title: "Evaluation", icon: ClipboardCheck, desc: "Virginia Liquidation will interview you regarding the specifics of your project then prepare a schedule and tailored sales solution." },
-  { step: "02", title: "Engagement", icon: FileSignature, desc: "Virginia Liquidation will forward a letter of agreement outlining the details of sale and the project scope." },
-  { step: "03", title: "Identification", icon: Tags, desc: "We provide staff and materials necessary to prepare a detailed inventory. This can be completed by either our staff or the seller." },
-  { step: "04", title: "Web Posting", icon: Globe, desc: "We prepare event details and inventory for the web. Most events are posted within 1-3 days of the identification process." },
-  { step: "05", title: "Online Preview", icon: MousePointer2, desc: "Once posted, the inventory is fully searchable for preview and immediate bidding. The phase can be tailored to your schedule." },
-  { step: "06", title: "Marketing", icon: Megaphone, desc: "We utilize direct mail, newsletters, web promotion, social media, and press releases immediately upon posting." },
-  { step: "07", title: "Inspection", icon: Search, desc: "Most events include a one-day presale inspection or open house, conducted one or two days prior to the event closing." },
-  { step: "08", title: "Event Closing", icon: Timer, desc: "The event closes dynamically (3-10 items per minute). Our system automatically extends time on any last-minute bids." },
-  { step: "09", title: "Processing", icon: CreditCard, desc: "At the conclusion of the sale, all bidder transactions are automatically processed and receipts are emailed to winning bidders." },
-  { step: "10", title: "Removal", icon: Truck, desc: "Removal is supervised by our staff or the seller. We coordinate disconnects and removals during days, evenings, or weekends." },
-  { step: "11", title: "Reconciliation", icon: FileSpreadsheet, desc: "We prepare a detailed reconciliation with complete bidding history, revenue, costs of sale and proceeds disbursement." },
-  { step: "12", title: "Settlement", icon: DollarSign, desc: "After delivery of the reconciliation report and sale proceeds, we conduct a closing interview to ensure complete satisfaction." }
-];
+const ICON_MAP: Record<string, React.ElementType> = {
+  ClipboardCheck, FileSignature, Tags, Globe, MousePointer2, Megaphone, 
+  Search, Timer, CreditCard, Truck, FileSpreadsheet, DollarSign
+};
 
-const EVENT_TYPES = [
-  {
-    title: "Event Based Sales",
-    desc: "Unlike eBay or craigslist, which sell a single item to a single buyer, VirginiaLiquidation.com is an event-based site where each event sells many assets to many buyers with set previews, closing and removal."
-  },
-  {
-    title: "Employee Sales",
-    desc: "We provide solutions for organizations wanting employees or associates to have exclusive purchase opportunities, ensuring a fun, fair, and efficient buying experience."
-  },
-  {
-    title: "Virginia Supervised Events",
-    desc: "From evaluation to site handover, we manage identification, marketing, sales, and transactions. Sellers only need to identify items; we handle the rest for a turn-key success."
-  },
-  {
-    title: "Bulk Sales",
-    desc: "For assets best suited for a single purchaser, we provide solutions that achieve the most commercially reasonable sale within your schedule and removal requirements."
-  },
-  {
-    title: "Self-Supervised Events",
-    desc: "Ideal for fewer assets, we provide inventory tools and barcode equipment so you can manage your own cataloging while benefiting from our marketing and financial processing."
-  },
-  {
-    title: "Inventories & Valuations",
-    desc: "We quickly prepare detailed asset inventories with barcodes, photos, and full specs (model, serial numbers, etc.) to provide accurate information for relocation or liquidation decisions."
-  }
-];
+const PROCESS_STEPS = PROCESS_STEPS_DATA.map(step => ({
+  ...step,
+  icon: ICON_MAP[step.icon]
+}));
 
 export default function SellersPage() {
   return (

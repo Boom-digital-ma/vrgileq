@@ -10,34 +10,16 @@ import {
   Scale,
   ArrowRight
 } from 'lucide-react';
+import CORPORATE_FAMILY_DATA from "@/data/corporate-family.json";
 
-const CORPORATE_FAMILY = [
-  {
-    name: "Acuity Appraisers",
-    desc: "Commercial asset appraisers, providing expert testimony and valuations for the legal, business, and banking community.",
-    icon: Scale
-  },
-  {
-    name: "Auction Benefits, Inc",
-    desc: "Benefit fundraising consultants implementing live and internet-only events for non-profits and foundations.",
-    icon: HeartHandshake
-  },
-  {
-    name: "Virginia Asset Advisors",
-    desc: "Providing liquidation and asset recovery consulting to Fortune 1000, medium, and small businesses nationwide.",
-    icon: Briefcase
-  },
-  {
-    name: "Asset Bridge",
-    desc: "Providing internet-only liquidation solutions to corporate America.",
-    icon: Globe
-  },
-  {
-    name: "OLS Trading, Inc.",
-    desc: "Joint venture partner and national business liquidator for technology and office environment sales.",
-    icon: Building2
-  }
-];
+const ICON_MAP: Record<string, React.ElementType> = {
+  Scale, HeartHandshake, Briefcase, Globe, Building2
+};
+
+const CORPORATE_FAMILY = CORPORATE_FAMILY_DATA.map(company => ({
+  ...company,
+  icon: ICON_MAP[company.icon]
+}));
 
 export default function AboutPage() {
   return (

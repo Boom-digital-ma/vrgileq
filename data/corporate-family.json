@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Acuity Appraisers",
+    "desc": "Commercial asset appraisers, providing expert testimony and valuations for the legal, business, and banking community.",
+    "icon": "Scale"
+  },
+  {
+    "name": "Auction Benefits, Inc",
+    "desc": "Benefit fundraising consultants implementing live and internet-only events for non-profits and foundations.",
+    "icon": "HeartHandshake"
+  },
+  {
+    "name": "Virginia Asset Advisors",
+    "desc": "Providing liquidation and asset recovery consulting to Fortune 1000, medium, and small businesses nationwide.",
+    "icon": "Briefcase"
+  },
+  {
+    "name": "Asset Bridge",
+    "desc": "Providing internet-only liquidation solutions to corporate America.",
+    "icon": "Globe"
+  },
+  {
+    "name": "OLS Trading, Inc.",
+    "desc": "Joint venture partner and national business liquidator for technology and office environment sales.",
+    "icon": "Building2"
+  }
+]

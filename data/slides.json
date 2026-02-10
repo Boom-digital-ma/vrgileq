@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "image": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=2000",
+    "welcome": "Welcome to VirginiaLiquidation.com",
+    "title": "Northern Virginia's Newest Player",
+    "description": "Shop for overstock and returned merchandise at 70-90% off retail price from the largest B2B liquidation marketplace in North America.",
+    "cta": "Browse All Auctions",
+    "link": "/auctions"
+  },
+  {
+    "id": 2,
+    "image": "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=2000",
+    "welcome": "Verified Business Assets",
+    "title": "Direct From Major Retailers",
+    "description": "Access exclusive inventory from overstocked manufacturers and verified suppliers across Virginia and the East Coast.",
+    "cta": "Become a Seller",
+    "link": "/sell"
+  }
+]

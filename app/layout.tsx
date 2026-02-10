@@ -10,8 +10,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Industrial Auctions | Virginialequidation",
-  description: "The most trusted marketplace for industrial liquidation.",
+  title: "Industrial Auctions | Virginia Liquidation",
+  description: "The most trusted marketplace for industrial liquidation in Northern Virginia.",
 };
 
 export default function RootLayout({

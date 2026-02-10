@@ -2,33 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Search, Building2, ArrowRight, Package, MapPin, TrendingUp } from "lucide-react";
 import HeroSlider from "@/components/layout/HeroSlider";
+import suppliersData from "@/data/suppliers.json";
 
-const SUPPLIERS = [
-  {
-    id: "tenant-1",
-    name: "Precision Machining Group",
-    saleTitle: "2024 Industrial Surplus Sale",
-    itemCount: 142,
-    location: "Roanoke, VA",
-    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800",
-  },
-  {
-    id: "tenant-2",
-    name: "Global Restaurant Liquidators",
-    saleTitle: "High-End Kitchen Equipment Event",
-    itemCount: 85,
-    location: "Washington, DC",
-    image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=800",
-  },
-  {
-    id: "tenant-3",
-    name: "Apex Corporate Assets",
-    saleTitle: "HQ Tech & Furniture Disposition",
-    itemCount: 320,
-    location: "Arlington, VA",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800",
-  },
-];
+const SUPPLIERS = suppliersData.suppliers;
 
 export default function HomePage() {
   return (

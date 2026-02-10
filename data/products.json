@@ -1,0 +1,50 @@
+[
+  {
+    "id": "001",
+    "title": "2024 Industrial CNC Machine - Haas VF-2",
+    "supplier": "Precision Machining Group",
+    "price": 42500,
+    "endsAt": "4h 12m",
+    "image": "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=800",
+    "bidCount": 12,
+    "manufacturer": "Haas",
+    "model": "VF-2",
+    "description": "2024 Industrial CNC Machine - Haas VF-2 Vertical Machining Center. Includes 12,000-rpm spindle, side-mount tool changer, and Haas Next Generation Control. Pristine condition, original owner."
+  },
+  {
+    "id": "002",
+    "title": "Commercial Grade Convection Oven - Vulcan VC4",
+    "supplier": "Global Restaurant Liquidators",
+    "price": 3200,
+    "endsAt": "1d 6h",
+    "image": "https://images.unsplash.com/photo-1544233726-9f1d2b27be8b?auto=format&fit=crop&q=80&w=800",
+    "bidCount": 8,
+    "manufacturer": "Vulcan",
+    "model": "VC4-Single",
+    "description": "Vulcan VC4 Series Single Deck Natural Gas Convection Oven. Stainless steel front, sides, and top. Electronic spark ignition system."
+  },
+  {
+    "id": "003",
+    "title": "Herman Miller Aeron Chair Set (6 Units)",
+    "supplier": "Apex Corporate Assets",
+    "price": 1800,
+    "endsAt": "2d 4h",
+    "image": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=800",
+    "bidCount": 24,
+    "manufacturer": "Herman Miller",
+    "model": "Aeron Size B",
+    "description": "Set of 6 Herman Miller Aeron chairs. Graphite frame, tuxedo pellicle. Fully adjustable arms, posturefit SL hardware. Minimal wear."
+  },
+  {
+    "id": "004",
+    "title": "Heavy Duty Forklift - CAT 2023 Model",
+    "supplier": "Precision Machining Group",
+    "price": 15500,
+    "endsAt": "6h 45m",
+    "image": "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?auto=format&fit=crop&q=80&w=800",
+    "bidCount": 5,
+    "manufacturer": "Caterpillar (CAT)",
+    "model": "GP25N",
+    "description": "2023 CAT GP25N Pneumatic Tire Forklift. 5,000 lb capacity. Solid pneumatic tires. Side shifter. Full maintenance records included."
+  }
+]
