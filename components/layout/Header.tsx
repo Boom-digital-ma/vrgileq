@@ -35,8 +35,8 @@ export default function Header() {
 
       {/* Main Header */}
       <header className="border-b border-light bg-white sticky top-0 z-50">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:py-6">
-          <Link href="/" className="relative h-12 w-48 md:h-24 md:w-80 transition-opacity hover:opacity-80">
+        <div className="mx-auto flex max-w-7xl items-center justify-between py-4 md:py-6">
+          <Link href="/" className="relative h-12 w-48 md:h-16 md:w-64 transition-opacity hover:opacity-80">
             <Image
               src="/images/logo-virginia-transparent.png"
               alt="Virginialequidation"
