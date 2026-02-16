@@ -110,7 +110,7 @@ export default function SettingsPage() {
                                             <input 
                                                 name={field.name}
                                                 type={field.type}
-                                                placeholder={field.placeholder}
+                                                placeholder={(field as any).placeholder}
                                                 defaultValue={field.defaultValue}
                                                 className={inputClasses}
                                             />
