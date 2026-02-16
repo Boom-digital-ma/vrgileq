@@ -3,10 +3,30 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { logout } from "@/app/actions/auth";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    fetchUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   // Close menu on resize if switching to desktop
   useEffect(() => {
@@ -58,8 +78,26 @@ export default function Header() {
 
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-4">
-              <Link href="/auth/signin" className="text-xs font-bold uppercase tracking-widest text-primary hover:opacity-80">Sign In</Link>
-              <Link href="/auth/signup" className="bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-secondary transition-colors">Join</Link>
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <Link href="/profile" className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary hover:text-secondary transition-colors">
+                    <User className="h-4 w-4" />
+                    Account
+                  </Link>
+                  <button 
+                    onClick={() => logout()}
+                    className="flex items-center gap-2 bg-neutral px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-primary transition-colors"
+                  >
+                    <LogOut className="h-3 w-3" />
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link href="/auth/signin" className="text-xs font-bold uppercase tracking-widest text-primary hover:opacity-80">Sign In</Link>
+                  <Link href="/auth/signup" className="bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-secondary transition-colors">Join</Link>
+                </>
+              )}
             </div>
             
             {/* Mobile Menu Toggle */}
@@ -118,37 +156,46 @@ export default function Header() {
               >
                 About Us
               </Link>
-              <Link 
-                href="/engage" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-2xl font-black uppercase tracking-tighter text-secondary hover:text-primary transition-colors"
-              >
-                Engage us
-              </Link>
-              <Link 
-                href="/contact" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-2xl font-black uppercase tracking-tighter text-secondary hover:text-primary transition-colors"
-              >
-                Contact us
-              </Link>
             </nav>
 
             <div className="pt-8 border-t border-light flex flex-col gap-4">
-              <Link 
-                href="/auth/signin" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full text-center py-4 text-xs font-black uppercase tracking-widest border-2 border-primary text-primary"
-              >
-                Sign In
-              </Link>
-              <Link 
-                href="/auth/signup" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full text-center py-4 text-xs font-black uppercase tracking-widest bg-primary text-white"
-              >
-                Join Now
-              </Link>
+              {user ? (
+                <>
+                  <Link 
+                    href="/profile" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-4 text-xs font-black uppercase tracking-widest border-2 border-primary text-primary flex items-center justify-center gap-2"
+                  >
+                    <User className="h-4 w-4" /> Account
+                  </Link>
+                  <button 
+                    onClick={() => {
+                        logout();
+                        setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-center py-4 text-xs font-black uppercase tracking-widest bg-neutral text-white flex items-center justify-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" /> Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    href="/auth/signin" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-4 text-xs font-black uppercase tracking-widest border-2 border-primary text-primary"
+                  >
+                    Sign In
+                  </Link>
+                  <Link 
+                    href="/auth/signup" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-4 text-xs font-black uppercase tracking-widest bg-primary text-white"
+                  >
+                    Join Now
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
