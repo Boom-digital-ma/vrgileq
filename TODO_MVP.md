@@ -25,7 +25,8 @@ This document tracks the current state of the project and remaining tasks to rea
 ## 📋 Remaining Tasks (The "Final Touches")
 
 ### 1. External Email Integration
-- [ ] Integration with Resend/SendGrid for email delivery of notifications (currently in-app only).
+- [x] Integration with Resend for email delivery of notifications (Outbid alerts, Winning notifications).
+- [x] Automated winning emails in Edge Functions and Outbid alerts in Server Actions.
 
 ### 2. Financial Logic Polish
 - [ ] Automatic release of Stripe holds for non-winners after auction close (logic present in Edge Function, needs integration testing).
@@ -34,6 +35,7 @@ This document tracks the current state of the project and remaining tasks to rea
 - [x] Unify public typography using **Urbanist** (Headings) and **Manrope** (Body).
 - [x] Update Favicon and ensure brand consistency across all transactional pages (SignIn, SignUp).
 - [x] Mobile optimization audit and responsive fix for the Admin Console (Sidebar & Layout).
+- [ ] Implement a system-wide Toast notification system (e.g., "Logged in successfully", "Bid placed").
 
 ---
 *Last updated: February 15, 2026*

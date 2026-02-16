@@ -18,7 +18,7 @@ serve(async (req) => {
 
     // 1. Get the auction and the winning bid
     const { data: auction, error: auctionError } = await supabaseAdmin
-      .from("auctions")
+      .from("auction-images")
       .select("*, bids(id, stripe_payment_intent_id, user_id)")
       .eq("id", auction_id)
       .eq("bids.status", "active")
@@ -38,7 +38,7 @@ serve(async (req) => {
 
       // 3. Update auction and bid status
       await supabaseAdmin
-        .from("auctions")
+        .from("auction-images")
         .update({ status: "sold", winner_id: winningBid.user_id })
         .eq("id", auction_id)
 
@@ -57,10 +57,44 @@ serve(async (req) => {
           title: 'Congratulations!',
           message: `You won the auction for "${auction.title}" with a bid of $${auction.current_price}.`
         })
+
+      // 5. Send Winning Email
+      const { data: winnerProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', winningBid.user_id)
+        .single()
+
+      if (winnerProfile?.email) {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+          },
+          body: JSON.stringify({
+            from: "Virginia Liquidation <notifications@virginialiquidation.com>",
+            to: winnerProfile.email,
+            subject: `CONGRATULATIONS! You won: ${auction.title}`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee;">
+                <h1 style="color: #049A9E; text-transform: uppercase; letter-spacing: -0.05em;">You won the auction!</h1>
+                <p>Congratulations ${winnerProfile.full_name || 'Bidder'},</p>
+                <p>You are the winning bidder for <strong>"${auction.title}"</strong> with a final bid of <strong>$${Number(auction.current_price).toLocaleString()}</strong>.</p>
+                <p>Please log in to your account to finalize your purchase and arrange removal.</p>
+                <div style="margin: 30px 0;">
+                  <a href="${Deno.env.get("SITE_URL") || 'http://localhost:3000'}/profile" style="background-color: #0B2B53; color: white; padding: 15px 25px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px;">View My Account</a>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 40px;">Virginia Liquidation • Industrial Auctions</p>
+              </div>
+            `,
+          }),
+        })
+      }
     } else {
       // No winner, just end it
       await supabaseAdmin
-        .from("auctions")
+        .from("auction-images")
         .update({ status: "ended" })
         .eq("id", auction_id)
     }

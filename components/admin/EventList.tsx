@@ -1,6 +1,6 @@
 'use client'
 
-import { useTable, useNavigation, useDelete, useForm } from "@refinedev/core"
+import { useTable, useNavigation, useDelete, useForm, useList } from "@refinedev/core"
 import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -12,6 +12,11 @@ export const EventList = () => {
     resource: "auction_events",
     pagination: { pageSize: 10 }
   })
+
+  // Fetch global settings for dynamic default deposit
+  const settingsResult = useList({ resource: "site_settings" })
+  const settings = (settingsResult as any).query?.data?.data?.[0] || {}
+  const globalDefaultDeposit = settings.default_deposit || 500
 
   const tableQuery = (result as any).tableQuery;
   const events = tableQuery?.data?.data || []
@@ -141,11 +146,16 @@ export const EventList = () => {
             <ImageUpload onUpload={setUploadedImages} defaultValues={[]} />
             <div className="space-y-4">
                 <div><label className={labelClasses}>Event Title</label><input name="title" required className={inputClasses} /></div>
-                <div><label className={labelClasses}>Description</label><textarea name="description" rows={3} className={cn(inputClasses, "h-auto py-3 resize-none")} /></div>
+                <div><label className={labelClasses}>Description</label><textarea name="description" rows={2} className={cn(inputClasses, "h-auto py-3 resize-none")} /></div>
+                
+                <div><label className={labelClasses}>Location</label><input name="location" placeholder="e.g. Alexandria, VA" className={inputClasses} /></div>
+
                 <div className="grid grid-cols-2 gap-4">
+                    <div><label className={labelClasses}>Start Date</label><input name="start_at" type="datetime-local" className={inputClasses} /></div>
                     <div><label className={labelClasses}>Closing Date</label><input name="ends_at" type="datetime-local" required className={inputClasses} /></div>
-                    <div><label className={labelClasses}>Deposit ($)</label><input name="deposit_amount" type="number" defaultValue={500} className={inputClasses} /></div>
                 </div>
+
+                <div><label className={labelClasses}>Deposit ($)</label><input name="deposit_amount" type="number" defaultValue={globalDefaultDeposit} key={globalDefaultDeposit} className={inputClasses} /></div>
             </div>
             <div className="flex justify-end pt-4"><button disabled={createForm.formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2">{createForm.formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Launch Sale</>}</button></div>
         </form>
@@ -156,16 +166,27 @@ export const EventList = () => {
             <ImageUpload onUpload={setUploadedImages} defaultValues={uploadedImages} key={uploadedImages.join(',')} />
             <div className="space-y-4">
                 <div><label className={labelClasses}>Event Title</label><input name="title" defaultValue={editData?.title} key={editData?.title} required className={inputClasses} /></div>
-                <div><label className={labelClasses}>Description</label><textarea name="description" defaultValue={editData?.description} key={editData?.description} rows={3} className={cn(inputClasses, "h-auto py-3 resize-none")} /></div>
-                <div>
-                    <label className={labelClasses}>Status</label>
-                    <select name="status" defaultValue={editData?.status} key={editData?.status} className={inputClasses}>
-                        <option value="draft">Draft</option>
-                        <option value="scheduled">Scheduled</option>
-                        <option value="live">Live</option>
-                        <option value="closed">Closed</option>
-                    </select>
+                <div><label className={labelClasses}>Description</label><textarea name="description" defaultValue={editData?.description} key={editData?.description} rows={2} className={cn(inputClasses, "h-auto py-3 resize-none")} /></div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                    <div><label className={labelClasses}>Location</label><input name="location" defaultValue={editData?.location} key={editData?.location} placeholder="e.g. Alexandria, VA" className={inputClasses} /></div>
+                    <div>
+                        <label className={labelClasses}>Status</label>
+                        <select name="status" defaultValue={editData?.status} key={editData?.status} className={inputClasses}>
+                            <option value="draft">Draft</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="live">Live</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div><label className={labelClasses}>Start Date</label><input name="start_at" type="datetime-local" defaultValue={editData?.start_at ? new Date(editData.start_at).toISOString().slice(0,16) : ''} key={editData?.start_at} className={inputClasses} /></div>
+                    <div><label className={labelClasses}>End Date</label><input name="ends_at" type="datetime-local" defaultValue={editData?.ends_at ? new Date(editData.ends_at).toISOString().slice(0,16) : ''} key={editData?.ends_at} required className={inputClasses} /></div>
+                </div>
+
+                <div><label className={labelClasses}>Deposit Amount ($)</label><input name="deposit_amount" type="number" defaultValue={editData?.deposit_amount} key={editData?.deposit_amount} className={inputClasses} /></div>
             </div>
             <div className="flex justify-end pt-4 font-sans"><button disabled={editForm.formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2">{editForm.formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Update Event</>}</button></div>
         </form>

@@ -3,6 +3,7 @@
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendOutbidEmail } from '@/lib/emails'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-01-28.clover',
@@ -23,7 +24,27 @@ export async function placeBid({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  // 2. Get Profile
+  // 2. Fetch Auction & Previous Winner details for Email
+  const { data: auction } = await supabase
+    .from('auctions')
+    .select('title, winner_id')
+    .eq('id', auctionId)
+    .single()
+
+  let previousWinnerProfile = null
+  if (auction?.winner_id && auction.winner_id !== user.id) {
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email, id')
+        .eq('id', auction.winner_id)
+        .single()
+    
+    if (profile?.email) {
+        previousWinnerProfile = profile
+    }
+  }
+
+  // 3. Get Current Bidder Profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('stripe_customer_id, default_payment_method_id')
@@ -45,7 +66,7 @@ export async function placeBid({
     .single()
 
   try {
-    // 3. Create Stripe PaymentIntent with Manual Capture
+    // 4. Create Stripe PaymentIntent with Manual Capture
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency: 'usd',
@@ -53,15 +74,14 @@ export async function placeBid({
       payment_method: finalPaymentMethodId,
       capture_method: 'manual',
       confirm: true,
-      off_session: !!profile?.default_payment_method_id, // Autorise le débit sans interaction si déjà enregistré
-      setup_future_usage: 'off_session',
+      off_session: true, // Crucial for automatic/outbid logic
       description: `Bid on auction ${auctionId}`,
       metadata: { auction_id: auctionId, user_id: user.id },
     }, {
-      idempotencyKey: `bid_${user.id}_${auctionId}_${amount}`,
+      idempotencyKey: `bid_${user.id}_${auctionId}_${amount}_${Date.now()}`,
     })
 
-    // 4. Call Supabase RPC
+    // 5. Call Supabase RPC
     const { error: rpcError } = await supabase.rpc('place_bid_secure', {
       p_auction_id: auctionId,
       p_user_id: user.id,
@@ -74,7 +94,18 @@ export async function placeBid({
       throw new Error(rpcError.message)
     }
 
-    // 5. If successful, cancel the PREVIOUS hold
+    // 6. Send Outbid Email if applicable
+    if (previousWinnerProfile?.email) {
+        await sendOutbidEmail({
+            to: previousWinnerProfile.email,
+            bidderName: previousWinnerProfile.full_name || 'Bidder',
+            auctionTitle: auction?.title || 'Industrial Item',
+            newAmount: amount,
+            auctionUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auctions/${auctionId}`
+        })
+    }
+
+    // 7. If successful, cancel the PREVIOUS hold
     if (previousBid?.stripe_payment_intent_id) {
       try {
         await stripe.paymentIntents.cancel(previousBid.stripe_payment_intent_id)

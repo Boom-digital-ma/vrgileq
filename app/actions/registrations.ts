@@ -54,6 +54,8 @@ export async function registerForEvent(eventId: string, paymentMethodId?: string
     // 4. Si un dépôt est requis (> 0), effectuer le hold Stripe
     let paymentIntentId = null
     if (Number(event.deposit_amount) > 0) {
+      console.log(`DEBUG: [REGISTRATION] Starting ${event.deposit_amount}$ hold for event ${eventId}`)
+      
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(Number(event.deposit_amount) * 100),
         currency: 'usd',
@@ -61,15 +63,20 @@ export async function registerForEvent(eventId: string, paymentMethodId?: string
         payment_method: pmToUse,
         payment_method_types: ['card'],
         capture_method: 'manual',
-        setup_future_usage: 'off_session',
         confirm: true,
+        off_session: true,
         metadata: {
           event_id: eventId,
           user_id: user.id,
           type: 'event_deposit'
         }
+      }, {
+        // Prevents double hold if clicked twice
+        idempotencyKey: `reg_${user.id}_${eventId}`
       })
+      
       paymentIntentId = paymentIntent.id
+      console.log("DEBUG: [REGISTRATION] Hold created ->", paymentIntentId)
     }
 
     // 5. Créer l'inscription dans Supabase
@@ -82,12 +89,17 @@ export async function registerForEvent(eventId: string, paymentMethodId?: string
         status: 'authorized'
       })
 
-    if (regError) throw regError
+    if (regError) {
+        // If DB fails, try to void the Stripe hold to avoid leaving money frozen
+        if (paymentIntentId) await stripe.paymentIntents.cancel(paymentIntentId)
+        throw regError
+    }
 
-    revalidatePath(`/auctions/${eventId}`)
+    console.log("DEBUG: [REGISTRATION] Success for user", user.id)
+    revalidatePath(`/events/${eventId}`)
     return { success: true }
   } catch (err: any) {
-    console.error('Registration error:', err)
+    console.error('Registration error:', err.message)
     return { error: err.message || 'Failed to authorize bidding deposit.' }
   }
 }

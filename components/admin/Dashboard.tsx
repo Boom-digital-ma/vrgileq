@@ -12,11 +12,11 @@ import {
 import { cn } from "@/lib/utils"
 
 export const Dashboard = () => {
-  // Fetching all necessary resources
-  const eventsResult = useList({ resource: "auction_events" })
-  const auctionsResult = useList({ resource: "auctions" })
-  const profilesResult = useList({ resource: "profiles" })
-  const bidsResult = useList({ resource: "bids" })
+  // Fetching all necessary resources with pagination disabled for accurate totals
+  const eventsResult = useList({ resource: "auction_events", pagination: { mode: "off" } })
+  const auctionsResult = useList({ resource: "auctions", pagination: { mode: "off" } })
+  const profilesResult = useList({ resource: "profiles", pagination: { mode: "off" } })
+  const bidsResult = useList({ resource: "bids", pagination: { mode: "off" } })
 
   // Refine v5 data extraction path: .query.data.data
   const events = (eventsResult as any).query?.data?.data || []
@@ -25,6 +25,10 @@ export const Dashboard = () => {
   const bids = (bidsResult as any).query?.data?.data || []
   
   const isLoading = (eventsResult as any).query?.isLoading || (auctionsResult as any).query?.isLoading
+
+  const totalEvents = (eventsResult as any).query?.data?.total || events.length
+  const totalLots = (auctionsResult as any).query?.data?.total || auctions.length
+  const totalUsers = (profilesResult as any).query?.data?.total || profiles.length
 
   const liveEvents = events.filter((e: any) => e.status === 'live').length
   const activeLots = auctions.filter((a: any) => a.status === 'live').length
@@ -39,8 +43,8 @@ export const Dashboard = () => {
         bg: "bg-blue-50" 
     },
     { 
-        label: "Active Lots", 
-        value: activeLots, 
+        label: "Total Inventory", 
+        value: totalLots, 
         icon: ShoppingCart, 
         color: "text-indigo-600", 
         bg: "bg-indigo-50" 
@@ -54,7 +58,7 @@ export const Dashboard = () => {
     },
     { 
         label: "Global Users", 
-        value: profiles.length, 
+        value: totalUsers, 
         icon: Users, 
         color: "text-violet-600", 
         bg: "bg-violet-50" 

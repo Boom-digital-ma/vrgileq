@@ -1,7 +1,7 @@
 'use client'
 
 import { useShow, useList } from "@refinedev/core"
-import { ArrowLeft, User, Mail, Shield, Calendar, BadgeCheck, ShieldAlert, History, Gavel } from "lucide-react"
+import { ArrowLeft, User, Mail, Shield, Calendar, BadgeCheck, ShieldAlert, History, Gavel, MapPin, Phone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
@@ -86,6 +86,28 @@ export const UserShow = () => {
                                     <ShieldAlert size={14} /> Pending ID Check
                                 </span>
                             )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-4 border-t border-zinc-50 pt-6 mt-6">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-300 mb-4">Contact & Location</h3>
+                    <div className="flex items-start gap-3 text-sm">
+                        <Phone size={16} className="text-zinc-400 mt-0.5" />
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">Phone</span>
+                            <span className="text-zinc-900 font-bold">{record?.phone || 'Not Provided'}</span>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3 text-sm">
+                        <MapPin size={16} className="text-zinc-400 mt-0.5" />
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">Address</span>
+                            <span className="text-zinc-900 font-bold leading-tight">
+                                {record?.address_line}<br/>
+                                {record?.city}, {record?.state} {record?.zip_code}<br/>
+                                {record?.country || 'USA'}
+                            </span>
                         </div>
                     </div>
                 </div>

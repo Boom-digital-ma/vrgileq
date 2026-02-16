@@ -1,7 +1,7 @@
 'use client'
 
 import { useTable, useNavigation, useDelete, useForm } from "@refinedev/core"
-import { BadgeCheck, ShieldAlert, User, Search, Plus, Trash2, ShieldCheck as StaffIcon, Loader2, Eye, Mail, Key, Save } from "lucide-react"
+import { BadgeCheck, ShieldAlert, User, Search, Plus, Trash2, ShieldCheck as StaffIcon, Loader2, Eye, Mail, Key, Save, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { Modal, ConfirmModal } from "./Modal"
@@ -17,7 +17,12 @@ export const UserList = () => {
   const profiles = tableQuery?.data?.data || []
   const isLoading = tableQuery?.isLoading
 
-  const { setFilters } = result
+  const { 
+    current,
+    setCurrent,
+    pageCount,
+    setFilters 
+  } = result as any
   const { show } = useNavigation()
   const { mutate: deleteRecord } = useDelete()
 
@@ -135,6 +140,32 @@ export const UserList = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between bg-white px-8 py-4 rounded-2xl border border-zinc-200 shadow-sm">
+            <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Directory Page</span>
+                <span className="text-xs font-black italic">{current} / {pageCount}</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <button 
+                    disabled={current === 1}
+                    onClick={() => setCurrent(current - 1)}
+                    className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400"
+                >
+                    <ArrowLeft size={16} />
+                </button>
+                <button 
+                    disabled={current === pageCount}
+                    onClick={() => setCurrent(current + 1)}
+                    className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400 rotate-180"
+                >
+                    <ArrowLeft size={16} />
+                </button>
+            </div>
+        </div>
+      )}
 
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Provision New User" maxWidth="max-w-md">
         <form onSubmit={handleCreateSubmit} className="p-8 space-y-6 font-sans">

@@ -1,7 +1,7 @@
 'use client'
 
 import { useTable, useNavigation, useDelete, useForm, useSelect } from "@refinedev/core"
-import { Edit, Trash2, Plus, Loader2, Package, Search, Save, Filter, Gavel, Eye } from "lucide-react"
+import { Edit, Trash2, Plus, Loader2, Package, Search, Save, Filter, Gavel, Eye, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import { Modal, ConfirmModal } from "./Modal"
@@ -18,7 +18,13 @@ export const AuctionList = () => {
   const isLoading = tableQuery?.isLoading
 
   const { show } = useNavigation()
-  const { setFilters, filters } = result
+  const { 
+    current,
+    setCurrent,
+    pageCount,
+    setFilters, 
+    filters 
+  } = result as any
   const { mutate: deleteRecord } = useDelete()
 
   // --- ÉTATS DES MODALES ---
@@ -114,6 +120,7 @@ export const AuctionList = () => {
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="text-zinc-400 font-bold border-b border-zinc-100 bg-zinc-50/50">
+                <th className="px-6 py-5 uppercase text-[10px] tracking-widest w-20">Lot #</th>
                 <th className="px-6 py-5 uppercase text-[10px] tracking-widest">Asset Details</th>
                 <th className="px-6 py-5 uppercase text-[10px] tracking-widest font-sans">Category</th>
                 <th className="px-6 py-5 uppercase text-[10px] tracking-widest font-sans">Activity</th>
@@ -124,6 +131,9 @@ export const AuctionList = () => {
             <tbody className="divide-y divide-zinc-100 font-sans">
               {auctions.map((auction: any) => (
                 <tr key={auction.id} className="hover:bg-zinc-50/50 transition-colors group">
+                  <td className="px-6 py-5 font-black text-zinc-900">
+                    {auction.lot_number || '---'}
+                  </td>
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
                         <span className="font-bold text-zinc-900 text-base">{auction.title}</span>
@@ -167,6 +177,32 @@ export const AuctionList = () => {
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between bg-white px-8 py-4 rounded-2xl border border-zinc-200 shadow-sm">
+            <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Page</span>
+                <span className="text-xs font-black italic">{current} / {pageCount}</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <button 
+                    disabled={current === 1}
+                    onClick={() => setCurrent(current - 1)}
+                    className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all"
+                >
+                    <ArrowLeft size={16} />
+                </button>
+                <button 
+                    disabled={current === pageCount}
+                    onClick={() => setCurrent(current + 1)}
+                    className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all rotate-180"
+                >
+                    <ArrowLeft size={16} />
+                </button>
+            </div>
+        </div>
+      )}
 
       {/* --- MODALES --- */}
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Add New Auction Lot">

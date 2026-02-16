@@ -10,17 +10,20 @@ import { logout } from "@/app/actions/auth";
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
+      setLoading(false);
     };
     fetchUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      setLoading(false);
     });
 
     return () => {
@@ -38,6 +41,20 @@ export default function Header() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+        // 1. Sign out on client
+        await supabase.auth.signOut();
+        // 2. Call server action for cleanup/cookies
+        await logout();
+        // 3. Force hard reload to reset everything
+        window.location.href = '/';
+    } catch (err) {
+        console.error("Logout failed:", err);
+        window.location.href = '/';
+    }
+  };
 
   return (
     <>
@@ -68,7 +85,7 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden gap-8 text-xs font-bold uppercase tracking-widest md:flex text-neutral">
-            <Link href="/auctions" className="hover:text-primary transition-colors">Auction</Link>
+            <Link href="/auctions" className="hover:text-primary transition-colors">Auctions</Link>
             <Link href="/buyers" className="hover:text-primary transition-colors">Buyers</Link>
             <Link href="/sellers" className="hover:text-primary transition-colors">Sellers</Link>
             <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
@@ -78,18 +95,29 @@ export default function Header() {
 
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-4">
-              {user ? (
+              {loading ? (
+                <div className="flex items-center gap-2 px-4 py-2 border-2 border-light bg-light/5 animate-pulse">
+                    <div className="h-2 w-2 rounded-full bg-primary animate-bounce"></div>
+                    <span className="text-[8px] font-black uppercase tracking-widest text-neutral/40 italic">Syncing...</span>
+                </div>
+              ) : user ? (
                 <div className="flex items-center gap-4">
-                  <Link href="/profile" className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary hover:text-secondary transition-colors">
-                    <User className="h-4 w-4" />
-                    Account
+                  <div className="hidden lg:flex flex-col items-end">
+                    <span className="text-[8px] font-black uppercase text-neutral/40 leading-none mb-1 font-sans">Authenticated</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-secondary leading-none font-display italic">{user.user_metadata?.full_name || 'My Account'}</span>
+                  </div>
+                  <Link href="/profile" className="flex items-center gap-2 group transition-all">
+                    <div className="bg-primary/10 p-2 rounded-lg border-2 border-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <User className="h-4 w-4 text-primary group-hover:text-white" />
+                    </div>
+                    <span className="lg:hidden text-xs font-black uppercase tracking-widest text-primary">Account</span>
                   </Link>
                   <button 
-                    onClick={() => logout()}
-                    className="flex items-center gap-2 bg-neutral px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-primary transition-colors"
+                    onClick={handleLogout}
+                    className="p-2 text-neutral/40 hover:text-rose-600 transition-colors border-2 border-transparent hover:border-rose-100 rounded-lg group"
+                    title="Logout"
                   >
-                    <LogOut className="h-3 w-3" />
-                    Logout
+                    <LogOut className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
@@ -133,7 +161,7 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="text-2xl font-black uppercase tracking-tighter text-secondary hover:text-primary transition-colors"
               >
-                Auction
+                Auctions
               </Link>
               <Link 
                 href="/buyers" 
@@ -170,7 +198,7 @@ export default function Header() {
                   </Link>
                   <button 
                     onClick={() => {
-                        logout();
+                        handleLogout();
                         setIsMobileMenuOpen(false);
                     }}
                     className="w-full text-center py-4 text-xs font-black uppercase tracking-widest bg-neutral text-white flex items-center justify-center gap-2"

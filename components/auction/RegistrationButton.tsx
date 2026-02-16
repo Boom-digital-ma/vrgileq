@@ -15,6 +15,7 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
   const [registering, setRegistering] = useState(false)
   const [status, setStatus] = useState<{ registered: boolean, status?: string }>({ registered: false })
   const [cards, setCards] = useState<any[]>([])
+  const [profile, setProfile] = useState<any>(null)
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   
   const [isCardModalOpen, setIsCardModalOpen] = useState(false)
@@ -30,13 +31,21 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
       if (user) {
-        const [regRes, cardsRes] = await Promise.all([
+        const [regRes, cardsRes, profileRes] = await Promise.all([
             checkRegistration(eventId),
-            getPaymentMethods()
+            getPaymentMethods(),
+            supabase.from('profiles').select('*').eq('id', user.id).single()
         ])
         setStatus(regRes)
         setCards(cardsRes)
-        if (cardsRes.length > 0) setSelectedCardId(cardsRes[0].id)
+        setProfile(profileRes.data)
+        
+        // Auto-select the default card if available
+        if (profileRes.data?.default_payment_method_id) {
+            setSelectedCardId(profileRes.data.default_payment_method_id)
+        } else if (cardsRes.length > 0) {
+            setSelectedCardId(cardsRes[0].id)
+        }
       }
       setLoading(false)
     }
@@ -112,9 +121,19 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
       {/* MODAL: Saisie nouvelle carte */}
       <Modal isOpen={isCardModalOpen} onClose={() => setIsCardModalOpen(false)} title="Secure Identity Verification" maxWidth="max-w-md">
         <div className="p-8">
-            <p className="text-[10px] text-zinc-400 font-bold uppercase mb-6 italic">
-                A valid payment method is required to authorize participation.
-            </p>
+            <div className="flex justify-between items-center mb-6">
+                <p className="text-[10px] text-zinc-400 font-bold uppercase italic">
+                    A valid payment method is required.
+                </p>
+                {cards.length > 0 && (
+                    <button 
+                        onClick={() => { setIsCardModalOpen(false); setIsSelectorOpen(true); }}
+                        className="text-[10px] font-black uppercase text-primary underline decoration-2 underline-offset-4"
+                    >
+                        Return to List
+                    </button>
+                )}
+            </div>
             <CardValidation onOptionalSuccess={async () => {
                 const newCards = await getPaymentMethods()
                 setCards(newCards)
@@ -130,25 +149,40 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
             <p className="text-[10px] text-zinc-400 font-bold uppercase italic">Choose which card to use for the ${depositAmount.toLocaleString()} authorization hold:</p>
             
             <div className="space-y-3">
-                {cards.map((card) => (
-                    <button 
-                        key={card.id}
-                        onClick={() => setSelectedCardId(card.id)}
-                        className={cn(
-                            "w-full p-4 border-2 flex items-center justify-between transition-all italic",
-                            selectedCardId === card.id ? "border-primary bg-primary/5 shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]" : "border-zinc-100 text-zinc-400 hover:border-zinc-200"
-                        )}
-                    >
-                        <div className="flex items-center gap-3 text-left">
-                            <CreditCard size={18} />
-                            <div>
-                                <p className="text-xs font-black uppercase">{card.brand} •••• {card.last4}</p>
-                                <p className="text-[10px] font-bold opacity-50 uppercase">Exp {card.exp_month}/{card.exp_year}</p>
+                {cards.map((card) => {
+                    const isDefault = card.id === profile?.default_payment_method_id;
+                    const isSelected = selectedCardId === card.id;
+                    
+                    return (
+                        <button 
+                            key={card.id}
+                            onClick={() => setSelectedCardId(card.id)}
+                            className={cn(
+                                "w-full p-4 border-2 flex items-center justify-between transition-all italic relative overflow-hidden",
+                                isSelected 
+                                    ? "border-primary bg-primary/5 shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]" 
+                                    : "border-zinc-100 text-zinc-400 hover:border-zinc-200"
+                            )}
+                        >
+                            <div className="flex items-center gap-3 text-left relative z-10">
+                                <CreditCard size={18} className={isSelected ? "text-primary" : "text-zinc-300"} />
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <p className={cn(
+                                            "text-xs font-black uppercase",
+                                            isSelected ? "text-zinc-900" : "text-zinc-400"
+                                        )}>{card.brand} •••• {card.last4}</p>
+                                        {isDefault && (
+                                            <span className="bg-primary text-white text-[6px] font-black uppercase px-1 py-0.5 shadow-[1px_1px_0px_0px_rgba(11,43,83,1)]">Primary</span>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] font-bold opacity-50 uppercase">Exp {card.exp_month}/{card.exp_year}</p>
+                                </div>
                             </div>
-                        </div>
-                        {selectedCardId === card.id && <ShieldCheck size={16} className="text-primary" />}
-                    </button>
-                ))}
+                            {isSelected && <ShieldCheck size={16} className="text-primary relative z-10" />}
+                        </button>
+                    );
+                })}
             </div>
 
             <button 

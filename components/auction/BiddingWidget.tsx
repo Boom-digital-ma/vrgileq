@@ -44,15 +44,20 @@ export default function BiddingWidget({ auctionId, initialPrice, endsAt, bids, m
 
       if (distance < 0) {
         clearInterval(timer);
-        setTimeLeft("EXPIRED");
+        setTimeLeft("AUCTION ENDED");
         return;
       }
 
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
       const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+      let timerText = "";
+      if (days > 0) timerText += `${days}d `;
+      timerText += `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+      setTimeLeft(timerText);
       setIsUrgent(distance < 24 * 60 * 60 * 1000);
     }, 1000);
 

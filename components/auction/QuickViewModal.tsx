@@ -1,12 +1,13 @@
 "use client";
 
-import { X, Gavel, Timer, Building2, Share2, Loader2, ShieldCheck, AlertCircle } from "lucide-react";
+import { X, Gavel, Timer, Building2, Share2, Loader2, ShieldCheck, AlertCircle, History } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { placeBid } from "@/app/actions/bids";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface QuickViewModalProps {
   product: {
@@ -31,6 +32,9 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid }:
   const [mounted, setMounted] = useState(false);
   const [bidAmount, setBidAmount] = useState<number>(initialBid || product.price + 100);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("");
+  const [bids, setBids] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -43,6 +47,34 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid }:
       document.body.style.overflow = "hidden";
       if (initialBid) setBidAmount(initialBid);
       
+      // Countdown logic
+      const calculateTimeLeft = () => {
+        const target = new Date(product.endsAt).getTime();
+        const now = new Date().getTime();
+        const diff = target - now;
+
+        if (diff <= 0) return "Auction Ended";
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        let parts = [];
+        if (days > 0) parts.push(`${days}d`);
+        parts.push(`${hours.toString().padStart(2, "0")}h`);
+        parts.push(`${minutes.toString().padStart(2, "0")}m`);
+        parts.push(`${seconds.toString().padStart(2, "0")}s`);
+
+        return parts.join(" ");
+      };
+
+      setTimeLeft(calculateTimeLeft());
+      const timer = setInterval(() => {
+        setTimeLeft(calculateTimeLeft());
+      }, 1000);
+      
+      // Fetch User
       supabase.auth.getUser().then(({ data }) => {
           if (data.user) {
               supabase.from('profiles').select('*').eq('id', data.user.id).single()
@@ -51,13 +83,23 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid }:
               setUserProfile(null);
           }
       });
+
+      // Fetch Bids
+      supabase.from('bids')
+        .select('*, profiles(full_name)')
+        .eq('auction_id', product.id)
+        .order('amount', { ascending: false })
+        .limit(5)
+        .then(({ data }) => setBids(data || []));
+
+      return () => {
+        clearInterval(timer);
+        document.body.style.overflow = "unset";
+      };
     } else {
       document.body.style.overflow = "unset";
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen, initialBid, supabase]);
+  }, [isOpen, initialBid, supabase, product.id, product.endsAt]);
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,54 +184,81 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid }:
               <div className="text-2xl font-black text-primary">${product.price.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-neutral/40 mb-1">Status</div>
-              <div className="text-sm font-bold text-secondary uppercase">LIVE</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-neutral/40 mb-1">Total Bids</div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-secondary uppercase">{product.bidCount} Bids</span>
+                <button 
+                    onClick={() => setShowHistory(!showHistory)}
+                    className="text-[8px] font-black uppercase text-primary underline decoration-2 underline-offset-2"
+                >
+                    {showHistory ? "Hide" : "Show History"}
+                </button>
+              </div>
             </div>
           </div>
 
-          <form onSubmit={handleBid} className="space-y-4">
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-neutral/40">$</span>
-              <input
-                type="number"
-                min={product.price + 1}
-                value={bidAmount}
-                onChange={(e) => setBidAmount(Number(e.target.value))}
-                className="w-full border-2 border-primary py-4 pl-8 pr-4 text-lg font-black focus:outline-none focus:ring-0 text-primary"
-              />
+          {showHistory ? (
+            <div className="mb-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-neutral/40 mb-4 flex items-center gap-2">
+                    <History size={12} /> Recent Activity
+                </h3>
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                    {bids.map((bid, i) => (
+                        <div key={i} className="flex justify-between items-center p-3 border-2 border-light/30 bg-light/5 text-[10px]">
+                            <span className="font-bold text-neutral uppercase">{bid.profiles?.full_name?.split(' ')[0]}***</span>
+                            <span className="font-black text-primary tabular-nums italic">${bid.amount.toLocaleString()}</span>
+                        </div>
+                    ))}
+                    {bids.length === 0 && (
+                        <p className="text-[10px] text-neutral/30 italic">No activity yet</p>
+                    )}
+                </div>
             </div>
+          ) : (
+            <form onSubmit={handleBid} className="space-y-4">
+                <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-neutral/40">$</span>
+                <input
+                    type="number"
+                    min={product.price + 1}
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(Number(e.target.value))}
+                    className="w-full border-2 border-primary py-4 pl-8 pr-4 text-lg font-black focus:outline-none focus:ring-0 text-primary"
+                />
+                </div>
 
-            {userProfile ? (
-                hasCard ? (
-                    <div className="p-4 border-2 border-secondary bg-secondary/5 flex items-center gap-3">
-                        <ShieldCheck className="h-5 w-5 text-secondary fill-secondary/20" />
-                        <div>
-                            <div className="text-[10px] font-black uppercase text-primary">Payment Authorized</div>
-                            <div className="text-[8px] font-bold text-neutral/40 uppercase tracking-widest">Card secured on file</div>
+                {userProfile ? (
+                    hasCard ? (
+                        <div className="p-4 border-2 border-secondary bg-secondary/5 flex items-center gap-3">
+                            <ShieldCheck className="h-5 w-5 text-secondary fill-secondary/20" />
+                            <div>
+                                <div className="text-[10px] font-black uppercase text-primary">Payment Authorized</div>
+                                <div className="text-[8px] font-bold text-neutral/40 uppercase tracking-widest">Card secured on file</div>
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <Link href="/profile" className="p-4 border-2 border-red-600 bg-red-50 flex items-center gap-3 group">
-                        <AlertCircle className="h-5 w-5 text-red-600" />
-                        <div>
-                            <div className="text-[10px] font-black uppercase text-red-600">Action Required</div>
-                            <div className="text-[8px] font-bold text-red-400 uppercase tracking-widest underline group-hover:text-red-600 transition-colors">Add card to bid</div>
-                        </div>
-                    </Link>
-                )
-            ) : null}
+                    ) : (
+                        <Link href="/profile" className="p-4 border-2 border-red-600 bg-red-50 flex items-center gap-3 group">
+                            <AlertCircle className="h-5 w-5 text-red-600" />
+                            <div>
+                                <div className="text-[10px] font-black uppercase text-red-600">Action Required</div>
+                                <div className="text-[8px] font-bold text-red-400 uppercase tracking-widest underline group-hover:text-red-600 transition-colors">Add card to bid</div>
+                            </div>
+                        </Link>
+                    )
+                ) : null}
 
-            {error && <div className="text-red-600 text-[10px] font-bold uppercase">{error}</div>}
+                {error && <div className="text-red-600 text-[10px] font-bold uppercase">{error}</div>}
 
-            <button 
-                type="submit"
-                disabled={loading || (userProfile && !hasCard)}
-                className="w-full flex items-center justify-center gap-2 bg-primary py-4 text-white transition-all hover:bg-secondary font-black text-sm uppercase tracking-widest active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(11,43,83,0.2)] disabled:opacity-50"
-            >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Gavel className="h-5 w-5" />}
-                {!userProfile ? "Login to Bid" : (hasCard ? `Place Bid $${bidAmount.toLocaleString()}` : "Verify Account First")}
-            </button>
-          </form>
+                <button 
+                    type="submit"
+                    disabled={loading || (userProfile && !hasCard)}
+                    className="w-full flex items-center justify-center gap-2 bg-primary py-4 text-white transition-all hover:bg-secondary font-black text-sm uppercase tracking-widest active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(11,43,83,0.2)] disabled:opacity-50"
+                >
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Gavel className="h-5 w-5" />}
+                    {!userProfile ? "Login to Bid" : (hasCard ? `Place Bid $${bidAmount.toLocaleString()}` : "Verify Account First")}
+                </button>
+            </form>
+          )}
           
           <div className="mt-6 text-center">
             <Link href={`/auctions/${product.id}`} className="text-[10px] font-black uppercase tracking-widest text-secondary underline decoration-2 underline-offset-4" onClick={onClose}>

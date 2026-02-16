@@ -5,7 +5,13 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { savePaymentMethod } from '@/app/actions/payment'
 import { Loader2, CreditCard, ShieldCheck } from 'lucide-react'
 
-export default function CardValidation({ onOptionalSuccess }: { onOptionalSuccess?: () => void }) {
+export default function CardValidation({ 
+    onOptionalSuccess, 
+    onPaymentMethodCreated 
+}: { 
+    onOptionalSuccess?: () => void,
+    onPaymentMethodCreated?: (id: string) => void
+}) {
   const stripe = useStripe()
   const elements = useElements()
   const [loading, setLoading] = useState(false)
@@ -28,8 +34,20 @@ export default function CardValidation({ onOptionalSuccess }: { onOptionalSucces
 
       if (stripeError) throw new Error(stripeError.message)
 
-      // 2. Enregistrer dans le profil
+      console.log("CLIENT: PaymentMethod created ->", paymentMethod.id)
+
+      // 2. Si on est en mode "standalone" (signup), on renvoie juste l'ID
+      if (onPaymentMethodCreated) {
+        console.log("CLIENT: Standalone mode, returning ID to parent")
+        onPaymentMethodCreated(paymentMethod.id)
+        setSuccess(true)
+        return
+      }
+
+      // 3. Sinon, on enregistre dans le profil (flux dashboard)
+      console.log("CLIENT: Dashboard mode, calling savePaymentMethod action")
       const result = await savePaymentMethod(paymentMethod.id)
+      console.log("CLIENT: savePaymentMethod result ->", result)
       
       if (!result.success) throw new Error('Failed to save payment method')
 

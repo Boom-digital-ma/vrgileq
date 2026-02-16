@@ -3,19 +3,23 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Timer, Building2, Gavel, Eye, Share2, Star } from "lucide-react";
+import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock } from "lucide-react";
 import QuickViewModal from "./QuickViewModal";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { createClient } from "@/lib/supabase/client";
 
 interface Product {
   id: string;
+  lotNumber?: string | number; // Dynamic lot number
   title: string;
   supplier: string;
   price: number;
   endsAt: string;
   image: string;
+  images?: string[]; // Multiple images for slider
   bidCount: number;
+  pickupLocation?: string;
+  pickupDate?: string;
   manufacturer?: string;
   model?: string;
   description?: string;
@@ -29,10 +33,41 @@ export default function AuctionCard({ product }: { product: Product }) {
   const [showShareTooltip, setShowShareTooltip] = useState(false);
   const [isWatched, setIsWatched] = useState(false);
   const [loadingWatch, setLoadingWatch] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<string>("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const supabase = createClient();
 
   useEffect(() => {
     setMounted(true);
+    
+    const calculateTimeLeft = () => {
+      const target = new Date(product.endsAt).getTime();
+      const now = new Date().getTime();
+      const diff = target - now;
+
+      if (diff <= 0) return "Auction Ended";
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      let parts = [];
+      if (days > 0) parts.push(`${days}d`);
+      parts.push(`${hours.toString().padStart(2, "0")}h`);
+      parts.push(`${minutes.toString().padStart(2, "0")}m`);
+      parts.push(`${seconds.toString().padStart(2, "0")}s`);
+
+      return parts.join(" ");
+    };
+
+    setTimeLeft(calculateTimeLeft());
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
     async function checkWatchlist() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -46,7 +81,24 @@ export default function AuctionCard({ product }: { product: Product }) {
         }
     }
     checkWatchlist();
-  }, [product.id, supabase]);
+
+    return () => {
+        clearInterval(timer);
+        document.body.style.overflow = "unset";
+    };
+  }, [product.id, product.endsAt, supabase]);
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  };
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
 
   const handleToggleWatch = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,25 +123,32 @@ export default function AuctionCard({ product }: { product: Product }) {
     setTimeout(() => setShowShareTooltip(false), 2000);
   };
 
-  const openQuickBid = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsModalOpen(true);
-  };
-
   return (
     <>
-      <div className="group flex flex-col border-2 border-primary transition-all hover:shadow-[8px_8px_0px_0px_rgba(11,43,83,1)] bg-white h-full">
-        <div className="relative aspect-square w-full overflow-hidden border-b-2 border-primary">
-          <Link href={`/auctions/${product.id}`}>
-            <Image
-              src={product.image}
-              alt={product.title}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-          </Link>
+      <div 
+        onClick={() => setIsModalOpen(true)}
+        className="group flex flex-col border-2 border-primary transition-all hover:shadow-[12px_12px_0px_0px_rgba(11,43,83,1)] bg-white h-full cursor-pointer relative"
+      >
+        <div className="relative aspect-square w-full overflow-hidden border-b-2 border-primary bg-light/10">
+          <Image
+            src={allImages[currentImageIndex]}
+            alt={product.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
           
+          {/* Image Slider Navigation */}
+          {allImages.length > 1 && (
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                <button onClick={handlePrevImage} className="bg-white/90 border-2 border-primary p-1.5 hover:bg-primary hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(11,43,83,1)]">
+                    <ArrowLeft size={14} />
+                </button>
+                <button onClick={handleNextImage} className="bg-white/90 border-2 border-primary p-1.5 hover:bg-primary hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(11,43,83,1)]">
+                    <ArrowRight size={14} />
+                </button>
+            </div>
+          )}
+
           {/* Icons Overlay */}
           <div className="absolute top-4 right-4 flex flex-col gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
             <button 
@@ -114,20 +173,13 @@ export default function AuctionCard({ product }: { product: Product }) {
             </button>
           </div>
 
-          <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="pointer-events-auto bg-white text-primary border-2 border-primary px-4 py-2 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary hover:text-white transition-colors shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]"
-            >
-              <Eye className="h-3 w-3" /> Quick View
-            </button>
+          <div className="absolute top-4 left-4 bg-primary px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]">
+            Lot #{product.lotNumber || product.id.slice(0,4)}
           </div>
-
-          <div className="absolute top-4 left-4 bg-primary px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white">
-            Lot #{product.id.slice(0,4)}
-          </div>
-          <div className="absolute bottom-4 right-4 bg-white border-2 border-primary px-2 py-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary shadow-[4px_4px_0px_0px_rgba(4,154,158,1)]">
-            <Timer className="h-3 w-3" /> {product.endsAt}
+          
+          {/* Detailed Countdown */}
+          <div className="absolute bottom-4 right-4 bg-white border-2 border-primary px-3 py-1.5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary shadow-[4px_4px_0px_0px_rgba(4,154,158,1)] italic">
+            <Timer className="h-3.5 w-3.5" /> {mounted ? timeLeft : "..."}
           </div>
         </div>
 
@@ -136,43 +188,39 @@ export default function AuctionCard({ product }: { product: Product }) {
           <Building2 className="h-3 w-3 text-primary" />
           <span className="text-[10px] font-black uppercase tracking-widest text-neutral/50 truncate">{product.supplier}</span>
         </div>
-        <Link href={`/auctions/${product.id}`}>
-          <h2 className="mb-4 text-lg font-black leading-tight uppercase hover:underline line-clamp-2 text-primary h-14">
-            {product.title}
-          </h2>
-        </Link>
+        
+        <h2 className="mb-4 text-lg font-black leading-tight uppercase group-hover:text-primary transition-colors line-clamp-2 italic h-14">
+          {product.title}
+        </h2>
+
+        {/* Pickup Info */}
+        {(product.pickupLocation || product.pickupDate) && (
+            <div className="mb-4 p-3 bg-light/5 border border-dashed border-primary/20 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-[8px] font-black uppercase text-neutral/40">
+                    <MapPin className="h-3 w-3 text-primary" /> 
+                    <span>Pickup: {product.pickupLocation || 'Alexandria, VA'}</span>
+                </div>
+                {product.pickupDate && (
+                    <div className="flex items-center gap-2 text-[8px] font-black uppercase text-neutral/40">
+                        <Clock className="h-3 w-3 text-primary" /> 
+                        <span>Date: {product.pickupDate}</span>
+                    </div>
+                )}
+            </div>
+        )}
 
         {/* Bidding Info */}
-        <div className="mb-6 flex items-end justify-between border-t border-light pt-4">
+        <div className="mt-auto pt-4 border-t border-light flex items-end justify-between">
           <div>
             <div className="text-[10px] font-black uppercase tracking-widest text-neutral/40 mb-1">Current Bid</div>
-            <div className="text-xl font-black text-primary">
+            <div className="text-2xl font-black text-primary italic tabular-nums">
               ${mounted ? product.price.toLocaleString() : product.price.toString()}
             </div>
           </div>
-          <div className="text-[10px] font-bold uppercase text-secondary">
-            {product.bidCount} Bids
+          <div className="flex flex-col items-end">
+            <div className="text-[10px] font-black uppercase tracking-widest text-secondary">{product.bidCount} Bids</div>
+            <div className="text-[8px] font-bold text-neutral/30 uppercase mt-1">Ref: {product.id.slice(-4)}</div>
           </div>
-        </div>
-
-        {/* Quick Bid Interface */}
-        <div className="mt-auto space-y-3">
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-neutral/40">$</span>
-            <input
-              type="number"
-              value={bidAmount}
-              onChange={(e) => setBidAmount(Number(e.target.value))}
-              className="w-full border-2 border-primary py-2 pl-6 pr-3 text-sm font-black focus:outline-none focus:ring-0 text-primary placeholder:text-neutral/20"
-            />
-          </div>
-          <button 
-            onClick={openQuickBid}
-            className="w-full flex items-center justify-center gap-2 bg-primary py-3 text-white transition-all hover:bg-secondary font-black text-xs uppercase tracking-widest active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(11,43,83,0.2)]"
-          >
-            <Gavel className="h-4 w-4" />
-            Place Quick Bid
-          </button>
         </div>
       </div>
       </div>
