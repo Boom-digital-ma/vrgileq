@@ -39,6 +39,19 @@ export default function SettingsPage() {
                 { label: "Public Support Email", name: "support_email", type: "email", placeholder: "support@virginialiquidation.com", defaultValue: settings.support_email },
                 { label: "Contact Phone", name: "support_phone", type: "text", placeholder: "(703) 555-0123", defaultValue: settings.support_phone },
             ]
+        },
+        {
+            title: "System Availability",
+            icon: Shield,
+            fields: [
+                { 
+                    label: "Maintenance Mode", 
+                    name: "maintenance_mode", 
+                    type: "checkbox", 
+                    defaultValue: settings.maintenance_mode,
+                    info: "If enabled, only logged-in admins can access the public site."
+                },
+            ]
         }
     ]
 
@@ -59,7 +72,12 @@ export default function SettingsPage() {
             <form onSubmit={(e) => {
                 e.preventDefault()
                 if (queryResult?.isError) return alert("Storage table missing. Please run migrations first.")
-                const data = Object.fromEntries(new FormData(e.currentTarget))
+                const formData = new FormData(e.currentTarget)
+                
+                const data: any = Object.fromEntries(formData.entries())
+                // Proper boolean handling for checkboxes in Refine/Supabase
+                data.maintenance_mode = formData.get('maintenance_mode') === 'on'
+                
                 onFinish(data)
             }} className="space-y-8">
                 
@@ -77,13 +95,26 @@ export default function SettingsPage() {
                                 {section.fields.map((field, fIdx) => (
                                     <div key={fIdx}>
                                         <label className={labelClasses}>{field.label}</label>
-                                        <input 
-                                            name={field.name}
-                                            type={field.type}
-                                            placeholder={field.placeholder}
-                                            defaultValue={field.defaultValue}
-                                            className={inputClasses}
-                                        />
+                                        {field.type === 'checkbox' ? (
+                                            <div className="flex items-center gap-3 p-4 bg-zinc-50 rounded-xl border border-zinc-200">
+                                                <input 
+                                                    name={field.name}
+                                                    type="checkbox"
+                                                    key={String(field.defaultValue)}
+                                                    defaultChecked={!!field.defaultValue}
+                                                    className="h-5 w-5 rounded border-zinc-300 text-primary focus:ring-primary"
+                                                />
+                                                <span className="text-[10px] font-bold text-zinc-500 italic">{(field as any).info}</span>
+                                            </div>
+                                        ) : (
+                                            <input 
+                                                name={field.name}
+                                                type={field.type}
+                                                placeholder={field.placeholder}
+                                                defaultValue={field.defaultValue}
+                                                className={inputClasses}
+                                            />
+                                        )}
                                     </div>
                                 ))}
                             </div>

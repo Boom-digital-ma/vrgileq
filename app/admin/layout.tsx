@@ -36,6 +36,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (error || !data.session) {
           return { authenticated: false, redirectTo: "/admin/login" };
         }
+
+        // VERIFY ADMIN ROLE
+        const { data: profile } = await supabaseClient
+          .from("profiles")
+          .select("role")
+          .eq("id", data.session.user.id)
+          .single();
+
+        if (profile?.role !== 'admin') {
+          // If not admin, sign out and redirect
+          await supabaseClient.auth.signOut();
+          return { authenticated: false, redirectTo: "/admin/login", error: { message: "Access Denied: Admins Only", name: "Unauthorized" } };
+        }
+
         return { authenticated: true };
       } catch (err) {
         return { authenticated: false, redirectTo: "/admin/login" };
