@@ -201,10 +201,14 @@ export default function AuctionCard({ product, user }: { product: Product, user:
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[120px]">{product.supplier}</span>
             </div>
             <div className="flex gap-1">
-                <button onClick={handleToggleWatch} className={cn(
-                    "p-2 rounded-xl transition-all border",
-                    isWatched ? "bg-primary/10 border-primary/20 text-primary" : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:text-primary hover:border-primary/20"
-                )}>
+                <button 
+                    onClick={handleToggleWatch} 
+                    aria-label={isWatched ? "Remove from Watchlist" : "Add to Watchlist"}
+                    className={cn(
+                        "p-2 rounded-xl transition-all border",
+                        isWatched ? "bg-primary/10 border-primary/20 text-primary" : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:text-primary hover:border-primary/20"
+                    )}
+                >
                     <Star size={14} className={isWatched ? "fill-current" : ""} />
                 </button>
                 <button onClick={handleShare} className="p-2 rounded-xl bg-zinc-50 border border-zinc-100 text-zinc-400 hover:text-primary hover:border-primary/20 transition-all">

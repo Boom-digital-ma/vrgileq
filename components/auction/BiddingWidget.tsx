@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp } from "lucide-react";
+import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star } from "lucide-react";
 import { placeBid } from "@/app/actions/bids";
+import { toggleWatchlist } from "@/app/actions/watchlist";
 import { checkRegistration } from "@/app/actions/registrations";
 import RegistrationButton from "./RegistrationButton";
 import { createClient } from "@/lib/supabase/client";
@@ -28,6 +29,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isWatched, setIsWatched] = useState(false);
+  const [loadingWatch, setLoadingWatch] = useState(false);
   const [settings, setSettings] = useState<any>(null);
   const router = useRouter();
   
@@ -40,8 +43,14 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user && isMounted) {
-                const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-                if (isMounted) setUserProfile(profile);
+                const [profileRes, watchRes] = await Promise.all([
+                    supabase.from('profiles').select('*').eq('id', user.id).single(),
+                    supabase.from('watchlist').select('id').eq('user_id', user.id).eq('auction_id', auctionId).maybeSingle()
+                ]);
+                if (isMounted) {
+                    setUserProfile(profileRes.data);
+                    setIsWatched(!!watchRes.data);
+                }
             }
 
             const { data: siteSettings } = await supabase.from('site_settings').select('*').eq('id', 'global').maybeSingle();
@@ -81,7 +90,25 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         isMounted = false;
         clearInterval(timer);
     };
-  }, [endsAt, supabase, eventId]);
+  }, [endsAt, supabase, eventId, auctionId]);
+
+  const handleToggleWatch = async () => {
+    if (!userProfile) {
+        router.push('/auth/signin');
+        return;
+    }
+    setLoadingWatch(true);
+    try {
+        await toggleWatchlist(auctionId);
+        const nextState = !isWatched;
+        setIsWatched(nextState);
+        toast.success(nextState ? "Added to watchlist" : "Removed from watchlist");
+    } catch (err) {
+        toast.error("Operation failed");
+    } finally {
+        setLoadingWatch(false);
+    }
+  };
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -245,6 +272,26 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
                     </div>
                 </Link>
             )
+        )}
+
+        {userProfile && (
+            <div className="flex gap-2 mb-4">
+                <button 
+                    type="button"
+                    onClick={handleToggleWatch}
+                    disabled={loadingWatch}
+                    aria-label={isWatched ? "Remove from Watchlist" : "Add to Watchlist"}
+                    className={cn(
+                        "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all",
+                        isWatched 
+                            ? "bg-primary/10 border-primary/20 text-primary" 
+                            : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:text-primary hover:border-primary/20"
+                    )}
+                >
+                    {loadingWatch ? <Loader2 size={14} className="animate-spin" /> : <Star size={14} className={isWatched ? "fill-current" : ""} />}
+                    {isWatched ? "In Watchlist" : "Add to Watchlist"}
+                </button>
+            </div>
         )}
 
         <button 

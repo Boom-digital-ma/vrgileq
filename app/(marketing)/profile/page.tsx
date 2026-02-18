@@ -396,7 +396,9 @@ export default function ProfilePage() {
                                 <div className="relative aspect-video mb-6 overflow-hidden rounded-2xl border border-zinc-50">
                                     <Image src={getOptimizedImageUrl(auction.auction_images?.[0]?.url || "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad", { width: 400 })} alt={auction.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="400px" />
                                 </div>
-                                <h3 className="font-bold uppercase text-sm mb-4 line-clamp-1 text-secondary group-hover:text-primary transition-colors">{auction.title}</h3>
+                                <Link href={`/auctions/${auction.id}`}>
+                                    <h3 className="font-bold uppercase text-sm mb-4 line-clamp-1 text-secondary group-hover:text-primary transition-colors">{auction.title}</h3>
+                                </Link>
                                 <div className="flex justify-between items-center pt-4 border-t border-zinc-50">
                                     <span className="text-xl font-bold text-secondary font-display">${auction.current_price?.toLocaleString()}</span>
                                     <Link href={`/auctions/${auction.id}`} className="bg-zinc-50 text-zinc-400 p-3 rounded-xl hover:bg-primary hover:text-white transition-all border border-zinc-100">
