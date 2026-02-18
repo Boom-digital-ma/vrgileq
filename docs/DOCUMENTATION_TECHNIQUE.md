@@ -1,54 +1,61 @@
 # 🏗️ Architecture Technique & Modules Métier
 
-Ce document détaille la structure et le fonctionnement des modules métier de la plateforme **Virginia Liquidation**.
+Ce document détaille la structure interne et le fonctionnement des modules métier de la plateforme **Virginia Liquidation**.
 
 ## 1. Structure de Données (Hiérarchie)
-Le système repose sur une structure à 3 niveaux :
-*   **Auction Events (Ventes) :** Regroupent plusieurs lots. Gèrent la date de clôture globale et le montant du dépôt de garantie (Security Hold).
-*   **Auctions (Lots) :** L'unité de base mise aux enchères. Possède son propre prix actuel, incrément minimum et statut.
-*   **Bids (Enchères) :** Historique de toutes les offres placées par les utilisateurs.
+Le système repose sur une structure à 4 niveaux :
+*   **Auction Events :** Unité temporelle et géographique (Lieu, date de fin, dépôt de garantie).
+*   **Auctions (Lots) :** Unité de vente. Possède son propre statut (`live`, `sold`, etc.) et ses caractéristiques techniques.
+*   **Bids :** Historique transactionnel lié aux autorisations Stripe.
+*   **Sales :** Couche de finalisation créée automatiquement à la clôture, gérant les taxes et le retrait.
 
-## 2. Module de Sécurité & Finance (Stripe Hold)
-C'est le coeur critique du système pour garantir le paiement :
-*   **Vérification d'Identité :** Lors du SignUp, l'utilisateur doit enregistrer une carte bancaire (via Stripe Elements).
-*   **Logique de "Hold" (Autorisation) :** 
-    *   À la première enchère sur un événement, le système effectue une demande d'autorisation Stripe de 500$ (ou montant défini).
-    *   L'argent est bloqué mais non débité (`capture_method: 'manual'`).
-    *   Une seule autorisation est faite par événement, peu importe le nombre de lots enchéris.
-*   **Capture & Libération :** À la fin de la vente, l'autorisation du gagnant est convertie en paiement réel, tandis que celles des perdants sont annulées.
+## 2. Intelligence du Moteur d'Enchères
+### Proxy Bidding (Max Bid)
+Algorithme SQL permettant aux utilisateurs de définir un plafond caché :
+*   Le système enchérit automatiquement pour le compte de l'utilisateur.
+*   Il respecte toujours l'incrément minimum (`min_increment`).
+*   La logique est gérée de manière atomique en PL/pgSQL pour garantir l'intégrité même en cas de forte concurrence.
 
-## 3. Module d'Enchères Sécurisées (RPC SQL)
-Pour éviter les problèmes de concurrence (race conditions), le placement d'enchère utilise une fonction **PostgreSQL (RPC)** appelée `place_bid_secure` :
-*   Elle verrouille la ligne du lot pendant la transaction.
-*   Vérifie en une seule opération atomique si l'enchère est supérieure au prix actuel + incrément.
-*   Met à jour le lot, crée l'entrée d'enchère et marque l'ancien meilleur enchérisseur comme "outbid".
+### Anti-Sniping (Auto-Extension)
+Protection contre les enchères de dernière seconde :
+*   Si une offre est placée moins de X minutes avant la fin (configurable dans l'admin), la date de clôture est repoussée de Y minutes.
+*   La synchronisation est maintenue en temps réel via Supabase Realtime vers tous les clients connectés.
 
-## 4. Système de Notifications & Emails (Resend)
-Le système communique avec les utilisateurs via deux canaux synchronisés :
-*   **In-App :** Table `notifications` dans Supabase pour l'affichage en temps réel sur le site.
-*   **Emails (Resend) :** 
-    *   **Outbid Alert :** Envoyé dès qu'un utilisateur perd sa place de meilleur enchérisseur.
-    *   **Winning Alert :** Envoyé automatiquement par une **Edge Function** lors de la clôture du lot.
-    *   **Authentification :** Les emails système (confirmation, reset) passent par le SMTP Resend configuré dans Supabase.
+## 3. Flux Logistique & Post-Vente
+### Facturation Automatisée
+Dès qu'un lot passe au statut `sold` :
+*   Un **Trigger SQL** génère une entrée dans la table `sales`.
+*   Le montant total est calculé : `Hammer Price + Buyer's Premium + Tax Rate`.
+*   Un numéro de facture unique (`INV-XXXX`) est attribué.
 
-## 5. Module d'Administration (Refine v5)
-Interface de gestion robuste pour les administrateurs :
-*   **Dashboard :** Statistiques en temps réel (revenus, lots actifs, stream d'enchères).
-*   **Inventory Management :** CRUD complet des événements et lots avec support multi-images.
-*   **Bid Registry :** Journal complet de toutes les transactions de la plateforme.
-*   **System Settings :** Contrôle du "Mode Maintenance", des frais acheteurs (Buyer's Premium) et des informations de contact.
+### Système de Retrait (Pickup)
+*   **Génération :** L'Admin génère des créneaux temporels (ex: 15 min d'intervalle) avec une capacité maximale.
+*   **Réservation :** Le gagnant choisit son créneau sur sa page facture. Le système décompte les places restantes via la vue `pickup_slots_with_counts`.
+*   **Gate Pass :** Document HTML sécurisé avec QR Code contenant les métadonnées de la vente, accessible uniquement après confirmation du paiement (`PAID`).
 
-## 6. Mode Maintenance
-Module permettant de verrouiller la partie publique du site :
-*   **Contrôle :** Toggle dans les paramètres admin.
-*   **Middleware (proxy.ts) :** Intercepte toutes les requêtes.
-*   **Exception :** L'administrateur connecté conserve un accès total pour tester et valider le site avant réouverture.
+## 4. Optimisation des Performances
+### Images CDN
+*   Utilisation du resizing dynamique de Supabase.
+*   Utilitaire `getOptimizedImageUrl` appliquant des paramètres de qualité et de redimensionnement côté serveur.
+*   Utilisation systématique du composant `next/image` pour le lazy-loading et le WebP.
 
-## 7. Stack Technique
-*   **Frontend :** Next.js 16 (App Router), Tailwind CSS v4.
-*   **Backend :** Supabase (Auth, DB, Realtime, Edge Functions).
-*   **Admin :** Refine v5 (Headless mode).
-*   **Services tiers :** Stripe (Paiements), Resend (Emails).
+### Data Fetching
+*   Centralisation des sessions auth pour éviter les appels N+1 dans les composants répétitifs (`AuctionCard`).
+*   Utilisation de `Turbopack` pour une compilation rapide en développement.
+
+## 5. Stratégie de Tests (E2E)
+Qualité assurée par **Playwright** :
+*   **Isolation :** Utilisation de contextes de navigation séparés.
+*   **Stripe Integration :** Remplissage automatisé de l'iframe sécurisée avec délais de frappe (`pressSequentially`).
+*   **OTP Automation :** Robot capable d'ouvrir un onglet Yopmail, d'attendre l'email de Supabase, d'extraire le code via Regex et de le valider sur le site.
+
+## 6. Administration (Refine v5)
+*   **Architecture Headless :** Utilisation des hooks Refine pour les données mais composants UI Tailwind 100% personnalisés.
+*   **Pagination Safe :** Aliasing des variables `current` et `setCurrent` pour assurer la compatibilité entre les différentes versions de TanStack Query utilisées par Refine.
+
+## 7. Sécurité & RLS
+*   **Isolation stricte :** Chaque table possède des politiques SQL garantissant qu'un utilisateur ne peut voir que ses propres factures, enchères et favoris.
+*   **Admins :** Accès total défini par le rôle `admin` dans la table `profiles`, protégé par des fonctions SQL `is_admin()`.
 
 ---
-*Document généré le 15 Février 2026 pour le MVP de Virginia Liquidation.*
+*Dernière mise à jour : 18 Février 2026.*

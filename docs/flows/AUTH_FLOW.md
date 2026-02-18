@@ -1,32 +1,30 @@
 # 🔐 Flux d'Authentification & Onboarding
 
-Ce document détaille le parcours d'un utilisateur, de la création de son compte à sa validation pour enchérir.
+Ce document détaille le parcours d'un utilisateur, de la création de son compte à sa validation finale.
 
-## 1. Inscription (Sign Up)
+## 1. Inscription Multi-Étapes (Sign Up)
 - **Route :** `/auth/signup`
+- **Étapes :**
+    1.  **Identité** : Nom complet, Email, Téléphone, Mot de passe.
+    2.  **Localisation** : Adresse physique complète (nécessaire pour la conformité fiscale et logistique).
+    3.  **Sécurité (Stripe)** : Enregistrement d'une carte bancaire via Stripe Elements. Une empreinte de 1$ est effectuée et annulée immédiatement pour valider la carte.
+    4.  **Accords** : Signature électronique des conditions générales d'enchères.
+
+## 2. Vérification d'Identité (OTP)
+- **Route :** `/auth/verify`
 - **Processus :**
-    1. L'utilisateur remplit le formulaire (Email, Mot de passe, Nom, Prénom).
-    2. Création du compte dans **Supabase Auth**.
-    3. Un trigger SQL crée automatiquement une entrée dans la table `public.profiles`.
-    4. Envoi d'un email de confirmation via Resend (configuré en SMTP dans Supabase).
+    1. Après le formulaire, un code OTP (6 à 8 chiffres) est envoyé par email.
+    2. L'utilisateur doit saisir ce code pour activer son compte.
+    3. **Technique** : Utilisation de `supabase.auth.verifyOtp`. En cas de succès, le profil est marqué comme actif et l'utilisateur est redirigé avec le flag `verified=true`.
 
-## 2. Validation de la Carte Bancaire (KYC/KYB Light)
-*Indispensable pour pouvoir placer une enchère.*
-- **Action :** `savePaymentMethod` (`app/actions/payment.ts`)
-- **Composant :** `CardValidation.tsx`
-- **Technique :**
-    1. Utilisation de **Stripe Elements** pour capturer les données bancaires de manière sécurisée (PCI Compliance).
-    2. Création (si nécessaire) d'un `Customer` Stripe lié à l'ID de profil.
-    3. **Empreinte de 1$ :** Une demande d'autorisation de 1$ est effectuée (`capture_method: manual`).
-    4. **Annulation Immédiate :** L'autorisation est annulée aussitôt. 
-    5. **Résultat :** Si l'opération réussit, le champ `is_verified` du profil passe à `true` et le `stripe_customer_id` est stocké.
-
-## 3. Connexion & Session
+## 3. Connexion (Sign In)
 - **Route :** `/auth/signin`
-- **Technique :** Session gérée par Supabase avec des cookies sécurisés (PKCE Flow).
-- **Rôles :** Le profil est récupéré pour déterminer si l'utilisateur est un `user` standard ou un `admin`.
+- **Mécanisme :** Authentification via Supabase. 
+- **Redirection Intelligente :**
+    - Redirection vers `/admin` pour les rôles `admin` ou `moderator`.
+    - Redirection vers `/auctions` (Catalogue) pour les clients.
+- **Rafraîchissement :** Utilisation de `window.location.href` ou `router.refresh()` pour garantir que le `Header` se synchronise instantanément avec la nouvelle session.
 
-## 4. Sécurité (RLS)
-- Toutes les données de profil sont protégées par des politiques **Row Level Security** :
-    - Un utilisateur ne peut lire/modifier que son propre profil.
-    - Seuls les administrateurs peuvent voir la liste de tous les profils.
+## 4. Gestion du Wallet
+- L'utilisateur peut ajouter ou supprimer des cartes bancaires depuis son profil.
+- Une carte par défaut est marquée dans Stripe et dans le profil Supabase pour les futures enchères.

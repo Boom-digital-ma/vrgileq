@@ -2,29 +2,31 @@
 
 Ce document décrit la logique métier derrière le placement d'une enchère.
 
-## 1. Pré-requis pour Enchérir
-Avant de pouvoir soumettre une offre, le système vérifie :
-- L'utilisateur est connecté.
-- Le profil est vérifié (`is_verified: true` via Stripe).
-- L'utilisateur est enregistré pour l'événement d'enchère spécifique.
+## 1. Pré-requis Opérationnels
+Avant de pouvoir soumettre une offre, le système vérifie via le middleware et les Server Actions :
+- Authentification valide.
+- Carte bancaire valide dans le Wallet.
+- **Enregistrement à l'événement** : L'utilisateur doit accepter de bloquer un dépôt de garantie (Hold Stripe) spécifique à l'événement pour activer son "Bidding Passport".
 
-## 2. Placement de l'Enchère
-- **Action :** `placeBid` (`app/actions/bids.ts`)
-- **Étapes :**
-    1. **Autorisation Stripe :** Si c'est la première enchère de l'utilisateur sur cet événement, une autorisation de sécurité (Hold) est créée.
-    2. **Appel RPC SQL :** Appel de la fonction atomique `place_bid_secure` dans PostgreSQL.
-    3. **Validation Atomique :**
-        - Vérifie que le lot est toujours `open`.
-        - Vérifie que le nouveau montant est supérieur au `current_price` + `min_increment`.
-        - Met à jour le `current_price` et le `winner_id` du lot.
-        - Enregistre la nouvelle ligne dans la table `bids`.
-        - Marque les anciennes enchères des autres utilisateurs comme `outbid`.
+## 2. Placement de l'Enchère (RPC Atomique)
+Le système utilise la fonction PostgreSQL `place_bid_secure` pour garantir l'intégrité des données sous forte charge.
+- **Verrouillage (Pessimistic Locking)** : La ligne de l'enchère est verrouillée le temps du calcul.
+- **Validation** : Vérification du statut `live`, de la date de fin et de l'incrément minimum.
+- **Exécution** : Mise à jour du prix, changement du `winner_id` et historisation dans la table `bids`.
 
-## 3. Mise à jour en Temps Réel
-- **Technologie :** Supabase Realtime.
-- **Composants :** `AuctionCard` et `BiddingWidget`.
-- **Comportement :** Dès qu'une ligne est insérée dans la table `bids` ou mise à jour dans `auctions`, tous les clients connectés reçoivent un payload JSON et mettent à jour le prix affiché instantanément sans recharger la page.
+## 3. Proxy Bidding (Système Automatisé)
+L'utilisateur peut définir un **Montant Maximum**.
+- Si un autre utilisateur enchérit, le système place immédiatement une contre-offre pour le compte de l'utilisateur proxy.
+- L'incrément automatique correspond au `min_increment` du lot.
+- Le système s'arrête dès que le plafond est atteint.
+- Le montant maximum reste strictement confidentiel dans la base de données.
 
-## 4. Anti-Sniping (Auto-Extension) - *En cours d'implémentation*
-- **Règle :** Si une enchère est placée dans les 2 dernières minutes avant la fin, le temps restant (`ends_at`) est automatiquement prolongé de 2 minutes.
-- **But :** Éviter les robots qui enchérissent à la dernière milliseconde et maximiser le prix final pour le vendeur.
+## 4. Anti-Sniping (Auto-Extension)
+Protection contre les enchères de dernière seconde :
+- **Seuil** : 2 minutes (configurable dans l'Admin).
+- **Action** : Si une enchère est placée durant ce laps de temps, la date `ends_at` est repoussée de 2 minutes supplémentaires.
+- **Synchronisation** : Les clients reçoivent la nouvelle date via Supabase Realtime et mettent à jour le chronomètre visuel instantanément.
+
+## 5. Visualisation & Real-time
+- **Payloads Realtime** : Écoute des tables `auctions` et `bids`.
+- **Historique** : Un modal permet de voir l'intégralité du stream d'enchères sur un lot pour garantir la transparence.

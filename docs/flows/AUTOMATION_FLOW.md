@@ -1,28 +1,30 @@
 # 🤖 Flux d'Automatisation & Notifications
 
-Ce document détaille les processus qui tournent en arrière-plan sans intervention humaine.
+Ce document détaille les processus autonomes pilotant l'intelligence de la plateforme.
 
 ## 1. Automatisation de la Clôture
-- **Outil :** Extension `pg_cron` dans PostgreSQL + Supabase Edge Functions.
-- **Flux :**
-    1. Une tâche planifiée vérifie chaque minute si des lots ont dépassé leur `ends_at`.
-    2. Pour chaque lot expiré, elle appelle l'Edge Function `close-auction`.
-    3. L'Edge Function :
-        - Change le statut du lot de `open` à `sold` (ou `closed` si pas d'offre).
-        - Identifie le `winner_id`.
-        - Déclenche l'envoi de l'email de succès.
+- **Mécanisme** : Extension `pg_cron` (PostgreSQL) + Edge Functions (Deno).
+- **Processus** :
+    1.  Vérification à chaque minute des lots arrivant à échéance.
+    2.  Appel de l'Edge Function `close-auction`.
+    3.  **Résolution** :
+        - Statut lot -> `sold`.
+        - Capture du Payment Intent Stripe du gagnant.
+        - Libération (cancel) des Payment Intents des perdants.
+        - Envoi de l'email de victoire avec lien vers la facture.
 
-## 2. Notifications Emails (Resend)
-- **Outbid Alert (Instantané) :** Déclenché par la Server Action de bid. Si l'ancien gagnant est différent du nouveau, un email est envoyé immédiatement.
-- **Won Email (Différé) :** Envoyé lors de la clôture officielle du lot par l'Edge Function.
-- **Welcome Email :** Envoyé lors de la confirmation d'inscription.
+## 2. Intelligence Transactionnelle (Triggers SQL)
+Le coeur de l'automatisation repose sur des déclencheurs de base de données :
+- **Auto-Invoicing** : Dès qu'une enchère est marquée `sold`, un trigger calcule les frais/taxes et crée l'enregistrement `sale`.
+- **Profile Synchronization** : Création automatique du profil utilisateur et liaison avec les métadonnées lors de l'inscription.
+- **Logistics Link** : Mise à jour automatique des capacités de retrait lors d'une réservation de créneau.
 
-## 3. Triggers Database (SQL)
-Plusieurs triggers automatisent la cohérence des données :
-- **Profile Creation :** Crée un profil public dès qu'un utilisateur s'inscrit dans Auth.
-- **Timestamps :** Mise à jour automatique des colonnes `updated_at`.
-- **Bid Counter :** (Optionnel) Incrémente le nombre de bids sur le lot pour optimiser les performances d'affichage.
+## 3. Communication Système (Resend)
+Les notifications sont orchestrées par des actions serveurs et des Edge Functions :
+- **Instantané** : Alertes de surenchère (Outbid) envoyées dès le clic de l'adversaire.
+- **Transactionnel** : Confirmation d'inscription (OTP), facture prête, et bon de sortie généré.
+- **Watchlist Alerts** : Notification automatique X minutes avant la clôture des objets suivis.
 
-## 4. Nettoyage & Maintenance
-- Suppression automatique des logs anciens.
-- Libération des autorisations Stripe périmées non capturées.
+## 4. Maintenance Automatique
+- **Cleanup** : Suppression périodique des sessions expirées.
+- **Stripe Sync** : Réconciliation automatique des statuts de paiement via Webhooks.

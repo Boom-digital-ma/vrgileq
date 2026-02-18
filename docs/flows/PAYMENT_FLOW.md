@@ -1,26 +1,28 @@
 # 💰 Flux Financier & Paiements (Stripe)
 
-Ce document explique la gestion de l'argent et des garanties bancaires.
+Ce document explique la gestion monétaire, des garanties bancaires à la facturation finale.
 
-## 1. Cycle de Vie de l'Autorisation (The Hold)
-Pour garantir le sérieux des enchérisseurs, nous utilisons le mode "Authorize & Capture".
+## 1. Dépôt de Garantie (Event Deposit)
+Le système protège les vendeurs via un dépôt obligatoire pour chaque événement.
+- **Hold Initial** : Avant de pouvoir enchérir, un montant fixe (ex: 500$) est bloqué sur la carte bancaire via un `PaymentIntent` en mode `manual capture`.
+- **Portée** : Ce hold couvre l'ensemble des lots de l'événement. Un seul hold est effectué par utilisateur et par événement.
 
-1. **Autorisation :** Lors du premier bid sur un événement, le système crée un `PaymentIntent` Stripe avec `capture_method: manual`. 
-2. **Montant :** Le montant est défini au niveau de l'événement (ex: 500$). 
-3. **Statut :** Les fonds sont bloqués sur la carte de l'utilisateur mais non prélevés. L'autorisation est valable 7 jours.
+## 2. Cycle de Vie Transactionnel
+Lors du placement d'une enchère :
+- Une autorisation correspondant au montant de l'offre peut être effectuée pour valider la solvabilité immédiate.
+- En cas de surenchère par un tiers, l'autorisation précédente est libérée (annulée).
 
-## 2. Traitement à la Clôture
-Lorsqu'un lot se termine :
+## 3. Clôture & Facturation (Post-Vente)
+Dès qu'un lot est marqué comme "Sold" :
+1.  **Capture** : Le hold de garantie peut être capturé partiellement ou totalement.
+2.  **Invoice Generation** : Un enregistrement `sale` est créé automatiquement avec :
+    - Le Hammer Price (Prix final).
+    - Le Buyer's Premium (Frais de plateforme).
+    - La Taxe de vente (calculée selon le taux en vigueur).
+3.  **Settlement** : L'utilisateur peut payer le solde via le portail ou manuellement (virement/chèque) auprès de l'administration.
 
-### Cas A : Le Gagnant
-- L'autorisation Stripe liée à son enchère gagnante est conservée.
-- À la clôture de l'événement complet, l'administrateur peut "Capturer" le montant (le prélèvement devient réel) ou libérer si le paiement est fait par un autre moyen.
+## 4. Libération des fonds (Perdants)
+Pour tous les participants n'ayant pas remporté de lots, le système déclenche une commande `cancel` sur tous les PaymentIntents restants à la clôture de l'événement, libérant les plafonds bancaires sous 24-48h.
 
-### Cas B : Les Perdants
-- Le système identifie tous les `PaymentIntent` des utilisateurs n'ayant pas gagné.
-- Une Edge Function appelle l'API Stripe pour **Annuler** (cancel) les autorisations.
-- Les fonds sont libérés instantanément sur les comptes bancaires des utilisateurs (selon les délais de leur banque).
-
-## 3. Sécurité & Compliance
-- **Zéro Stockage de Carte :** Aucune donnée de carte n'est stockée sur nos serveurs. Seul le `stripe_customer_id` et les 4 derniers chiffres (pour affichage) sont conservés via Stripe.
-- **Webhook Stripe :** Le système écoute les notifications de Stripe pour mettre à jour les statuts de paiement dans notre base de données.
+## 5. Gate Pass & Audit
+Le paiement intégral déclenche le statut `PAID`. Ce statut est le seul permettant la génération du **Gate Pass**, indispensable pour sortir l'objet de l'entrepôt.

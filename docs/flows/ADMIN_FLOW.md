@@ -1,27 +1,24 @@
 # 🛠 Flux d'Administration (Refine Dashboard)
 
-Ce document décrit les outils mis à la disposition des administrateurs pour piloter la plateforme.
+Ce document décrit les outils de pilotage mis à la disposition des administrateurs de la plateforme.
 
-## 1. Gestion des Événements (Auction Events)
-- **Concept :** Un événement est une vente aux enchères globale (ex: "Liquidation Bureau X").
-- **Fonctionnalités :**
-    - Définir les dates de début et de fin.
-    - Configurer le montant du dépôt de garantie (Security Hold).
-    - Assigner une localisation physique pour le retrait des lots.
+## 1. Gestion de l'Inventaire (Core)
+- **Auction Events** : Pilotage temporel des ventes. Configuration des dépôts de garantie et des lieux de vente.
+- **Lots Cataloging** : Gestion granulaire des actifs. Support de l'import de masse (ManyFastScan), gestion des images (désignation de l'image principale) et métadonnées techniques.
 
-## 2. Catalogage de l'Inventaire (Lots)
-- **CRUD Modals :** Ajout/Modification rapide de lots sans quitter la liste.
-- **Gestion des Images :** 
-    - Upload multiple vers le bucket Supabase Storage.
-    - Drag & drop pour réorganiser l'ordre des photos.
-- **Métadonnées Industrielles :** Champs spécifiques pour la marque (MFG), le modèle, l'année et l'état.
+## 2. Opérations Post-Vente & Logistique
+- **Sales & Invoices** : Suivi des factures générées automatiquement. Les administrateurs peuvent valider les paiements hors-ligne (Virement, Cash) pour débloquer les lots.
+- **Logistics Dashboard** : Vue temps réel des retraits.
+    - **Slot Management** : Génération automatisée de créneaux de retrait par événement (ex: toutes les 15 min).
+    - **Gate Control** : Marquage des lots comme "Collected" au moment du départ physique de l'entrepôt.
+    - **Gate Pass Verification** : Accès aux bons de sortie officiels pour audit.
 
-## 3. Modération des Utilisateurs
-- **Dashboard :** Vue d'ensemble des nouveaux inscrits.
-- **Vérification :** Possibilité de forcer la vérification d'un utilisateur ou de bannir un profil à risque.
-- **Journal des Enchères :** Consultation en temps réel de toutes les offres placées sur le site pour détecter des comportements suspects.
+## 3. Données & Utilisateurs
+- **User Registry** : Audit complet des profils, vérification des statuts Stripe et gestion des rôles (Admin/Moderator/Client).
+- **Live Bids** : Stream en direct de toutes les activités d'enchères sur la plateforme.
 
-## 4. Paramètres Système
-- **Maintenance :** Activation/Désactivation du mode maintenance global.
-- **Frais (Buyer's Premium) :** Configuration du pourcentage de frais prélevé par la plateforme sur chaque vente.
-- **Alertes :** Message global affiché sur le site pour les annonces importantes.
+## 4. Gouvernance Système (Settings)
+- **Financial Protocols** : Réglage du Buyer's Premium, du taux de taxe (`tax_rate`) et des dépôts par défaut.
+- **Bidding Engine** : Configuration de l'Anti-Sniping et activation du Proxy Bidding.
+- **Security** : Mode Maintenance global (verrouillage du site public).
+- **Communication** : Emails de support et bannières d'annonces.
