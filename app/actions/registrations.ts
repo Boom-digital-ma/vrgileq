@@ -54,8 +54,6 @@ export async function registerForEvent(eventId: string, paymentMethodId?: string
     // 4. Si un dépôt est requis (> 0), effectuer le hold Stripe
     let paymentIntentId = null
     if (Number(event.deposit_amount) > 0) {
-      console.log(`DEBUG: [REGISTRATION] Starting ${event.deposit_amount}$ hold for event ${eventId}`)
-      
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(Number(event.deposit_amount) * 100),
         currency: 'usd',
@@ -76,7 +74,6 @@ export async function registerForEvent(eventId: string, paymentMethodId?: string
       })
       
       paymentIntentId = paymentIntent.id
-      console.log("DEBUG: [REGISTRATION] Hold created ->", paymentIntentId)
     }
 
     // 5. Créer l'inscription dans Supabase
@@ -95,7 +92,6 @@ export async function registerForEvent(eventId: string, paymentMethodId?: string
         throw regError
     }
 
-    console.log("DEBUG: [REGISTRATION] Success for user", user.id)
     revalidatePath(`/events/${eventId}`)
     return { success: true }
   } catch (err: any) {

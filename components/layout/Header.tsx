@@ -1,8 +1,8 @@
 "use client";
 
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
 import { Menu, X, User, LogOut, ChevronRight, Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/app/actions/auth";
@@ -16,21 +16,37 @@ export default function Header() {
   const [loading, setLoading] = useState(true);
   const [announcement, setAnnouncement] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
-  const supabase = createClient();
+  
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      setUser(userData.user);
-      const { data: settings } = await supabase.from('site_settings').select('global_announcement').eq('id', 'global').maybeSingle();
-      if (settings?.global_announcement) setAnnouncement(settings.global_announcement);
+    // 1. Initial Session Check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       setLoading(false);
-    };
-    fetchData();
+    });
 
+    // 2. Listen for Auth Changes (Login/Logout)
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      setLoading(false);
+      
+      // Force refresh on sign in to ensure all data is fresh
+      if (event === 'SIGNED_IN') {
+        // Optionnel : window.location.reload() si vraiment récalcitrant
+      }
     });
+
+    // 3. Fetch Site Settings (Announcements)
+    const fetchSettings = async () => {
+      const { data: settings } = await supabase
+        .from('site_settings')
+        .select('global_announcement')
+        .eq('id', 'global')
+        .maybeSingle();
+      if (settings?.global_announcement) setAnnouncement(settings.global_announcement);
+    };
+    fetchSettings();
 
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -128,7 +144,11 @@ export default function Header() {
                                     {user.user_metadata?.full_name?.split(' ')[0] || 'Account'}
                                 </span>
                             </Link>
-                            <button onClick={handleLogout} className="text-zinc-300 hover:text-rose-500 transition-colors">
+                            <button 
+                                onClick={handleLogout} 
+                                aria-label="Logout"
+                                className="text-zinc-300 hover:text-rose-500 transition-colors"
+                            >
                                 <LogOut size={16} />
                             </button>
                         </div>
@@ -149,6 +169,7 @@ export default function Header() {
                     {/* Mobile Menu Toggle */}
                     <button 
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        aria-label="Toggle Menu"
                         className="lg:hidden p-2 text-zinc-600 hover:bg-zinc-50 rounded-lg transition-all"
                     >
                         {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}

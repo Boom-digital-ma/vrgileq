@@ -15,7 +15,7 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
-  // Vérifier le rôle pour rediriger au bon endroit
+  // Vérifier le rôle pour informer le client de la destination
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
@@ -24,19 +24,13 @@ export async function login(formData: FormData) {
 
   revalidatePath('/', 'layout')
 
-  if (profile?.role === 'admin' || profile?.role === 'moderator') {
-    redirect('/admin')
-  } else {
-    redirect('/auctions')
+  return { 
+    success: true, 
+    role: profile?.role || 'client' 
   }
 }
 
 export async function signup(formData: FormData, paymentMethodId?: string) {
-  console.log("DEBUG: Signup Action Called", { 
-    email: formData.get('email'), 
-    hasPaymentMethod: !!paymentMethodId,
-    paymentMethodId 
-  })
   const supabase = await createClient()
   const email = formData.get('email') as string
   const password = formData.get('password') as string
@@ -82,21 +76,16 @@ export async function signup(formData: FormData, paymentMethodId?: string) {
             metadata: { user_id: data.user.id }
         })
 
-        console.log("DEBUG: Stripe Customer Created ->", customer.id)
-
         await stripe.paymentMethods.attach(paymentMethodId, { customer: customer.id })
         await stripe.customers.update(customer.id, {
             invoice_settings: { default_payment_method: paymentMethodId },
         })
-
-        console.log("DEBUG: Payment Method Attached to Customer")
 
         // Small delay to ensure DB trigger has finished creating the profile
         await new Promise(resolve => setTimeout(resolve, 1000))
 
         // Use UPSERT to be absolutely sure the record exists with the customer ID
         const adminSupabase = createAdminClient()
-        console.log("DEBUG: Attempting Profile Upsert for User ->", data.user.id)
         
         const { error: updateError } = await adminSupabase
             .from('profiles')
@@ -115,10 +104,8 @@ export async function signup(formData: FormData, paymentMethodId?: string) {
             }, { onConflict: 'id' })
 
         if (updateError) {
-            console.error("DEBUG ERROR: Profile Upsert Failed ->", updateError.message)
-        } else {
-            console.log("DEBUG SUCCESS: Profile Updated with Customer ID ->", customer.id)
-        }
+            console.error("Profile Upsert Failed:", updateError.message)
+        } 
 
     } catch (stripeErr: any) {
         console.error("Non-critical Stripe error during signup:", stripeErr.message)

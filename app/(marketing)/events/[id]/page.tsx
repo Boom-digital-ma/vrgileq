@@ -5,12 +5,24 @@ import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, Chev
 import RegistrationButton from '@/components/auction/RegistrationButton'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: event } = await supabase.from('auction_events').select('title, description').eq('id', id).single()
+  
+  return {
+    title: event?.title || "Auction Event",
+    description: event?.description?.slice(0, 160) || "Participate in this industrial auction event at Virginia Liquidation.",
+  }
+}
 
 export default async function EventPage({ 
     params,
     searchParams
 }: { 
-    params: { id: string },
+    params: Promise<{ id: string }>,
     searchParams: Promise<{ category?: string, page?: string }>
 }) {
   const { id } = await params

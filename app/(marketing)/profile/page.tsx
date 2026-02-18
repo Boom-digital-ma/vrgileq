@@ -11,7 +11,7 @@ import CardValidation from '@/components/auth/CardValidation'
 import { getPaymentMethods, deletePaymentMethod, setDefaultPaymentMethod } from '@/app/actions/payment'
 import { changeEmail } from '@/app/actions/auth'
 import { updateProfile, deleteAccount } from '@/app/actions/users'
-import { cn } from '@/lib/utils'
+import { cn, getOptimizedImageUrl } from '@/lib/utils'
 import { toast } from 'sonner'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -394,7 +394,7 @@ export default function ProfilePage() {
                           data.watchlist.map((auction) => (
                             <div key={auction.id} className="bg-white border border-zinc-100 p-5 rounded-[32px] group hover:border-primary/20 transition-all hover:shadow-xl hover:shadow-secondary/5 italic">
                                 <div className="relative aspect-video mb-6 overflow-hidden rounded-2xl border border-zinc-50">
-                                    <Image src={auction.auction_images?.[0]?.url || "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad"} alt={auction.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="400px" />
+                                    <Image src={getOptimizedImageUrl(auction.auction_images?.[0]?.url || "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad", { width: 400 })} alt={auction.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="400px" />
                                 </div>
                                 <h3 className="font-bold uppercase text-sm mb-4 line-clamp-1 text-secondary group-hover:text-primary transition-colors">{auction.title}</h3>
                                 <div className="flex justify-between items-center pt-4 border-t border-zinc-50">
@@ -469,7 +469,7 @@ function AuctionRow({ auction, bidAmount, status, isWon, saleId }: { auction: an
   return (
     <div className="flex flex-col md:flex-row items-center gap-8 bg-white border border-zinc-100 p-6 rounded-[32px] group hover:border-primary/20 transition-all hover:shadow-xl hover:shadow-secondary/5 italic">
       <div className="relative h-24 w-full md:w-40 shrink-0 overflow-hidden rounded-2xl border border-zinc-50">
-        <Image src={imgUrl} alt={auction.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="200px" />
+        <Image src={getOptimizedImageUrl(imgUrl, { width: 200 })} alt={auction.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="200px" />
       </div>
       
       <div className="flex-1 min-w-0 text-center md:text-left">

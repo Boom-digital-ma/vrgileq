@@ -11,7 +11,7 @@ import { checkRegistration } from "@/app/actions/registrations";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, getOptimizedImageUrl } from "@/lib/utils";
 
 interface Product {
   id: string;
@@ -157,7 +157,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
         <Link href={`/auctions/${product.id}`} className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100">
           <div className="absolute inset-0">
             <Image
-              src={allImages[currentImageIndex]}
+              src={getOptimizedImageUrl(allImages[currentImageIndex], { width: 600 })}
               alt={product.title}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-105"

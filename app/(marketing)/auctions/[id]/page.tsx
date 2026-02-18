@@ -5,6 +5,18 @@ import BiddingWidget from '@/components/auction/BiddingWidget'
 import { Timer, Gavel, ArrowLeft, Building2, Package, ShieldCheck, Info, MapPin, Clock, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: lot } = await supabase.from('auctions').select('title, description').eq('id', id).single()
+  
+  return {
+    title: lot?.title || "Lot Detail",
+    description: lot?.description?.slice(0, 160) || "Bid on this industrial asset at Virginia Liquidation.",
+  }
+}
 
 export default async function AuctionDetailPage({ params }: { params: { id: string } }) {
   const { id } = await params

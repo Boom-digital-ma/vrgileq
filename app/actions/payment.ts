@@ -10,7 +10,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function savePaymentMethod(paymentMethodId: string) {
   try {
-    console.log("DEBUG: [V2-SECURE] savePaymentMethod called ->", paymentMethodId)
     const supabase = await createClient()
     const adminSupabase = createAdminClient()
     
@@ -21,7 +20,6 @@ export async function savePaymentMethod(paymentMethodId: string) {
     let customerId = profile?.stripe_customer_id
 
     if (!customerId) {
-      console.log("DEBUG: Creating new Stripe Customer...")
       const customer = await stripe.customers.create({
         email: user.email!,
         name: profile?.full_name || user.email,
@@ -31,11 +29,9 @@ export async function savePaymentMethod(paymentMethodId: string) {
     }
 
     // 1. Attach
-    console.log("DEBUG: [STEP 1] Attaching to:", customerId)
     await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId })
 
-    // 2. Hold 1$
-    console.log("DEBUG: [STEP 2] $1 Hold attempt...")
+    // 2. Hold 1$ to verify
     const intent = await stripe.paymentIntents.create({
       amount: 100,
       currency: 'usd',
@@ -46,7 +42,6 @@ export async function savePaymentMethod(paymentMethodId: string) {
       capture_method: 'manual',
       payment_method_types: ['card'],
     })
-    console.log("DEBUG: [STEP 3] Hold success, cancelling ID:", intent.id)
     await stripe.paymentIntents.cancel(intent.id)
 
     // 3. Set Default
@@ -56,12 +51,11 @@ export async function savePaymentMethod(paymentMethodId: string) {
 
     await adminSupabase.from('profiles').update({ is_verified: true }).eq('id', user.id)
     
-    console.log("DEBUG: [FINISH] Card saved and verified")
     revalidatePath('/profile')
     return { success: true }
 
   } catch (error: any) {
-    console.error("DEBUG GLOBAL ERROR:", error.message)
+    console.error("Payment method error:", error.message)
     return { success: false, error: error.message }
   }
 }
@@ -72,17 +66,13 @@ export async function deletePaymentMethod(paymentMethodId: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    console.log("DEBUG: deletePaymentMethod called for ID ->", paymentMethodId)
-
     // Detach the payment method from the customer in Stripe
     await stripe.paymentMethods.detach(paymentMethodId)
-
-    console.log("DEBUG SUCCESS: Card detached from Stripe")
     
     revalidatePath('/profile')
     return { success: true }
   } catch (error: any) {
-    console.error("DEBUG ERROR: Failed to delete card ->", error.message)
+    console.error("Delete card error:", error.message)
     return { success: false, error: error.message }
   }
 }
@@ -111,7 +101,7 @@ export async function setDefaultPaymentMethod(paymentMethodId: string) {
     revalidatePath('/profile')
     return { success: true }
   } catch (error: any) {
-    console.error("DEBUG ERROR: Failed to set default card ->", error.message)
+    console.error("Set default card error:", error.message)
     return { success: false, error: error.message }
   }
 }

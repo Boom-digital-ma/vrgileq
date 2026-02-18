@@ -4,6 +4,12 @@ import { Calendar, Gavel, MapPin, ArrowRight, Package, LayoutGrid, SlidersHorizo
 import { cn } from '@/lib/utils'
 import SearchBar from '@/components/layout/SearchBar'
 import AuctionCard from '@/components/auction/AuctionCard'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: "Live Auctions Catalog",
+  description: "Explore our comprehensive catalog of upcoming and live industrial auctions. Find machinery, commercial furniture, and surplus tech equipment.",
+}
 
 export default async function AuctionsPage({
   searchParams,

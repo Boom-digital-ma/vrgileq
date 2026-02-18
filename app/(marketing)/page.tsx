@@ -5,6 +5,12 @@ import HeroSlider from "@/components/layout/HeroSlider";
 import SearchBar from "@/components/layout/SearchBar";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Premium Industrial Auction Marketplace",
+  description: "Bid on high-quality industrial assets, commercial equipment, and surplus machinery. Virginia's leading marketplace for technical liquidations and estate sales.",
+};
 
 export default async function HomePage() {
   const supabase = await createClient();

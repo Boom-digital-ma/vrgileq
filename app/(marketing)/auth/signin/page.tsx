@@ -6,17 +6,28 @@ import Link from 'next/link'
 import { Gavel, Loader2, AlertCircle, User, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+import { useRouter } from 'next/navigation'
+
 export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
     setError(null)
     const result = await login(formData)
+    
     if (result?.error) {
       setError(result.error)
       setLoading(false)
+    } else if (result?.success) {
+      // FORCE FULL RELOAD TO ENSURE HEADER UPDATES
+      if (result.role === 'admin' || result.role === 'moderator') {
+        window.location.href = '/admin'
+      } else {
+        window.location.href = '/auctions'
+      }
     }
   }
 
