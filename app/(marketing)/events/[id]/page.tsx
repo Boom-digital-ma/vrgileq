@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import AuctionCard from '@/components/auction/AuctionCard'
-import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel } from 'lucide-react'
+import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, ChevronRight, SlidersHorizontal, MapPin, Package } from 'lucide-react'
 import RegistrationButton from '@/components/auction/RegistrationButton'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -19,6 +19,8 @@ export default async function EventPage({
   const PAGE_SIZE = 12
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+
   // 1. Fetch event details
   const { data: event } = await supabase
     .from('auction_events')
@@ -28,19 +30,18 @@ export default async function EventPage({
 
   if (!event) notFound()
 
-  // 2. Fetch all categories present in THIS event for the sidebar
+  // 2. Fetch categories present in THIS event
   const { data: eventCategories } = await supabase
     .from('auctions')
     .select('categories(id, name)')
     .eq('event_id', id)
     .not('category_id', 'is', null)
 
-  // Deduplicate categories
   const uniqueCategories = Array.from(new Set(eventCategories?.map(c => JSON.stringify(c.categories))))
     .map(s => JSON.parse(s))
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  // 3. Fetch lots for this event (filtered by category if selected)
+  // 3. Fetch lots
   let query = supabase
     .from('auctions')
     .select('*, categories(name), bids(count), auction_images(url), auction_events(location), lot_number', { count: 'exact' })
@@ -59,15 +60,14 @@ export default async function EventPage({
 
   const totalPages = Math.ceil((count || 0) / PAGE_SIZE)
 
-  // 4. Mapper les données Supabase vers le format attendu par AuctionCard
   const mappedLots = lots?.map(lot => ({
     id: lot.id,
+    event_id: lot.event_id,
     lotNumber: lot.lot_number,
     title: lot.title,
     supplier: lot.categories?.name || "Industrial Liquidation",
     price: Number(lot.current_price),
     endsAt: lot.ends_at,
-    // PRIORITÉ ABSOLUE À image_url défini dans l'admin
     image: lot.image_url || "/images/placeholder.jpg",
     images: [
         ...(lot.image_url ? [lot.image_url] : []),
@@ -80,121 +80,164 @@ export default async function EventPage({
   })) || []
 
   return (
-    <div className="min-h-screen bg-light/20 pb-20 font-sans">
-      {/* Event Banner */}
-      <div className="bg-white border-b-4 border-secondary pt-20 pb-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-10">
+    <div className="min-h-screen bg-zinc-50 pb-20 font-sans antialiased text-secondary">
+      {/* SaaS Premium Event Header */}
+      <div className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
             <div className="max-w-3xl">
-              <span className="bg-primary text-white px-4 py-1 font-black uppercase text-[10px] tracking-[0.2em] mb-4 inline-block italic">
-                Auction Event: {event.status}
-              </span>
-              <h1 className="text-5xl font-black uppercase tracking-tighter mb-6 leading-none italic">{event.title}</h1>
-              <p className="text-neutral/60 font-medium italic text-lg leading-relaxed mb-8">{event.description}</p>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-1 w-8 bg-primary rounded-full" />
+                <span className="bg-primary/5 text-primary px-3 py-1 rounded-full font-bold uppercase text-[10px] tracking-widest border border-primary/10 italic">
+                    {event.status} Event
+                </span>
+              </div>
               
-              <div className="flex flex-wrap gap-8">
-                <div className="flex items-center gap-3">
-                  <div className="bg-zinc-100 p-2"><Timer className="text-primary" size={24} /></div>
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[0.9] italic font-display uppercase">
+                {event.title}
+              </h1>
+              
+              <p className="text-zinc-400 font-medium italic text-lg md:text-xl leading-relaxed mb-10 uppercase">
+                {event.description}
+              </p>
+              
+              <div className="flex flex-wrap gap-10 border-t border-zinc-50 pt-10">
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
+                    <Timer className="text-primary" size={24} />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase text-neutral/40 leading-none">Ending Date</p>
-                    <p className="font-bold text-secondary">{new Date(event.ends_at).toLocaleString()}</p>
+                    <p className="text-[10px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Ending On</p>
+                    <p className="font-bold text-secondary italic uppercase">{new Date(event.ends_at).toLocaleDateString()} @ {new Date(event.ends_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="bg-zinc-100 p-2"><ShieldCheck className="text-primary" size={24} /></div>
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
+                    <ShieldCheck className="text-primary" size={24} />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase text-neutral/40 leading-none">Bidding Deposit</p>
-                    <p className="font-bold text-secondary">${Number(event.deposit_amount).toLocaleString()}</p>
+                    <p className="text-[10px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Bidding Hold</p>
+                    <p className="font-bold text-secondary italic uppercase">${Number(event.deposit_amount).toLocaleString()}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Registration Card */}
-            <div className="w-full lg:w-[380px] bg-secondary p-8 border-4 border-primary shadow-[12px_12px_0px_0px_rgba(4,154,158,0.2)] text-white italic">
-              <h3 className="text-xl font-black uppercase tracking-tighter mb-4">Bidding Authorization</h3>
-              <p className="text-xs font-medium text-white/60 mb-6 leading-relaxed">
-                To participate in this auction, a fully refundable deposit of ${Number(event.deposit_amount).toLocaleString()} is required to verify your bidding capacity.
-              </p>
-              
-              <RegistrationButton eventId={event.id} depositAmount={Number(event.deposit_amount)} />
-              
-              <div className="mt-4 flex items-center gap-2 text-[10px] text-white/40 font-bold uppercase tracking-wider">
-                <Info size={14} /> Identity and credit verification active
+            {/* Premium Registration Card */}
+            <div className="w-full lg:w-[400px] bg-secondary rounded-[40px] p-10 relative overflow-hidden shadow-2xl shadow-secondary/20 italic text-white group hover:-translate-y-1 transition-all duration-500">
+              <div className="relative z-10">
+                <h3 className="text-2xl font-bold uppercase tracking-tight mb-4 font-display">Bidding <span className="text-primary">Passport</span></h3>
+                <p className="text-sm font-medium text-white/50 mb-8 leading-relaxed">
+                    A security deposit of ${Number(event.deposit_amount).toLocaleString()} is required to enable bidding protocols for this event. 
+                </p>
+                
+                <RegistrationButton eventId={event.id} depositAmount={Number(event.deposit_amount)} />
+                
+                <div className="mt-6 flex items-center gap-2 text-[10px] text-white/30 font-bold uppercase tracking-widest">
+                    <Info size={14} className="text-primary" /> Verified members only
+                </div>
               </div>
+              {/* Background Glow */}
+              <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-primary/20 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-700" />
             </div>
           </div>
         </div>
+        {/* Subtle texture background */}
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent opacity-50" />
       </div>
 
-      {/* Main Grid Content */}
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      {/* Grid Content Section */}
+      <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="flex flex-col lg:flex-row gap-12">
-            {/* Sidebar: Categories */}
-            <aside className="lg:w-64 shrink-0 space-y-8">
-                <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary mb-6 border-b-2 border-primary pb-2 italic">Filter Items</h3>
-                    <nav className="flex flex-col gap-2">
-                        <Link 
-                            href={`/events/${id}`}
-                            className={cn(
-                                "px-4 py-3 text-[10px] font-black uppercase tracking-widest border-2 transition-all",
-                                !category ? "bg-primary text-white border-primary shadow-[4px_4px_0px_0px_rgba(11,43,83,1)] italic" : "text-neutral border-transparent hover:border-light hover:bg-white"
-                            )}
-                        >
-                            Complete Catalog
-                        </Link>
-                        {uniqueCategories.map((cat: any) => (
+            {/* SaaS Refined Sidebar */}
+            <aside className="lg:w-64 shrink-0">
+                <div className="sticky top-32 space-y-10">
+                    <div>
+                        <div className="flex items-center gap-2 mb-6">
+                            <SlidersHorizontal size={14} className="text-primary" />
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary italic">Inventory Categories</h3>
+                        </div>
+                        <nav className="flex flex-col gap-1.5">
                             <Link 
-                                key={cat.id}
-                                href={`/events/${id}?category=${cat.id}`}
+                                href={`/events/${id}`}
                                 className={cn(
-                                    "px-4 py-3 text-[10px] font-black uppercase tracking-widest border-2 transition-all",
-                                    category === cat.id ? "bg-primary text-white border-primary shadow-[4px_4px_0px_0px_rgba(11,43,83,1)] italic" : "text-neutral border-transparent hover:border-light hover:bg-white"
+                                    "px-4 py-3 text-[11px] font-bold uppercase tracking-tight border flex items-center justify-between rounded-xl transition-all",
+                                    !category 
+                                        ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10" 
+                                        : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-300"
                                 )}
                             >
-                                {cat.name}
+                                All Lots
+                                {!category && <ChevronRight size={14} className="text-primary" />}
                             </Link>
-                        ))}
-                    </nav>
-                </div>
+                            {uniqueCategories.map((cat: any) => (
+                                <Link 
+                                    key={cat.id}
+                                    href={`/events/${id}?category=${cat.id}`}
+                                    className={cn(
+                                        "px-4 py-3 text-[11px] font-bold uppercase tracking-tight border flex items-center justify-between rounded-xl transition-all",
+                                        category === cat.id 
+                                            ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10" 
+                                            : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-300"
+                                    )}
+                                >
+                                    {cat.name}
+                                    {category === cat.id && <ChevronRight size={14} className="text-primary" />}
+                                </Link>
+                            ))}
+                        </nav>
+                    </div>
 
-                <div className="p-6 bg-primary text-white border-2 border-primary shadow-[8px_8px_0px_0px_rgba(11,43,83,1)]">
-                    <h4 className="font-black uppercase text-[10px] mb-2 tracking-widest">Inspection Info</h4>
-                    <p className="text-[9px] font-bold opacity-80 uppercase leading-relaxed">Most items available for on-site inspection by appointment. Contact support for details.</p>
+                    <div className="bg-primary/10 rounded-3xl p-6 border border-primary/20 italic">
+                        <h4 className="font-bold uppercase text-[10px] text-primary mb-3 tracking-widest flex items-center gap-2">
+                            <MapPin size={12} /> Inspection
+                        </h4>
+                        <p className="text-[10px] font-medium text-primary/70 uppercase leading-relaxed leading-relaxed">Most items available for on-site inspection. Contact support to schedule.</p>
+                    </div>
                 </div>
             </aside>
 
-            {/* Catalog Grid */}
+            {/* Lot Catalog Grid */}
             <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-4 mb-12 border-b-2 border-light pb-6">
-                    <LayoutGrid className="text-primary" size={24} />
-                    <h2 className="text-3xl font-black uppercase tracking-tighter italic">
-                        {category ? 'Filtered Results' : 'Active Catalog'} 
-                        <span className="text-primary opacity-50 ml-2">/ {count} Lots</span>
-                    </h2>
+                <div className="flex items-center justify-between mb-12 border-b border-zinc-200 pb-8">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
+                            <LayoutGrid size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase italic">
+                                {category ? 'Filtered Selection' : 'Event Catalog'}
+                            </h2>
+                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{count} Assets available</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     {mappedLots.map((product) => (
-                        <AuctionCard key={product.id} product={product} />
+                        <AuctionCard key={product.id} product={product} user={user} />
                     ))}
                 </div>
 
-                {/* Pagination */}
+                {/* SaaS Pagination */}
                 {totalPages > 1 && (
-                    <Pagination 
-                        currentPage={currentPage} 
-                        totalPages={totalPages} 
-                        baseUrl={`/events/${id}`} 
-                        queryParams={{ category }}
-                    />
+                    <div className="mt-16 pt-12 border-t border-zinc-100">
+                        <Pagination 
+                            currentPage={currentPage} 
+                            totalPages={totalPages} 
+                            baseUrl={`/events/${id}`} 
+                            queryParams={{ category }}
+                        />
+                    </div>
                 )}
 
                 {mappedLots.length === 0 && (
-                    <div className="py-20 text-center border-4 border-dashed border-light rounded-xl italic bg-white/50">
-                        <p className="text-neutral/20 font-black uppercase text-4xl leading-none">No items found in this category</p>
-                        <Link href={`/events/${id}`} className="mt-6 inline-block bg-primary text-white px-6 py-3 font-black uppercase text-[10px] tracking-widest">View All Items</Link>
+                    <div className="py-32 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic">
+                        <Package size={48} className="mx-auto text-zinc-100 mb-6" />
+                        <p className="text-zinc-300 font-bold uppercase text-2xl tracking-tighter">No assets found in this category</p>
+                        <Link href={`/events/${id}`} className="mt-8 inline-flex items-center gap-2 bg-secondary text-white px-8 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary transition-all">
+                            View Full Catalog <ArrowRight size={14} />
+                        </Link>
                     </div>
                 )}
             </div>
@@ -225,39 +268,37 @@ function Pagination({
     }
 
     return (
-        <div className="flex justify-center items-center gap-4">
+        <div className="flex justify-center items-center gap-3">
             <Link 
                 href={currentPage > 1 ? buildUrl(currentPage - 1) : '#'}
                 className={cn(
-                    "px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] border-2 border-primary transition-all shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]",
-                    currentPage === 1 ? "opacity-30 cursor-not-allowed" : "bg-white text-primary hover:bg-primary hover:text-white active:translate-y-1 active:shadow-none"
+                    "px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all",
+                    currentPage === 1 ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95"
                 )}
             >
                 Prev
             </Link>
-            
             <div className="flex items-center gap-2">
                 {Array.from({ length: totalPages }).map((_, i) => (
                     <Link 
                         key={i}
                         href={buildUrl(i + 1)}
                         className={cn(
-                            "w-10 h-10 flex items-center justify-center text-[10px] font-black border-2 transition-all",
+                            "w-10 h-10 flex items-center justify-center text-[10px] font-bold border rounded-xl transition-all",
                             currentPage === i + 1 
-                                ? "bg-primary text-white border-primary shadow-[4px_4px_0px_0px_rgba(11,43,83,1)] scale-110 italic" 
-                                : "bg-white text-neutral border-light hover:border-primary"
+                                ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10 italic scale-110" 
+                                : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-200"
                         )}
                     >
                         {i + 1}
                     </Link>
                 ))}
             </div>
-
             <Link 
                 href={currentPage < totalPages ? buildUrl(currentPage + 1) : '#'}
                 className={cn(
-                    "px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] border-2 border-primary transition-all shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]",
-                    currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "bg-white text-primary hover:bg-primary hover:text-white active:translate-y-1 active:shadow-none"
+                    "px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all",
+                    currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95"
                 )}
             >
                 Next

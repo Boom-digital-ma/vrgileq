@@ -3,231 +3,215 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronRight, Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/app/actions/auth";
+import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [announcement, setAnnouncement] = useState<string | null>(null);
+  const [scrolled, setScrolled] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
+    const fetchData = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      setUser(userData.user);
+      const { data: settings } = await supabase.from('site_settings').select('global_announcement').eq('id', 'global').maybeSingle();
+      if (settings?.global_announcement) setAnnouncement(settings.global_announcement);
       setLoading(false);
     };
-    fetchUser();
+    fetchData();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
-      setLoading(false);
     });
+
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       authListener.subscription.unsubscribe();
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [supabase]);
 
-  // Close menu on resize if switching to desktop
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   const handleLogout = async () => {
     try {
-        // 1. Sign out on client
         await supabase.auth.signOut();
-        // 2. Call server action for cleanup/cookies
         await logout();
-        // 3. Force hard reload to reset everything
         window.location.href = '/';
     } catch (err) {
-        console.error("Logout failed:", err);
         window.location.href = '/';
     }
   };
 
   return (
     <>
-      {/* Utility Bar */}
-      <div className="bg-primary py-2 px-6 text-[10px] font-bold uppercase tracking-widest text-white/90">
-        <div className="mx-auto flex max-w-7xl justify-between items-center">
-          <div className="hidden md:flex gap-6">
-            <span className="cursor-pointer hover:text-secondary transition-colors">Get Text Alerts</span>
-            <span className="cursor-pointer hover:text-secondary transition-colors">Newsletter</span>
-            <span className="cursor-pointer hover:text-secondary transition-colors">Sell With Us</span>
-          </div>
-          <div className="mx-auto md:mx-0 font-black tracking-tighter">(703) 768-9000</div>
-        </div>
+      {/* Grouped Sticky Container for Announcement + Menu */}
+      <div className="sticky top-0 z-50 w-full">
+        {/* Announcement Bar - Now inside the sticky wrapper */}
+        {announcement && (
+            <div className="bg-secondary text-white py-2 px-6 border-b border-white/5 overflow-hidden">
+                <div className="mx-auto flex max-w-7xl items-center justify-center gap-4">
+                    <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/70 italic flex items-center gap-2">
+                        <span className="h-1 w-1 bg-primary rounded-full animate-pulse" />
+                        {announcement}
+                    </p>
+                    <Link href="/auctions" className="text-[8px] md:text-[9px] font-black uppercase text-primary hover:text-white transition-colors border-b border-primary/30">
+                        Details
+                    </Link>
+                </div>
+            </div>
+        )}
+
+        {/* Main Navigation - Integrated with Backdrop Blur */}
+        <header className={cn(
+            "w-full transition-all duration-300 ease-in-out border-b",
+            scrolled 
+                ? "bg-white/90 backdrop-blur-md border-zinc-200 py-3 shadow-sm" 
+                : "bg-white border-zinc-100 py-5"
+        )}>
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
+                {/* Logo */}
+                <Link href="/" className="relative h-8 w-32 md:h-10 md:w-48 transition-opacity hover:opacity-80 shrink-0">
+                    <Image
+                        src="/images/logo-virginia-transparent.png"
+                        alt="Virginia Liquidation"
+                        fill
+                        className="object-contain object-left"
+                        priority
+                    />
+                </Link>
+
+                                            {/* Desktop Navigation */}
+                                            <nav className="hidden lg:flex items-center gap-2">
+                                                {[
+                                                    { name: 'Home', href: '/' },
+                                                    { name: 'Auctions', href: '/auctions' },
+                                                    { name: 'Buyers', href: '/buyers' },
+                                                    { name: 'Sellers', href: '/sellers' },
+                                                    { name: 'About', href: '/about' },
+                                                    { name: 'Contact', href: '/contact' },
+                                                                    ].map((item) => {
+                                                                        const isActive = item.href === '/' 
+                                                                            ? pathname === '/' 
+                                                                            : pathname.startsWith(item.href) || (item.name === 'Auctions' && pathname.startsWith('/events'));
+                                                                        return (
+                                                                            <Link 
+                                                                                key={item.name} 
+                                                                                href={item.href} 
+                                                                                className={cn(
+                                                                                    "px-4 py-2 text-[11px] font-bold uppercase tracking-widest transition-all italic rounded-xl",
+                                                                                    isActive 
+                                                                                        ? "text-primary bg-primary/5" 
+                                                                                        : "text-zinc-500 hover:text-primary"
+                                                                                )}
+                                                                            >
+                                                                                {item.name}
+                                                                            </Link>
+                                                                        );
+                                                                    })}                                            </nav>                {/* Actions */}
+                <div className="flex items-center gap-4">
+                    {loading ? (
+                        <div className="h-8 w-24 bg-zinc-50 animate-pulse rounded-lg" />
+                    ) : user ? (
+                        <div className="flex items-center gap-3">
+                            <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-50 border border-zinc-100 hover:border-primary/20 transition-all group">
+                                <User size={14} className="text-zinc-400 group-hover:text-primary" />
+                                <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tight italic">
+                                    {user.user_metadata?.full_name?.split(' ')[0] || 'Account'}
+                                </span>
+                            </Link>
+                            <button onClick={handleLogout} className="text-zinc-300 hover:text-rose-500 transition-colors">
+                                <LogOut size={16} />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Link href="/auth/signin" className="text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 px-3">
+                                Sign In
+                            </Link>
+                            <Link 
+                                href="/auth/signup" 
+                                className="bg-secondary text-white px-5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-primary transition-all shadow-lg shadow-secondary/5 italic"
+                            >
+                                Join
+                            </Link>
+                        </div>
+                    )}
+
+                    {/* Mobile Menu Toggle */}
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="lg:hidden p-2 text-zinc-600 hover:bg-zinc-50 rounded-lg transition-all"
+                    >
+                        {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                    </button>
+                </div>
+            </div>
+        </header>
       </div>
 
-      {/* Main Header */}
-      <header className="border-b border-light bg-white sticky top-0 z-50">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 md:px-1 py-4 md:py-6">
-          <Link href="/" className="relative h-12 w-48 md:h-16 md:w-64 transition-opacity hover:opacity-80">
-            <Image
-              src="/images/logo-virginia-transparent.png"
-              alt="Virginialequidation"
-              fill
-              className="object-contain object-left"
-              priority
-            />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden gap-8 text-xs font-bold uppercase tracking-widest md:flex text-neutral">
-            <Link href="/auctions" className="hover:text-primary transition-colors">Auctions</Link>
-            <Link href="/buyers" className="hover:text-primary transition-colors">Buyers</Link>
-            <Link href="/sellers" className="hover:text-primary transition-colors">Sellers</Link>
-            <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
-            <Link href="/engage" className="hover:text-primary transition-colors">Engage us</Link>
-            <Link href="/contact" className="hover:text-primary transition-colors">Contact us</Link>
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-4">
-              {loading ? (
-                <div className="flex items-center gap-2 px-4 py-2 border-2 border-light bg-light/5 animate-pulse">
-                    <div className="h-2 w-2 rounded-full bg-primary animate-bounce"></div>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-neutral/40 italic">Syncing...</span>
-                </div>
-              ) : user ? (
-                <div className="flex items-center gap-4">
-                  <div className="hidden lg:flex flex-col items-end">
-                    <span className="text-[8px] font-black uppercase text-neutral/40 leading-none mb-1 font-sans">Authenticated</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-secondary leading-none font-display italic">{user.user_metadata?.full_name || 'My Account'}</span>
-                  </div>
-                  <Link href="/profile" className="flex items-center gap-2 group transition-all">
-                    <div className="bg-primary/10 p-2 rounded-lg border-2 border-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                        <User className="h-4 w-4 text-primary group-hover:text-white" />
-                    </div>
-                    <span className="lg:hidden text-xs font-black uppercase tracking-widest text-primary">Account</span>
-                  </Link>
-                  <button 
-                    onClick={handleLogout}
-                    className="p-2 text-neutral/40 hover:text-rose-600 transition-colors border-2 border-transparent hover:border-rose-100 rounded-lg group"
-                    title="Logout"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <Link href="/auth/signin" className="text-xs font-bold uppercase tracking-widest text-primary hover:opacity-80">Sign In</Link>
-                  <Link href="/auth/signup" className="bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-secondary transition-colors">Join</Link>
-                </>
-              )}
-            </div>
-            
-            {/* Mobile Menu Toggle */}
-            <button 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 text-primary border-2 border-primary hover:bg-primary hover:text-white transition-all"
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu Drawer */}
-        <div className={`fixed inset-0 z-[100] md:hidden transition-all duration-500 ${isMobileMenuOpen ? "visible" : "invisible pointer-events-none"}`}>
-          {/* Overlay */}
-          <div 
-            className={`absolute inset-0 bg-primary/40 backdrop-blur-sm transition-opacity duration-500 ${isMobileMenuOpen ? "opacity-100" : "opacity-0"}`}
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
+      {/* Mobile Menu - Drawer */}
+      <div className={cn(
+            "fixed inset-0 z-[100] lg:hidden transition-all duration-500",
+            isMobileMenuOpen ? "visible" : "invisible pointer-events-none"
+        )}>
+          <div className={cn("absolute inset-0 bg-secondary/20 backdrop-blur-sm transition-opacity duration-500", isMobileMenuOpen ? "opacity-100" : "opacity-0")} onClick={() => setIsMobileMenuOpen(false)} />
           
-          {/* Menu Content */}
-          <div className={`absolute top-0 right-0 h-full w-[80%] max-w-xs bg-white border-l-4 border-primary p-8 transition-transform duration-500 shadow-2xl ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
+          <div className={cn(
+            "absolute top-0 right-0 h-full w-full max-w-sm bg-white p-8 transition-transform duration-500 shadow-2xl flex flex-col",
+            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          )}>
             <div className="flex justify-between items-center mb-12">
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary">Menu</span>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="text-primary hover:rotate-90 transition-transform">
-                <X className="h-8 w-8" />
-              </button>
+              <div className="relative h-8 w-32">
+                <Image src="/images/logo-virginia-transparent.png" alt="Logo" fill className="object-contain object-left" />
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-zinc-400"><X size={24} /></button>
             </div>
 
-            <nav className="flex flex-col gap-6 mb-12">
-              <Link 
-                href="/auctions" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-2xl font-black uppercase tracking-tighter text-secondary hover:text-primary transition-colors"
-              >
-                Auctions
-              </Link>
-              <Link 
-                href="/buyers" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-2xl font-black uppercase tracking-tighter text-secondary hover:text-primary transition-colors"
-              >
-                Buyers
-              </Link>
-              <Link 
-                href="/sellers" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-2xl font-black uppercase tracking-tighter text-secondary hover:text-primary transition-colors"
-              >
-                Sellers
-              </Link>
-              <Link 
-                href="/about" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-2xl font-black uppercase tracking-tighter text-secondary hover:text-primary transition-colors"
-              >
-                About Us
-              </Link>
+            <nav className="flex flex-col gap-1 mb-auto">
+              {['Home', 'Auctions', 'Buyers', 'Sellers', 'About', 'Contact'].map((item) => {
+                const href = item === 'Home' ? '/' : `/${item.toLowerCase()}`;
+                const isActive = href === '/' 
+                    ? pathname === '/' 
+                    : pathname.startsWith(href) || (item === 'Auctions' && pathname.startsWith('/events'));
+                return (
+                    <Link 
+                        key={item}
+                        href={href} 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn(
+                            "flex items-center justify-between py-4 px-4 rounded-2xl text-xl font-bold transition-all font-display italic uppercase",
+                            isActive 
+                                ? "text-primary bg-primary/5 border-l-4 border-primary" 
+                                : "text-secondary hover:text-primary hover:bg-zinc-50"
+                        )}
+                    >
+                        {item} <ChevronRight size={18} className={cn(isActive ? "text-primary" : "text-zinc-200")} />
+                    </Link>
+                );
+              })}
             </nav>
 
-            <div className="pt-8 border-t border-light flex flex-col gap-4">
+            <div className="pt-8 space-y-4">
               {user ? (
-                <>
-                  <Link 
-                    href="/profile" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-4 text-xs font-black uppercase tracking-widest border-2 border-primary text-primary flex items-center justify-center gap-2"
-                  >
-                    <User className="h-4 w-4" /> Account
-                  </Link>
-                  <button 
-                    onClick={() => {
-                        handleLogout();
-                        setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full text-center py-4 text-xs font-black uppercase tracking-widest bg-neutral text-white flex items-center justify-center gap-2"
-                  >
-                    <LogOut className="h-4 w-4" /> Logout
-                  </button>
-                </>
+                <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="w-full flex items-center justify-center py-4 rounded-xl font-bold bg-secondary text-white italic">My Account</Link>
               ) : (
-                <>
-                  <Link 
-                    href="/auth/signin" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-4 text-xs font-black uppercase tracking-widest border-2 border-primary text-primary"
-                  >
-                    Sign In
-                  </Link>
-                  <Link 
-                    href="/auth/signup" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-4 text-xs font-black uppercase tracking-widest bg-primary text-white"
-                  >
-                    Join Now
-                  </Link>
-                </>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link href="/auth/signin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center py-4 rounded-xl font-bold bg-zinc-50 text-secondary border border-zinc-100">Sign In</Link>
+                  <Link href="/auth/signup" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center py-4 rounded-xl font-bold bg-primary text-white">Join</Link>
+                </div>
               )}
             </div>
           </div>
         </div>
-      </header>
     </>
   );
 }

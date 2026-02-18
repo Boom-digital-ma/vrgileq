@@ -1,62 +1,52 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #464646; /* Outer Space */
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+
+  --color-primary: #049A9E;
+  --color-secondary: #0B2B53;
+  --color-light: #DADADA;
+  --color-neutral: #464646;
+
+  /* SaaS Premium Shadow Definitions */
+  --shadow-premium: 0 10px 15px -3px rgba(11, 43, 83, 0.05), 0 4px 6px -2px rgba(11, 43, 83, 0.02);
+  --shadow-premium-hover: 0 20px 25px -5px rgba(4, 154, 158, 0.1), 0 10px 10px -5px rgba(4, 154, 158, 0.04);
+}
+
+@layer base {
+  body {
+    @apply bg-zinc-50 text-neutral antialiased;
+  }
+}
+
+@layer components {
+  /* SaaS Premium Card Style */
+  .saas-card {
+    @apply bg-white border border-zinc-200/80 rounded-2xl transition-all duration-300 shadow-sm;
+  }
   
-  /* Palette */
-  --outer-space: #464646;
-  --viridian: #049A9E; /* Teal / Turquoise */
-  --gainsboro: #DADADA;
-  --prussian-blue: #0B2B53;
+  .saas-card:hover {
+    @apply border-primary/30 shadow-xl -translate-y-1;
+  }
+
+  /* SaaS Premium Button */
+  .saas-button-primary {
+    @apply bg-primary text-white px-6 py-3 rounded-xl font-bold text-sm tracking-tight transition-all duration-200 hover:brightness-110 active:scale-95 shadow-md shadow-primary/20 flex items-center justify-center gap-2;
+  }
+
+  .saas-button-secondary {
+    @apply bg-white text-secondary border border-zinc-200 px-6 py-3 rounded-xl font-bold text-sm tracking-tight transition-all duration-200 hover:bg-zinc-50 active:scale-95 flex items-center justify-center gap-2;
+  }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-urbanist), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-
-  --color-primary: var(--viridian);
-  --color-secondary: var(--prussian-blue);
-  --color-neutral: var(--outer-space);
-  --color-light: var(--gainsboro);
+/* Custom Scrollbar for SaaS look */
+::-webkit-scrollbar {
+  width: 8px;
 }
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+::-webkit-scrollbar-track {
+  @apply bg-zinc-100;
 }
-
-/* Industrial Typography: Urbanist for all "Display" elements */
-h1, h2, h3, h4, h5, h6, 
-.font-bold, .font-semibold, .font-black {
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
-}
-
-h1, h2, h3 {
-  letter-spacing: -0.04em;
-}
-
-/* Refined Utility Classes */
-.tracking-tighter {
-  letter-spacing: -0.05em;
-}
-
-.tracking-tight {
-  letter-spacing: -0.025em;
-}
-
-/* Ensure Manrope is used for regular text even if nested in bold containers occasionally */
-p, span, li, td, th, input, button {
-  font-family: inherit;
-}
-
-.font-mono {
-  font-family: var(--font-mono);
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-300 rounded-full hover:bg-zinc-400 transition-colors;
 }

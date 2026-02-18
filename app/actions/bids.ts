@@ -12,19 +12,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function placeBid({
   auctionId,
   amount,
+  maxBidAmount,
   paymentMethodId, // Optionnel si déjà enregistré
 }: {
   auctionId: string
   amount: number
+  maxBidAmount?: number
   paymentMethodId?: string
 }) {
   const supabase = await createClient()
 
-  // 1. Get User
+  // ... (previous logic for user and auction details)
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  // 2. Fetch Auction & Previous Winner details for Email
   const { data: auction } = await supabase
     .from('auctions')
     .select('title, winner_id')
@@ -44,7 +45,6 @@ export async function placeBid({
     }
   }
 
-  // 3. Get Current Bidder Profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('stripe_customer_id, default_payment_method_id')
@@ -74,19 +74,20 @@ export async function placeBid({
       payment_method: finalPaymentMethodId,
       capture_method: 'manual',
       confirm: true,
-      off_session: true, // Crucial for automatic/outbid logic
+      off_session: true,
       description: `Bid on auction ${auctionId}`,
       metadata: { auction_id: auctionId, user_id: user.id },
     }, {
       idempotencyKey: `bid_${user.id}_${auctionId}_${amount}_${Date.now()}`,
     })
 
-    // 5. Call Supabase RPC
+    // 5. Call Supabase RPC with Max Bid support
     const { error: rpcError } = await supabase.rpc('place_bid_secure', {
       p_auction_id: auctionId,
       p_user_id: user.id,
       p_amount: amount,
       p_stripe_pi_id: paymentIntent.id,
+      p_max_amount: maxBidAmount || null
     })
 
     if (rpcError) {

@@ -21,51 +21,61 @@ export default function ForgotPasswordPage() {
       setError(result.error)
       setLoading(false)
     } else {
-      // Rediriger vers la vérification OTP avec l'email en paramètre
       router.push(`/auth/verify?email=${encodeURIComponent(email)}&type=recovery`)
     }
   }
 
+  const labelClasses = "block text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4 mb-2"
+  const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none"
+
   return (
-    <div className="min-h-screen bg-light/10 flex items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-md bg-white border-4 border-primary shadow-[12px_12px_0px_0px_rgba(11,43,83,1)] p-8">
-        <div className="flex flex-col items-center mb-8">
-          <Link href="/auth/signin" className="self-start mb-6 text-[10px] font-black uppercase tracking-widest text-neutral/40 flex items-center gap-2 hover:text-primary transition-colors">
-            <ArrowLeft size={14} /> Back to Login
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 font-sans text-secondary italic">
+      <div className="w-full max-w-md bg-white rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-10 md:p-12 relative overflow-hidden">
+        
+        <div className="flex flex-col items-center mb-12 relative z-10">
+          <Link href="/auth/signin" className="self-start mb-10 text-[9px] font-bold uppercase tracking-widest text-zinc-300 flex items-center gap-2 hover:text-primary transition-colors group">
+            <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> Return to Access Room
           </Link>
-          <div className="bg-primary p-3 mb-4">
-            <KeyRound className="h-8 w-8 text-white" />
+          <div className="h-16 w-16 bg-primary/10 rounded-[24px] flex items-center justify-center text-primary mb-8 shadow-inner">
+            <KeyRound size={32} />
           </div>
-          <h1 className="text-3xl font-black uppercase tracking-tighter text-primary">Reset Access</h1>
-          <p className="text-neutral/50 text-[10px] font-black uppercase tracking-widest mt-2">Recover Your Account</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Account <span className="text-primary">Recovery</span>.</h1>
+          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4">Initiate Security Protocol</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-2 border-red-600 text-red-600 text-xs font-bold uppercase flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
+          <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-bold uppercase flex items-center gap-3">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
           </div>
         )}
 
-        <form action={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-neutral/50 mb-2">Registered Email</label>
+        <form action={handleSubmit} className="space-y-8 relative z-10">
+          <div className="space-y-2">
+            <label className={labelClasses}>Registered Mail</label>
             <input 
               name="email" 
               type="email" 
               required 
-              className="w-full border-2 border-primary p-3 font-bold focus:outline-none focus:bg-light/5 text-primary"
-              placeholder="EMAIL@EXAMPLE.COM"
+              className={inputClasses}
+              placeholder="EMAIL@DOMAIN.COM"
             />
           </div>
 
           <button 
             disabled={loading}
-            className="w-full bg-primary py-4 text-white font-black uppercase tracking-widest hover:bg-secondary transition-all active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(11,43,83,0.2)] disabled:opacity-50"
+            className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : "Send Secure Code"}
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Transmit Recovery Link"}
           </button>
         </form>
+
+        <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-300 italic">Virginia Liquidation • Identity Protection active</p>
+        </div>
+
+        {/* Decorative background element */}
+        <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-primary/5 blur-[100px] rounded-full" />
       </div>
     </div>
   )

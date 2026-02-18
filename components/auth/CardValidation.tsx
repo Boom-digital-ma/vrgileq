@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { savePaymentMethod } from '@/app/actions/payment'
-import { Loader2, CreditCard, ShieldCheck } from 'lucide-react'
+import { Loader2, CreditCard, ShieldCheck, AlertCircle, Lock } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export default function CardValidation({ 
     onOptionalSuccess, 
@@ -26,7 +27,6 @@ export default function CardValidation({
     setError(null)
 
     try {
-      // 1. Créer le PaymentMethod
       const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: elements.getElement(CardElement)!,
@@ -34,21 +34,13 @@ export default function CardValidation({
 
       if (stripeError) throw new Error(stripeError.message)
 
-      console.log("CLIENT: PaymentMethod created ->", paymentMethod.id)
-
-      // 2. Si on est en mode "standalone" (signup), on renvoie juste l'ID
       if (onPaymentMethodCreated) {
-        console.log("CLIENT: Standalone mode, returning ID to parent")
         onPaymentMethodCreated(paymentMethod.id)
         setSuccess(true)
         return
       }
 
-      // 3. Sinon, on enregistre dans le profil (flux dashboard)
-      console.log("CLIENT: Dashboard mode, calling savePaymentMethod action")
       const result = await savePaymentMethod(paymentMethod.id)
-      console.log("CLIENT: savePaymentMethod result ->", result)
-      
       if (!result.success) throw new Error('Failed to save payment method')
 
       setSuccess(true)
@@ -62,55 +54,62 @@ export default function CardValidation({
 
   if (success) {
     return (
-      <div className="bg-green-50 border-2 border-green-600 p-6 flex flex-col items-center text-center">
-        <ShieldCheck className="h-12 w-12 text-green-600 mb-4" />
-        <h3 className="font-black uppercase text-green-600">Account Verified</h3>
-        <p className="text-xs font-bold text-green-800 mt-2">Your payment method has been secured.</p>
+      <div className="bg-emerald-50 border border-emerald-100 p-8 rounded-[32px] flex flex-col items-center text-center italic animate-in zoom-in-95 duration-500">
+        <div className="bg-white p-3 rounded-full shadow-sm mb-6">
+            <ShieldCheck className="h-10 w-10 text-emerald-500" />
+        </div>
+        <h3 className="font-bold uppercase text-emerald-700 font-display text-xl tracking-tight">Transmission Secure</h3>
+        <p className="text-[10px] font-bold text-emerald-600/70 mt-2 uppercase tracking-widest">Your digital wallet has been synchronized.</p>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-2 border-primary p-6 bg-white shadow-[8px_8px_0px_0px_rgba(11,43,83,1)]">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-primary p-2">
-            <CreditCard className="h-5 w-5 text-white" />
+    <form onSubmit={handleSubmit} className="bg-white p-2 rounded-[32px] italic">
+      <div className="p-8 space-y-8">
+        <div className="flex items-center gap-4">
+            <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <Lock size={22} />
+            </div>
+            <div>
+                <h3 className="font-bold uppercase text-secondary font-display text-lg tracking-tight">Payment Protocol</h3>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Stripe-encrypted verification</p>
+            </div>
         </div>
-        <div>
-            <h3 className="font-black uppercase text-sm leading-none">Security Verification</h3>
-            <p className="text-[10px] font-bold text-neutral/40 uppercase mt-1">A $1 authorization will be performed</p>
+
+        <div className="p-6 bg-zinc-50 border-2 border-zinc-100 rounded-2xl shadow-inner transition-all focus-within:border-primary/20 focus-within:bg-white">
+            <CardElement options={{
+            style: {
+                base: {
+                fontSize: '16px',
+                color: '#0B2B53',
+                fontFamily: 'Plus Jakarta Sans, sans-serif',
+                '::placeholder': { color: '#94A3B8' },
+                },
+            }
+            }} />
+        </div>
+
+        {error && (
+            <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-[10px] font-bold uppercase flex items-center gap-3 animate-in slide-in-from-top-2">
+                <AlertCircle size={16} /> {error}
+            </div>
+        )}
+
+        <button
+            disabled={loading || !stripe}
+            className="w-full bg-secondary text-white py-5 rounded-2xl font-bold uppercase tracking-[0.1em] hover:bg-primary transition-all active:scale-[0.98] shadow-xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
+        >
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck size={18} />}
+            Synchronize Card
+        </button>
+        
+        <div className="pt-6 border-t border-zinc-50">
+            <p className="text-[8px] font-bold text-zinc-300 uppercase text-center leading-loose">
+                By executing this protocol, you authorize Virginia Liquidation to perform a temporary $1 authorization to validate your credentials. Funds are never permanently withdrawn.
+            </p>
         </div>
       </div>
-
-      <div className="p-4 border-2 border-light bg-light/5 mb-6">
-        <CardElement options={{
-          style: {
-            base: {
-              fontSize: '16px',
-              color: '#0B2B53',
-              '::placeholder': { color: '#aab7c4' },
-            },
-          }
-        }} />
-      </div>
-
-      {error && (
-        <div className="text-red-600 text-[10px] font-black uppercase mb-4 p-2 bg-red-50 border border-red-200">
-          {error}
-        </div>
-      )}
-
-      <button
-        disabled={loading || !stripe}
-        className="w-full bg-primary py-4 text-white font-black uppercase tracking-widest hover:bg-secondary transition-all active:translate-y-1 disabled:opacity-50"
-      >
-        {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : "Verify & Save Card"}
-      </button>
-      
-      <p className="text-[8px] font-bold text-neutral/30 uppercase mt-4 text-center leading-relaxed">
-        By verifying, you authorize Virginia Liquidation to perform a temporary $1 hold to validate your card. 
-        This is not a permanent charge.
-      </p>
     </form>
   )
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Upload, X, Loader2, Image as ImageIcon, Plus } from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 interface ImageUploadProps {
@@ -43,8 +44,9 @@ export const ImageUpload = ({ onUpload, defaultValues = [] }: ImageUploadProps) 
 
       setImages(uploadedUrls)
       onUpload(uploadedUrls)
+      toast.success(`${files.length} images uploaded`)
     } catch (error: any) {
-      alert(error.message)
+      toast.error(error.message)
     } finally {
       setUploading(false)
     }
@@ -67,6 +69,21 @@ export const ImageUpload = ({ onUpload, defaultValues = [] }: ImageUploadProps) 
           <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-zinc-200 group bg-zinc-50">
             <img src={url} alt={`Upload ${index}`} className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-zinc-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                {index !== 0 && (
+                    <button 
+                        type="button"
+                        onClick={() => {
+                            const newImages = [...images];
+                            const [selected] = newImages.splice(index, 1);
+                            newImages.unshift(selected);
+                            setImages(newImages);
+                            onUpload(newImages);
+                        }}
+                        className="px-3 py-1.5 bg-zinc-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+                    >
+                        Make Main
+                    </button>
+                )}
                 <button 
                     type="button"
                     onClick={() => removeImage(index)}

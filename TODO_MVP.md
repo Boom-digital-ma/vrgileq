@@ -4,38 +4,69 @@ This document tracks the current state of the project and remaining tasks to rea
 
 ## 🛠 Technical Specificities (DO NOT FORGET)
 - **Refine v5 Architecture**: This project uses a specific version of Refine.
-  - **Data Access**: Hooks like `useTable`, `useList`, and `useShow` return a nested TanStack Query object.
-  - **Path**: Always use `result.tableQuery.data.data` (for tables) or `result.query.data.data` (for lists/show).
-  - **Auth**: A manual `authProvider` is implemented in `layout.tsx` to sync Supabase Auth with Refine.
 - **Hierarchical Structure**: `Auction Events` (Events) -> `Auctions` (Lots).
 - **Security**: Mandatory credit card authorization hold via Stripe manual capture before bidding.
 
-## ✅ Completed Milestones
-- [x] **Hierarchical Admin**: Events management with nested Lots cataloging.
-- [x] **Modal CRUD**: All creation and edition (Auctions, Categories, Users) handled via modern modals.
-- [x] **Multi-Image Support**: Support for multiple photos per lot with Supabase Storage integration.
-- [x] **SaaS UI**: Zinc-based professional administration interface.
-- [x] **Public Catalog**: "Swiss Style" industrial design for events and lots display.
-- [x] **Multi-Card Wallet**: Users can store multiple payment methods in their profile.
-- [x] **Real-time Engine**: Supabase Realtime enabled for bidding streams.
-- [x] **Automated Notifications**: Real-time "Outbid" alerts (SQL Trigger) and "Winning" notifications (Edge Function).
-- [x] **Auction Closing Automation**: Automated lot transition from `live` to `sold` via `pg_cron` and Edge Function.
-- [x] **Public Search & Discovery**: Functional search bar connecting Home Page to a dedicated results view on `/auctions`.
+## 📋 PRIORITY 1: Core Engine & Financial Security (Completed)
 
-## 📋 Remaining Tasks (The "Final Touches")
+### 1. Anti-Sniping (Auto-Extension)
+- [x] **Database Logic:** Update `place_bid_secure` RPC to check `ends_at`.
+- [x] **Rule:** If bid is placed < 2 mins before end, extend by 2 mins.
+- [x] **Real-time:** UI updates immediately via Realtime subscription.
 
-### 1. External Email Integration
-- [x] Integration with Resend for email delivery of notifications (Outbid alerts, Winning notifications).
-- [x] Automated winning emails in Edge Functions and Outbid alerts in Server Actions.
+### 2. Max Bid (Proxy Bidding)
+- [x] **Logic:** Allow user to set a hidden maximum amount.
+- [x] **Automation:** System auto-bids by `min_increment` up to the max cap.
+- [x] **Admin Control:** Toggle Proxy Bidding on/off in System Settings.
 
-### 2. Financial Logic Polish
-- [ ] Automatic release of Stripe holds for non-winners after auction close (logic present in Edge Function, needs integration testing).
+## 📋 PRIORITY 2: Bidding Experience & Visuals (Completed)
 
-### 3. Visual Identity & Polish
-- [x] Unify public typography using **Urbanist** (Headings) and **Manrope** (Body).
-- [x] Update Favicon and ensure brand consistency across all transactional pages (SignIn, SignUp).
-- [x] Mobile optimization audit and responsive fix for the Admin Console (Sidebar & Layout).
-- [ ] Implement a system-wide Toast notification system (e.g., "Logged in successfully", "Bid placed").
+### 1. SaaS Premium Visual Overhaul
+- [x] **Identity:** Complete redesign with "SaaS Premium" aesthetic (Plus Jakarta Sans, Geist, Glassmorphism).
+- [x] **Components:** Modernized AuctionCard (Full Image), Header, Footer, Auth Pages (SignIn/Up), and Profile.
+- [x] **UX:** Removed native alerts for `sonner` toasts; streamlined Bidding Authorization flow.
+
+### 2. Admin Modernization
+- [x] **Event Edit:** Fixed empty fields and loading states in Admin modals using direct fetch.
+- [x] **Image Management:** Added "Make Main" functionality for lot images.
+- [x] **Reliability:** Secured data fetching for Admin Tables and Edit forms.
+
+### 3. Dynamic Rules
+- [x] **Settings:** Manage Buyer's Premium, Anti-Sniping, and Announcements from Admin.
+- [x] **Maintenance:** Real-time Maintenance Mode with auto-reload for clients.
+
+### 4. Performance Optimization
+- [x] **Auth Check:** Centralized user session fetching in parent pages (Auctions, Events) to prevent N+1 API calls in AuctionCards.
+- [x] **Image Optimization:** Implemented `sizes` prop and `priority` handling for LCP images.
+
+## 📋 PRIORITY 3: Post-Auction & Logistics (Current Focus)
+
+### 1. Winner Invoicing System
+- [x] **Web Page:** Create dynamic route `/invoices/[id]` with "Print/Download PDF".
+- [x] **Data:** Display Hammer Price + Buyer's Premium + Taxes = Total.
+- [x] **Email Content:** Enhance Winning email with direct link to Invoice.
+
+### 2. Pickup Scheduling System
+- [x] **Database:** Create `pickup_slots` table linked to events.
+- [x] **Workflow:** Auto-generate 15-min slots; winners must book via Profile/Invoice.
+
+### 3. Admin Sales Management
+- [x] **New Page:** `/admin/sales` list with status badges (Paid, Pending, Refunded).
+- [x] **Logistics:** `/admin/logistics` dashboard for warehouse pickup management.
+- [x] **Receipts:** A4-optimized HTML print view (Gate Pass) with QR Code for gate verification.
 
 ---
-*Last updated: February 15, 2026*
+
+## ✅ Completed Milestones
+- [x] **Hierarchical Admin**: Events management with nested Lots cataloging.
+- [x] **Modal CRUD**: All creation and edition handled via modern modals with reliable pre-filling.
+- [x] **Stripe Hold Logic**: Initial implementation of manual capture ($500 hold).
+- [x] **Real-time Engine**: Supabase Realtime enabled for prices and maintenance mode.
+- [x] **Email Integration**: Resend configured for Outbid, Won & Watchlist alerts.
+- [x] **Search**: Functional search bar connecting Home to Catalog.
+- [x] **Visual Identity**: Full transition to **SaaS Premium** style (Header, Footer, Cards, Auth, Profile).
+- [x] **Direct Bidding**: Bid quickly from Auction Cards with integrated authorization check.
+- [x] **Performance**: Optimized images (sizes prop) and hydration fixes.
+
+---
+*Last updated: February 18, 2026*

@@ -9,7 +9,7 @@ import { Modal, ConfirmModal } from "./Modal"
 export const AuctionList = () => {
   const result = useTable({
     resource: "auctions",
-    meta: { select: "*, categories(name), bids(id)" },
+    meta: { select: "*, auction_events(title), bids(id)" },
     pagination: { pageSize: 10 }
   })
 
@@ -19,12 +19,17 @@ export const AuctionList = () => {
 
   const { show } = useNavigation()
   const { 
-    current,
+    current = 1,
     setCurrent,
-    pageCount,
+    currentPage = 1,
+    setCurrentPage,
+    pageCount = 1,
     setFilters, 
     filters 
   } = result as any
+
+  const activePage = currentPage || current
+  const setActivePage = setCurrentPage || setCurrent
   const { mutate: deleteRecord } = useDelete()
 
   // --- ÉTATS DES MODALES ---
@@ -120,9 +125,10 @@ export const AuctionList = () => {
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="text-zinc-400 font-bold border-b border-zinc-100 bg-zinc-50/50">
-                <th className="px-6 py-5 uppercase text-[10px] tracking-widest w-20">Lot #</th>
+                <th className="px-6 py-5 uppercase text-[10px] tracking-widest w-20 text-center">Lot #</th>
+                <th className="px-6 py-5 uppercase text-[10px] tracking-widest w-16">Item</th>
                 <th className="px-6 py-5 uppercase text-[10px] tracking-widest">Asset Details</th>
-                <th className="px-6 py-5 uppercase text-[10px] tracking-widest font-sans">Category</th>
+                <th className="px-6 py-5 uppercase text-[10px] tracking-widest font-sans">Event</th>
                 <th className="px-6 py-5 uppercase text-[10px] tracking-widest font-sans">Activity</th>
                 <th className="px-6 py-5 uppercase text-[10px] tracking-widest font-sans text-right">Value</th>
                 <th className="px-6 py-5 uppercase text-[10px] tracking-widest font-sans text-right">Actions</th>
@@ -131,8 +137,19 @@ export const AuctionList = () => {
             <tbody className="divide-y divide-zinc-100 font-sans">
               {auctions.map((auction: any) => (
                 <tr key={auction.id} className="hover:bg-zinc-50/50 transition-colors group">
-                  <td className="px-6 py-5 font-black text-zinc-900">
+                  <td className="px-6 py-5 font-black text-zinc-900 text-center">
                     {auction.lot_number || '---'}
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="h-10 w-10 rounded-lg bg-zinc-100 overflow-hidden border border-zinc-200">
+                        {auction.image_url ? (
+                            <img src={auction.image_url} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                            <div className="h-full w-full flex items-center justify-center text-zinc-300">
+                                <Package size={16} />
+                            </div>
+                        )}
+                    </div>
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
@@ -142,7 +159,7 @@ export const AuctionList = () => {
                   </td>
                   <td className="px-6 py-5">
                     <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-zinc-100 text-zinc-600 border border-zinc-200 uppercase">
-                        {auction.categories?.name || 'GENERIC'}
+                        {auction.auction_events?.title || 'UNASSIGNED'}
                     </span>
                   </td>
                   <td className="px-6 py-5">
@@ -179,24 +196,24 @@ export const AuctionList = () => {
       </div>
 
       {/* Pagination Controls */}
-      {pageCount > 1 && (
+      {pageCount > 1 && setActivePage && (
         <div className="flex items-center justify-between bg-white px-8 py-4 rounded-2xl border border-zinc-200 shadow-sm">
             <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Page</span>
-                <span className="text-xs font-black italic">{current} / {pageCount}</span>
+                <span className="text-xs font-black italic">{activePage} / {pageCount}</span>
             </div>
             <div className="flex items-center gap-2">
                 <button 
-                    disabled={current === 1}
-                    onClick={() => setCurrent(current - 1)}
-                    className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all"
+                    disabled={activePage === 1}
+                    onClick={() => setActivePage(activePage - 1)}
+                    className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400"
                 >
                     <ArrowLeft size={16} />
                 </button>
                 <button 
-                    disabled={current === pageCount}
-                    onClick={() => setCurrent(current + 1)}
-                    className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all rotate-180"
+                    disabled={activePage === pageCount}
+                    onClick={() => setActivePage(activePage + 1)}
+                    className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400 rotate-180"
                 >
                     <ArrowLeft size={16} />
                 </button>

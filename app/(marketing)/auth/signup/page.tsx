@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { signup } from '@/app/actions/auth'
 import Link from 'next/link'
-import { Gavel, Loader2, CreditCard, ShieldCheck, ArrowRight, ArrowLeft, MapPin, User, FileText, CheckCircle2 } from 'lucide-react'
+import { Gavel, Loader2, CreditCard, ShieldCheck, ArrowRight, ArrowLeft, MapPin, User, FileText, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import CardValidation from '@/components/auth/CardValidation'
@@ -27,7 +27,6 @@ export default function SignUpPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const router = useRouter()
 
-  // Form State
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -54,15 +53,11 @@ export default function SignUpPage() {
         setError("You must accept the terms and conditions.")
         return
     }
-
     setLoading(true)
     setError(null)
-
     const finalData = new FormData()
     Object.entries(formData).forEach(([key, value]) => finalData.append(key, value))
-
     const result = await signup(finalData, formData.paymentMethodId)
-    
     if (result?.error) {
       setError(result.error)
       setLoading(false)
@@ -71,76 +66,76 @@ export default function SignUpPage() {
     }
   }
 
-  const labelClasses = "block text-[10px] font-black uppercase tracking-widest text-neutral/50 mb-2"
-  const inputClasses = "w-full border-2 border-primary p-3 font-bold focus:outline-none focus:bg-light/5 text-primary placeholder:text-neutral/20"
+  const labelClasses = "block text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4 mb-2"
+  const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none"
 
   return (
-    <div className="min-h-screen bg-light/10 flex items-center justify-center p-6 font-sans text-neutral">
-      <div className="w-full max-w-xl bg-white border-4 border-primary shadow-[16px_16px_0px_0px_rgba(11,43,83,1)] p-10 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 font-sans text-secondary italic">
+      <div className="w-full max-w-2xl bg-white rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-10 md:p-12 relative overflow-hidden">
         
-        {/* Progress Header */}
-        <div className="flex items-center justify-between mb-10">
-            <Link href="/">
-                <img src="/images/logo-virginia-transparent.png" alt="Logo" className="h-10 w-auto" />
-            </Link>
-            <div className="flex gap-1.5">
+        {/* Modern Progress Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-end gap-8 mb-12 relative z-10">
+            <div className="flex items-center gap-3">
                 {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className={cn(
-                        "h-1.5 w-8 border-2 border-primary transition-all",
-                        step >= i ? "bg-primary" : "bg-transparent"
-                    )} />
+                    <div key={i} className="flex items-center gap-3">
+                        <div className={cn(
+                            "h-2 w-2 rounded-full transition-all duration-500",
+                            step === i ? "bg-primary scale-150 shadow-[0_0_10px_rgba(4,154,158,0.5)]" : (step > i ? "bg-secondary" : "bg-zinc-100")
+                        )} />
+                        {i < 4 && <div className={cn("h-[1px] w-6 md:w-10 bg-zinc-100", step > i && "bg-secondary/20")} />}
+                    </div>
                 ))}
             </div>
         </div>
 
         {error && (
-          <div className="mb-8 p-4 text-xs font-bold uppercase border-2 bg-red-50 border-red-600 text-red-600 flex items-center gap-3">
-            <ShieldCheck className="h-5 w-5 rotate-180" />
+          <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-bold uppercase flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
           </div>
         )}
 
         {/* STEP 1: IDENTITY */}
         {step === 1 && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="bg-primary p-3 text-white shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]">
-                    <User size={24} />
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
+            <div className="flex items-center gap-5 mb-10">
+                <div className="h-14 w-14 bg-primary/10 rounded-[20px] flex items-center justify-center text-primary">
+                    <User size={28} />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter leading-none italic">Identity</h1>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral/40 mt-1">Step 1 of 4: Personal Access</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Identity</h1>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Personal Access Protocols</p>
                 </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
                     <label className={labelClasses}>Full Legal Name</label>
-                    <input type="text" value={formData.fullName} onChange={e => updateForm({ fullName: e.target.value })} className={inputClasses} placeholder="JOHN DOE" />
+                    <input type="text" value={formData.fullName} onChange={e => updateForm({ fullName: e.target.value })} className={inputClasses} placeholder="FULL NAME" />
                 </div>
-                <div>
+                <div className="space-y-2">
                     <label className={labelClasses}>Mobile Phone</label>
                     <input type="tel" value={formData.phone} onChange={e => updateForm({ phone: e.target.value })} className={inputClasses} placeholder="(703) 000-0000" />
                 </div>
               </div>
-              <div>
-                <label className={labelClasses}>Email Address</label>
-                <input type="email" value={formData.email} onChange={e => updateForm({ email: e.target.value })} className={inputClasses} placeholder="EMAIL@EXAMPLE.COM" />
+              <div className="space-y-2">
+                <label className={labelClasses}>Digital Mail</label>
+                <input type="email" value={formData.email} onChange={e => updateForm({ email: e.target.value })} className={inputClasses} placeholder="EMAIL@DOMAIN.COM" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className={labelClasses}>Create Password</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                    <label className={labelClasses}>Security Code</label>
                     <input type="password" value={formData.password} onChange={e => updateForm({ password: e.target.value })} className={inputClasses} placeholder="••••••••" />
                 </div>
-                <div>
-                    <label className={labelClasses}>Confirm Password</label>
+                <div className="space-y-2">
+                    <label className={labelClasses}>Confirm Code</label>
                     <input type="password" value={formData.confirmPassword} onChange={e => updateForm({ confirmPassword: e.target.value })} className={inputClasses} placeholder="••••••••" />
                 </div>
               </div>
 
-              <button onClick={nextStep} className="w-full bg-primary py-5 text-white font-black uppercase tracking-widest hover:bg-secondary transition-all flex items-center justify-center gap-3 active:translate-y-1">
-                Next: Physical Address <ArrowRight size={18} />
+              <button onClick={nextStep} className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3">
+                Next: Physical Location <ArrowRight size={18} />
               </button>
             </div>
           </div>
@@ -148,54 +143,54 @@ export default function SignUpPage() {
 
         {/* STEP 2: ADDRESS */}
         {step === 2 && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="bg-primary p-3 text-white shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]">
-                    <MapPin size={24} />
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
+            <div className="flex items-center gap-5 mb-10">
+                <div className="h-14 w-14 bg-primary/10 rounded-[20px] flex items-center justify-center text-primary">
+                    <MapPin size={28} />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter leading-none italic">Location</h1>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral/40 mt-1">Step 2 of 4: Tax & Shipping</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Location</h1>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Tax & Logistics Compliance</p>
                 </div>
             </div>
 
-            <div className="space-y-6">
-              <div>
+            <div className="space-y-8">
+              <div className="space-y-2">
                 <label className={labelClasses}>Street Address</label>
-                <input type="text" value={formData.address} onChange={e => updateForm({ address: e.target.value })} className={inputClasses} placeholder="123 INDUSTRIAL WAY" />
+                <input type="text" value={formData.address} onChange={e => updateForm({ address: e.target.value })} className={inputClasses} placeholder="STREET ADDRESS" />
               </div>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-2">
                     <label className={labelClasses}>Country</label>
-                    <select value={formData.country} onChange={e => updateForm({ country: e.target.value })} className={inputClasses}>
+                    <select value={formData.country} onChange={e => updateForm({ country: e.target.value })} className={cn(inputClasses, "appearance-none")}>
                         <option value="USA">United States</option>
                         <option value="CAN">Canada</option>
                     </select>
                 </div>
-                <div>
+                <div className="space-y-2">
                     <label className={labelClasses}>State / Province</label>
-                    <select value={formData.state} onChange={e => updateForm({ state: e.target.value })} className={inputClasses}>
+                    <select value={formData.state} onChange={e => updateForm({ state: e.target.value })} className={cn(inputClasses, "appearance-none")}>
                         {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                    <label className={labelClasses}>City</label>
-                    <input type="text" value={formData.city} onChange={e => updateForm({ city: e.target.value })} className={inputClasses} placeholder="ALEXANDRIA" />
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-2">
+                    <label className={labelClasses}>City Hub</label>
+                    <input type="text" value={formData.city} onChange={e => updateForm({ city: e.target.value })} className={inputClasses} placeholder="CITY" />
                 </div>
-                <div>
-                    <label className={labelClasses}>ZIP Code</label>
-                    <input type="text" value={formData.zip} onChange={e => updateForm({ zip: e.target.value })} className={inputClasses} placeholder="22301" />
+                <div className="space-y-2">
+                    <label className={labelClasses}>ZIP Identifier</label>
+                    <input type="text" value={formData.zip} onChange={e => updateForm({ zip: e.target.value })} className={inputClasses} placeholder="ZIP CODE" />
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <button onClick={prevStep} className="flex-1 border-2 border-primary py-5 font-black uppercase tracking-widest hover:bg-light/10 transition-all flex items-center justify-center gap-3">
-                    <ArrowLeft size={18} /> Back
+                <button onClick={prevStep} className="flex-1 bg-zinc-50 border-2 border-zinc-100 py-6 rounded-3xl font-bold uppercase tracking-widest text-zinc-400 hover:bg-white hover:text-secondary transition-all flex items-center justify-center gap-3">
+                    <ArrowLeft size={18} />
                 </button>
-                <button onClick={nextStep} className="flex-[2] bg-primary py-5 text-white font-black uppercase tracking-widest hover:bg-secondary transition-all flex items-center justify-center gap-3">
-                    Next: Security <ArrowRight size={18} />
+                <button onClick={nextStep} className="flex-[3] bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3">
+                    Next: Verification <ArrowRight size={18} />
                 </button>
               </div>
             </div>
@@ -204,81 +199,89 @@ export default function SignUpPage() {
 
         {/* STEP 3: PAYMENT */}
         {step === 3 && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="bg-primary p-3 text-white shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]">
-                    <CreditCard size={24} />
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
+            <div className="flex items-center gap-5 mb-10">
+                <div className="h-14 w-14 bg-primary/10 rounded-[20px] flex items-center justify-center text-primary">
+                    <CreditCard size={28} />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter leading-none italic">Verification</h1>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral/40 mt-1">Step 3 of 4: Bidder Authorization</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Security</h1>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Bidder Credit Authorization</p>
                 </div>
             </div>
 
-            <Elements stripe={stripePromise}>
-                <CardValidation onPaymentMethodCreated={(id) => {
-                    updateForm({ paymentMethodId: id })
-                    nextStep()
-                }} />
-            </Elements>
+            <div className="bg-zinc-50 p-8 rounded-[32px] border border-zinc-100 mb-8 italic shadow-inner">
+                <Elements stripe={stripePromise}>
+                    <CardValidation onPaymentMethodCreated={(id) => {
+                        updateForm({ paymentMethodId: id })
+                        nextStep()
+                    }} />
+                </Elements>
+            </div>
 
-            <button onClick={prevStep} className="mt-6 w-full border-2 border-primary py-4 font-black uppercase tracking-widest hover:bg-light/10 transition-all flex items-center justify-center gap-3">
-                <ArrowLeft size={18} /> Modify Information
+            <button onClick={prevStep} className="w-full text-zinc-300 hover:text-primary py-2 font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3">
+                <ArrowLeft size={14} /> Back to Information
             </button>
           </div>
         )}
 
         {/* STEP 4: TERMS & SUBMIT */}
         {step === 4 && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="bg-primary p-3 text-white shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]">
-                    <FileText size={24} />
+          <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
+            <div className="flex items-center gap-5 mb-10">
+                <div className="h-14 w-14 bg-primary/10 rounded-[20px] flex items-center justify-center text-primary">
+                    <FileText size={28} />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter leading-none italic">Agreements</h1>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral/40 mt-1">Final Step: Master Agreement</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Agreements</h1>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Final Master Protocol</p>
                 </div>
             </div>
 
-            <div className="border-4 border-primary p-6 mb-8 h-64 overflow-y-auto font-medium text-xs text-neutral/60 leading-relaxed bg-zinc-50 scrollbar-thin scrollbar-thumb-primary">
-                <h4 className="font-black uppercase text-neutral mb-4 italic underline underline-offset-4">Terms of Use & Bidding Agreement</h4>
-                <p className="mb-4">1. ELIGIBILITY: You must be 18 years of age or older to participate in auctions. By registering, you represent that you have the legal capacity to enter into binding contracts.</p>
-                <p className="mb-4">2. BIDDING: Every bid is a legally binding contract. If you are the high bidder, you are obligated to complete the purchase.</p>
-                <p className="mb-4">3. PAYMENT: A buyer's premium will be added to the high bid. All items must be paid for in full prior to removal.</p>
-                <p className="mb-4">4. AS-IS WHERE-IS: All assets are sold "as-is" without warranty or guarantee. We encourage on-site inspection prior to bidding.</p>
-                <p className="mb-4">5. REMOVAL: The buyer is responsible for the removal of all assets within the specified timeframe. Failure to remove assets may result in forfeiture of funds.</p>
-                <p>By checking the box below, you acknowledge that you have read, understood, and agreed to all terms listed above and in our full Terms & Conditions document.</p>
+            <div className="bg-zinc-50 border border-zinc-100 p-8 rounded-[32px] mb-8 h-64 overflow-y-auto font-medium text-[11px] text-zinc-400 leading-relaxed uppercase shadow-inner">
+                <h4 className="font-bold text-secondary mb-6 border-b border-zinc-200 pb-2">Master Bidding Agreement</h4>
+                <p className="mb-6">1. ELIGIBILITY: You must be 18 years of age or older to participate in auctions. Every registration is a legal commitment to comply with industrial regulations.</p>
+                <p className="mb-6">2. BIDDING PROTOCOL: Every bid is a legally binding contract. Successful bidders are mandated to complete the acquisition process.</p>
+                <p className="mb-6">3. FINANCIALS: A buyer's premium is applied to the hammer price. Transactions are processed immediately upon event closure.</p>
+                <p className="mb-6">4. ASSET CONDITION: All items are sold "as-is". Technical assessment reports are provided for verification but do not constitute warranties.</p>
+                <p>By executing the signature below (checkbox), you acknowledge full comprehension of these technical and legal protocols.</p>
             </div>
 
-            <label className="flex items-center gap-4 p-4 border-2 border-primary bg-light/5 cursor-pointer mb-8 group transition-colors hover:bg-primary/5">
-                <input 
-                    type="checkbox" 
-                    checked={acceptedTerms} 
-                    onChange={e => setAcceptedTerms(e.target.checked)} 
-                    className="h-6 w-6 border-2 border-primary text-primary focus:ring-0"
-                />
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral italic">I accept the auction terms and conditions</span>
+            <label className={cn(
+                "flex items-center gap-4 p-6 rounded-[24px] border-2 transition-all cursor-pointer mb-8 group",
+                acceptedTerms ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:border-primary/20"
+            )}>
+                <div className={cn(
+                    "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                    acceptedTerms ? "bg-emerald-500 border-emerald-500 text-white" : "border-zinc-200 group-hover:border-primary"
+                )}>
+                    {acceptedTerms && <CheckCircle2 size={14} strokeWidth={3} />}
+                </div>
+                <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} className="hidden" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">Execute Agreement Signature</span>
             </label>
 
             <div className="flex gap-4">
-                <button onClick={prevStep} disabled={loading} className="flex-1 border-2 border-primary py-5 font-black uppercase tracking-widest hover:bg-light/10 transition-all flex items-center justify-center gap-3 disabled:opacity-50">
-                    <ArrowLeft size={18} /> Back
+                <button onClick={prevStep} disabled={loading} className="flex-1 bg-zinc-50 border-2 border-zinc-100 py-6 rounded-3xl font-bold uppercase text-zinc-400 hover:bg-white hover:text-secondary transition-all disabled:opacity-50">
+                    <ArrowLeft size={18} className="mx-auto" />
                 </button>
                 <button 
                     onClick={handleFinalSignup} 
                     disabled={loading || !acceptedTerms}
-                    className="flex-[2] bg-secondary py-5 text-primary font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[8px_8px_0px_0px_rgba(4,154,158,1)] hover:shadow-none active:translate-x-1 active:translate-y-1"
+                    className="flex-[3] bg-secondary text-white py-6 rounded-[32px] font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
                 >
-                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><CheckCircle2 size={18} /> Create Your Account</>}
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><CheckCircle2 size={18} /> Finalize Account Execution</>}
                 </button>
             </div>
           </div>
         )}
 
-        <p className="mt-10 text-center text-[10px] font-black uppercase tracking-widest text-neutral/20 border-t border-light pt-6 italic">
-            Virginia Liquidation • Northern Virginia's Premier Marketplace
-        </p>
+        <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
+            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-300 italic">Virginia Liquidation • Industrial Governance active</p>
+        </div>
+
+        {/* Decorative background element */}
+        <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-primary/5 blur-[100px] rounded-full" />
       </div>
     </div>
   )

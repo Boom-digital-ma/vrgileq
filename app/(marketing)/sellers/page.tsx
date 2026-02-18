@@ -1,178 +1,116 @@
-import React from 'react';
-import { 
-  ClipboardCheck, 
-  FileSignature, 
-  Tags, 
-  Globe, 
-  MousePointer2, 
-  Megaphone, 
-  Search, 
-  Timer, 
-  CreditCard, 
-  Truck, 
-  FileSpreadsheet, 
-  DollarSign,
-  Upload
-} from 'lucide-react';
-import PROCESS_STEPS_DATA from "@/data/process-steps.json";
-import EVENT_TYPES from "@/data/event-types.json";
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  ClipboardCheck, FileSignature, Tags, Globe, MousePointer2, Megaphone, 
-  Search, Timer, CreditCard, Truck, FileSpreadsheet, DollarSign
-};
-
-const PROCESS_STEPS = PROCESS_STEPS_DATA.map(step => ({
-  ...step,
-  icon: ICON_MAP[step.icon]
-}));
+import { ClipboardCheck, FileSignature, Tags, Globe, MousePointer2, Megaphone, Search, Timer, CreditCard, Truck, FileSpreadsheet, DollarSign, ArrowRight, ChevronRight, BarChart3, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function SellersPage() {
+  const steps = [
+    { title: "Evaluation", icon: ClipboardCheck, desc: "Technical interview regarding your assets to prepare a tailored sales solution." },
+    { title: "Engagement", icon: FileSignature, desc: "A formal agreement outlining the sale details and project scope is executed." },
+    { title: "Identification", icon: Tags, desc: "Detailed inventory preparation, completed by our specialists or your team." },
+    { title: "Web Posting", icon: Globe, desc: "Inventory is cataloged and posted to the marketplace within 1-3 days." },
+    { title: "Online Preview", icon: MousePointer2, desc: "Searchable inventory available for immediate bidding and preview." },
+    { title: "Marketing", icon: Megaphone, desc: "Global outreach via newsletters, social media, and industry networks." },
+    { title: "Inspection", icon: Search, desc: "On-site open house conducted prior to event closing for physical verification." },
+    { title: "Event Closing", icon: Timer, desc: "Dynamic closing with automatic time extensions on last-minute offers." },
+    { title: "Processing", icon: CreditCard, desc: "Automated transaction processing and instant receipt distribution." },
+    { title: "Removal", icon: Truck, desc: "Supervised asset extraction and coordination during flexible windows." },
+    { title: "Reconciliation", icon: FileSpreadsheet, desc: "Complete report including bidding history, revenue, and disbursement." },
+    { title: "Settlement", icon: DollarSign, desc: "Final proceeds disbursement and closing interview for total satisfaction." }
+  ];
+
   return (
-    <div className="bg-white font-sans tracking-tight text-neutral">
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-
-        {/* HEADER SECTION */}
-        <div className="mb-24">
-          <div className="text-primary font-black uppercase tracking-[0.3em] text-xs mb-4 text-center md:text-left">FOR SELLERS</div>
-          <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-secondary mb-12 leading-none">
-            We Are Leaders And <br />Pioneers In This Market
-          </h1>
-          
-          <div className="grid md:grid-cols-2 gap-16 items-start">
-            <div className="space-y-6">
-              <h2 className="text-2xl font-black uppercase tracking-tight text-primary">
-                An Event-Based Company <br />Maximizing Success
-              </h2>
-              <p className="text-neutral/70 font-medium leading-relaxed">
-                Liquidations are special events with unique methods of merchandising and marketing
-                which have been refined by liquidators and auctioneers for hundreds of years. Our
-                methods create a competitive bidding environment that pits the bidders against each
-                other rather than the Seller.
-              </p>
-              <p className="text-neutral/70 font-medium leading-relaxed">
-                In our business every client is different. Each liquidation event has a unique beginning,
-                middle and end. We treat each event like one-time-only cannot miss opportunities to
-                encourage the best price for our clients. Below is a listing of event types.
-              </p>
+    <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
+      {/* SaaS Premium Header */}
+      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
+        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <div className="flex items-center justify-center gap-3 mb-8">
+                <div className="h-[1px] w-10 bg-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Liquidation Strategy</span>
+                <div className="h-[1px] w-10 bg-primary" />
             </div>
-            <div className="space-y-6">
-              <p className="text-neutral/70 font-medium leading-relaxed">
-                The key to maximizing the success of any personal property liquidation is to provide
-                the purchaser with complete product information and to conduct the sale in a
-                manner which promotes comfort, flexibility and confidence with the purchase
-                decision.
-              </p>
-              <p className="text-neutral/70 font-medium leading-relaxed">
-                Many of the innovative marketing and merchandising techniques we employ have been
-                developed by Virginia Liquidation. Our pioneering use of online marketing, online presentation and
-                online sales allows Virginia Liquidation to provide solutions with unprecedented speed. Your
-                project can benefit from our ability to quickly prepare and present your assets for sale
-                in record time.
-              </p>
-              <div className="pt-4">
-                <p className="text-secondary font-black uppercase tracking-widest text-sm italic">
-                  Let us help you choose the perfect fit.
-                </p>
-              </div>
-            </div>
-          </div>
+            <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
+                Seller's <br/> <span className="text-primary">Console</span>.
+            </h1>
+            <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
+                A 12-step professional protocol to maximize the value of your industrial surplus assets.
+            </p>
         </div>
+        <div className="absolute -top-24 -right-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
+      </section>
 
-        {/* TWO COLUMNS: INFO & FORM */}
-        <div className="grid lg:grid-cols-[1.5fr_1fr] gap-16 mb-32">
-          
-          {/* LEFT: EVENT TYPES INFO */}
-          <div className="space-y-12">
-            <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-secondary whitespace-nowrap">
-                Liquidation Events
-              </h2>
-              <div className="h-[2px] flex-1 bg-primary/20"></div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              {EVENT_TYPES.map((type, idx) => (
-                <div key={idx} className="bg-white p-8 border-2 border-primary shadow-[8px_8px_0px_0px_rgba(4,154,158,1)]">
-                  <h3 className="font-black text-lg uppercase tracking-tight mb-4 text-secondary">{type.title}</h3>
-                  <p className="text-neutral/60 font-medium leading-relaxed text-sm">{type.desc}</p>
+      {/* The 12-Step Protocol Grid */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+            <div className="flex items-center gap-4 mb-16 border-b border-zinc-200 pb-8">
+                <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
+                    <BarChart3 size={24} />
                 </div>
-              ))}
-            </div>
-            
-            <div className="bg-secondary text-white p-10 shadow-[12px_12px_0px_0px_rgba(4,154,158,1)]">
-              <h3 className="text-xl font-black uppercase tracking-widest text-primary mb-4">Why Choose Us?</h3>
-              <p className="text-lg font-medium leading-relaxed opacity-90 italic">
-                &quot;The Virginia Liquidation process has been carefully crafted over many years dedicated to 
-                <span className="text-primary font-black"> low client impact and maximum return.</span>&quot;
-              </p>
-            </div>
-          </div>
-
-          {/* RIGHT: CONTACT FORM */}
-          <div className="bg-white p-10 border-4 border-primary shadow-[20px_20px_0px_0px_rgba(11,43,83,0.1)] h-fit">
-            <h3 className="text-2xl font-black uppercase tracking-tighter mb-8 text-secondary border-b-2 border-primary pb-4">Start Selling Today</h3>
-            <form className="space-y-6">
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-neutral/40 mb-2">Project Title</label>
-                <input type="text" className="w-full border-2 border-light p-4 text-sm font-bold focus:border-primary focus:outline-none transition-colors" placeholder="e.g. Restaurant Closure" />
-              </div>
-              
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-neutral/40 mb-2">Description of Assets</label>
-                <textarea rows={4} className="w-full border-2 border-light p-4 text-sm font-bold focus:border-primary focus:outline-none transition-colors" placeholder="Brief summary of what you are selling..." />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-neutral/40 mb-2">Seller&apos;s Contact Info</label>
-                <input type="text" className="w-full border-2 border-light p-4 text-sm font-bold focus:border-primary focus:outline-none transition-colors" placeholder="Phone or Email" />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-neutral/40 mb-2">Attachments (Optional)</label>
-                <div className="group cursor-pointer flex flex-col items-center justify-center w-full border-2 border-dashed border-light p-8 bg-light/10 hover:bg-primary/5 hover:border-primary transition-all">
-                  <Upload className="w-8 h-8 text-neutral/30 group-hover:text-primary mb-3" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral/40 group-hover:text-primary">Upload Photos/List</span>
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none mb-2">The 12-Step Protocol</h2>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">End-to-end management workflow</p>
                 </div>
-              </div>
+            </div>
 
-              <button type="submit" className="w-full bg-primary text-white font-black py-5 uppercase tracking-[0.2em] text-xs hover:bg-secondary transition-all shadow-[6px_6px_0px_0px_rgba(11,43,83,0.2)] active:translate-x-1 active:translate-y-1 active:shadow-none">
-                Submit Project
-              </button>
-            </form>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {steps.map((step, i) => (
+                    <div key={i} className="group bg-white p-8 rounded-[32px] border border-zinc-100 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(11,43,83,0.05)] hover:border-primary/20 flex flex-col italic h-full">
+                        <div className="flex justify-between items-start mb-8">
+                            <div className="h-12 w-12 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all border border-zinc-100 group-hover:border-primary/20">
+                                <step.icon size={22} strokeWidth={1.5} />
+                            </div>
+                            <span className="text-[9px] font-bold text-zinc-200 tabular-nums">STEP 0{i+1 > 9 ? '' : '0'}{i+1}</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-secondary font-display uppercase mb-3 leading-tight">{step.title}</h3>
+                        <p className="text-zinc-400 text-[11px] font-medium leading-relaxed uppercase">
+                            {step.desc}
+                        </p>
+                    </div>
+                ))}
+            </div>
         </div>
+      </section>
 
-        {/* PROCESS SECTION (12 Steps) */}
-        <div className="border-t-2 border-light pt-24">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-secondary mb-4">
-              Our No-Hassle Process
-            </h2>
-            <div className="h-1 w-24 bg-primary mx-auto"></div>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            {PROCESS_STEPS.map((item, idx) => (
-              <div key={idx} className="relative group">
-                <div className="bg-white p-8 border-2 border-light hover:border-primary transition-all h-full flex flex-col items-center text-center group-hover:shadow-[8px_8px_0px_0px_rgba(4,154,158,1)]">
-                  
-                  <div className="w-12 h-12 bg-light/20 flex items-center justify-center mb-6 text-primary font-black text-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                    {item.step}
-                  </div>
-                  
-                  <item.icon className="w-8 h-8 text-neutral/30 mb-4 group-hover:text-primary transition-colors" />
-                  
-                  <h3 className="font-black text-secondary uppercase tracking-tight mb-3">{item.title}</h3>
-                  <p className="text-xs text-neutral/50 font-medium leading-relaxed">
-                    {item.desc}
-                  </p>
+      {/* Corporate Reach - Modern SaaS Banner */}
+      <section className="px-6 pb-24">
+        <div className="max-w-7xl mx-auto">
+            <div className="bg-secondary rounded-[48px] p-12 md:p-20 text-white relative overflow-hidden italic shadow-2xl shadow-secondary/20">
+                <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-16">
+                    <div className="max-w-2xl">
+                        <div className="flex items-center gap-3 mb-8">
+                            <span className="h-[1px] w-10 bg-primary" />
+                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Strategic Partnership</span>
+                        </div>
+                        <h2 className="text-4xl md:text-6xl font-bold tracking-tight uppercase font-display leading-[0.85] mb-8">
+                            Ready to <span className="text-primary">Liquidate</span>? <br/> Partner with us.
+                        </h2>
+                        <p className="text-lg text-white/50 font-medium mb-12 max-w-xl uppercase tracking-tight">
+                            Leverage our network of nationwide industrial buyers and our technical cataloging expertise to secure maximum market value.
+                        </p>
+                        <div className="flex flex-wrap gap-6">
+                            <Link href="/contact" className="bg-primary text-white px-12 py-6 rounded-3xl font-bold text-sm uppercase tracking-widest transition-all hover:bg-white hover:text-secondary shadow-2xl shadow-primary/30 flex items-center gap-3 group">
+                                Start Assessment <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 w-full lg:w-[400px]">
+                        {[
+                            { label: "Market Reach", val: "Global", icon: Globe },
+                            { label: "Financials", val: "Secure", icon: ShieldCheck },
+                            { label: "Cataloging", val: "Tech-Led", icon: BarChart3 },
+                            { label: "Settlement", val: "Fast", icon: DollarSign },
+                        ].map((item, i) => (
+                            <div key={i} className="p-6 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10">
+                                <item.icon className="text-primary mb-4" size={24} />
+                                <div className="text-[8px] font-bold text-white/40 uppercase mb-1">{item.label}</div>
+                                <div className="text-sm font-bold text-white uppercase">{item.val}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-              </div>
-            ))}
-          </div>
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
+            </div>
         </div>
-
       </section>
     </div>
   );

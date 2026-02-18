@@ -10,7 +10,9 @@ import {
   LogOut, 
   Package,
   Calendar,
-  Settings
+  Settings,
+  FileText,
+  Truck
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -20,12 +22,35 @@ export const AdminSider = ({ isOpen, onClose }: { isOpen?: boolean, onClose?: ()
   const { mutate: logout } = useLogout()
   const pathname = usePathname()
 
-  const menuItems = [
-    { label: "Overview", route: "/admin", icon: LayoutDashboard },
-    { label: "Auction Events", route: "/admin/events", icon: Calendar },
-    { label: "Categories", route: "/admin/categories", icon: Layers },
-    { label: "Users", route: "/admin/users", icon: UsersIcon },
-    { label: "Transactions", route: "/admin/bids", icon: Gavel },
+  const menuGroups = [
+    {
+      label: "Main",
+      items: [
+        { label: "Overview", route: "/admin", icon: LayoutDashboard },
+      ]
+    },
+    {
+      label: "Inventory Management",
+      items: [
+        { label: "Auction Events", route: "/admin/events", icon: Calendar },
+        { label: "Lots Inventory", route: "/admin/auctions", icon: Package },
+      ]
+    },
+    {
+      label: "Post-Auction & Logistics",
+      items: [
+        { label: "Sales & Invoices", route: "/admin/sales", icon: FileText },
+        { label: "Warehouse Logistics", route: "/admin/logistics", icon: Truck },
+      ]
+    },
+    {
+      label: "Platform Data",
+      items: [
+        { label: "Live Bids", route: "/admin/bids", icon: Gavel },
+        { label: "Users", route: "/admin/users", icon: UsersIcon },
+        { label: "Categories", route: "/admin/categories", icon: Layers },
+      ]
+    }
   ]
 
   return (
@@ -60,25 +85,37 @@ export const AdminSider = ({ isOpen, onClose }: { isOpen?: boolean, onClose?: ()
         </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.route || (item.route !== '/admin' && pathname.startsWith(item.route))
-          return (
-            <Link
-              key={item.route}
-              href={item.route}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all group",
-                isActive 
-                  ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200" 
-                  : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
-              )}
-            >
-              <item.icon size={18} className={cn(isActive ? "text-primary" : "text-zinc-400 group-hover:text-zinc-900")} />
-              {item.label}
-            </Link>
-          )
-        })}
+      <nav className="flex-1 px-4 space-y-8 overflow-y-auto">
+        {menuGroups.map((group) => (
+          <div key={group.label} className="space-y-2">
+            <h3 className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 italic">
+              {group.label}
+            </h3>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const isActive = pathname === item.route || (item.route !== '/admin' && pathname.startsWith(item.route))
+                return (
+                  <Link
+                    key={item.route}
+                    href={item.route}
+                    className={cn(
+                      "flex items-center justify-between px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-tight transition-all group",
+                      isActive 
+                        ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200" 
+                        : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon size={16} className={cn(isActive ? "text-primary" : "text-zinc-400 group-hover:text-zinc-900")} />
+                      {item.label}
+                    </div>
+                    {isActive && <div className="h-1 w-1 rounded-full bg-primary" />}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Profile / Logout */}

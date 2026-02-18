@@ -5,6 +5,7 @@ import { ArrowLeft, Loader2, Save, UserPlus, Shield } from "lucide-react"
 import Link from "next/link"
 import { adminInviteUser } from "@/app/actions/auth"
 import { useState } from "react"
+import { toast } from "sonner"
 
 export const UserCreate = () => {
   const [inviteLoading, setInviteLoading] = useState(false)
@@ -21,9 +22,9 @@ export const UserCreate = () => {
     const res = await adminInviteUser(email, fullName, role)
     
     if (typeof res === 'string') {
-        alert("Error: " + res)
+        toast.error("Error: " + res)
     } else {
-        alert("Success: " + res.success)
+        toast.success("Success: " + res.success)
         list("profiles")
     }
     setInviteLoading(false)

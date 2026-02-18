@@ -1,6 +1,7 @@
 import { resend } from '../resend';
 import { outbidTemplate } from './templates/outbid';
 import { winningTemplate } from './templates/won';
+import { closingSoonTemplate } from './templates/closing-soon';
 
 const FROM_EMAIL = 'Virginia Liquidation <notifications@virginialiquidation.com>';
 
@@ -26,6 +27,33 @@ export async function sendOutbidEmail({
     });
   } catch (error) {
     console.error('Failed to send outbid email:', error);
+  }
+}
+
+export async function sendClosingSoonEmail({
+  to,
+  bidderName,
+  auctionTitle,
+  currentPrice,
+  auctionUrl,
+  timeLeft,
+}: {
+  to: string;
+  bidderName: string;
+  auctionTitle: string;
+  currentPrice: number;
+  auctionUrl: string;
+  timeLeft: string;
+}) {
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `Closing Soon: ${auctionTitle}`,
+      html: closingSoonTemplate(bidderName, auctionTitle, currentPrice, auctionUrl, timeLeft),
+    });
+  } catch (error) {
+    console.error('Failed to send closing soon email:', error);
   }
 }
 

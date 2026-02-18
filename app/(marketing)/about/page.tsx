@@ -1,153 +1,127 @@
-import React from 'react';
-import { 
-  History, 
-  Globe, 
-  Gavel, 
-  Users, 
-  Building2, 
-  Briefcase, 
-  HeartHandshake, 
-  Scale,
-  ArrowRight
-} from 'lucide-react';
-import CORPORATE_FAMILY_DATA from "@/data/corporate-family.json";
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  Scale, HeartHandshake, Briefcase, Globe, Building2
-};
-
-const CORPORATE_FAMILY = CORPORATE_FAMILY_DATA.map(company => ({
-  ...company,
-  icon: ICON_MAP[company.icon]
-}));
+import { ShieldCheck, History, Users, Globe2, Building2, ChevronRight, BarChart3, Zap } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function AboutPage() {
+  const corporateEntities = [
+    { name: "ABC Liquidation", specialty: "Commercial Surplus", location: "Alexandria, VA" },
+    { name: "Virginia Asset Recovery", specialty: "Industrial Rigging", location: "Richmond, VA" },
+    { name: "NoVA Logistics", specialty: "Nationwide Shipping", location: "Washington DC" },
+    { name: "Capital Appraisals", specialty: "Technical Valuation", location: "Falls Church, VA" }
+  ];
+
   return (
-    <div className="bg-white font-sans tracking-tight text-neutral">
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-
-        {/* HERO SECTION */}
-        <div className="mb-32 text-center">
-          <div className="text-primary font-black uppercase tracking-[0.3em] text-xs mb-4">OUR STORY</div>
-          <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter text-secondary mb-8 leading-none">
-            The Stuff You Need <br />
-            <span className="text-primary">At The Price You Set</span>
-          </h1>
-          <p className="text-xl text-neutral/60 font-medium max-w-3xl mx-auto leading-relaxed italic">
-            "Born in 1981, we evolved from traditional auctions to become a market leader in internet-only, event-based liquidations."
-          </p>
+    <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
+      {/* SaaS Premium Header */}
+      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
+        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <div className="flex items-center justify-center gap-3 mb-8">
+                <div className="h-[1px] w-10 bg-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Our Legacy since 1981</span>
+                <div className="h-[1px] w-10 bg-primary" />
+            </div>
+            <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
+                The New <br/> <span className="text-primary">Player</span>.
+            </h1>
+            <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
+                Bridging the gap between industrial tradition and modern liquidation technology for over 40 years.
+            </p>
         </div>
+        <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
+      </section>
 
-        {/* HISTORY & MISSION Grid */}
-        <div className="grid md:grid-cols-2 gap-20 mb-32 items-center">
-          <div className="space-y-8">
-            <div className="inline-flex items-center gap-3 bg-primary/10 text-primary px-6 py-2 border border-primary/20 text-[10px] font-black uppercase tracking-widest">
-              <History className="w-4 h-4" />
-              Est. 1981
-            </div>
-            <h2 className="text-4xl font-black uppercase tracking-tighter text-secondary leading-tight">
-              Innovation & Heritage
-            </h2>
-            <div className="space-y-6 text-neutral/70 font-medium text-lg leading-relaxed">
-              <p>
-                Virginia Liquidation was founded to provide asset recovery services to the business community. With the emergence of the digital revolution, we innovated an <strong className="text-secondary">online-only solution</strong> combining the benefits of traditional liquidation with the efficiency of the internet.
-              </p>
-              <p>
-                Today, we conduct sales large and small throughout the United States, honoring our legacy of innovation and high-quality service.
-              </p>
-            </div>
-          </div>
-          
-          {/* Visual/Stats Card */}
-          <div className="bg-white p-12 border-4 border-primary shadow-[20px_20px_0px_0px_rgba(4,154,158,1)]">
-            <h3 className="text-2xl font-black uppercase tracking-tighter text-secondary mb-8 border-b-2 border-primary pb-4">What We Sell</h3>
-            <ul className="grid grid-cols-1 gap-6">
-              {[
-                "High-end designer furniture",
-                "Diesel generators & Industrial gear",
-                "Restaurant & Franchise closures",
-                "IT Switchgear & Technology",
-                "Corporate Headquarters",
-                "Party Rental Companies"
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-4 text-neutral font-black uppercase tracking-tight group">
-                  <div className="h-2 w-8 bg-primary group-hover:w-12 transition-all"></div>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* THE "UN-EBAY" SECTION */}
-        <div className="bg-secondary text-white p-12 md:p-20 mb-32 shadow-[24px_24px_0px_0px_rgba(4,154,158,1)] relative overflow-hidden">
-          <div className="relative z-10 grid lg:grid-cols-[1.2fr_1fr] gap-20 items-center">
-            <div>
-              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-8 leading-none">The &quot;Un-eBay&quot;</h2>
-              <div className="space-y-6 text-white/80 font-medium text-lg leading-relaxed">
-                <p>
-                  Unlike eBay or Craigslist, which sell a single item to a single buyer, <strong className="text-primary uppercase">VirginiaLiquidation.com is an event-based liquidation site.</strong>
-                </p>
-                <p>
-                  We are a little bit traditional (with previews and pickups), a little bit eBay (online bidding), and something altogether different. Each event has a specific location, scheduled preview, closing, and removal time.
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-6">
-              <div className="bg-white/5 border-2 border-white/10 p-8 hover:bg-white/10 transition-all group">
-                <Gavel className="w-10 h-10 text-primary mb-6 group-hover:scale-110 transition-transform" />
-                <h3 className="font-black text-xl uppercase tracking-tight mb-2">Event Based</h3>
-                <p className="text-white/60 text-sm font-medium">We sell entire inventories from specific locations, not just single items.</p>
-              </div>
-              <div className="bg-white/5 border-2 border-white/10 p-8 hover:bg-white/10 transition-all group">
-                <Users className="w-10 h-10 text-primary mb-6 group-hover:scale-110 transition-transform" />
-                <h3 className="font-black text-xl uppercase tracking-tight mb-2">Many Assets, Many Buyers</h3>
-                <p className="text-white/60 text-sm font-medium">Efficiently connecting bulk sellers with mass buyers.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CORPORATE FAMILY GRID */}
-        <div className="mb-32">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl font-black uppercase tracking-tighter text-secondary mb-4">Our Corporate Family</h2>
-            <div className="h-1 w-24 bg-primary mx-auto"></div>
-            <p className="text-neutral/50 font-black uppercase tracking-widest text-[10px] mt-6">Comprehensive solutions for every asset class.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {CORPORATE_FAMILY.map((company, index) => (
-              <div key={index} className="bg-white p-10 border-2 border-light hover:border-primary transition-all group hover:shadow-[12px_12px_0px_0px_rgba(4,154,158,1)]">
-                <div className="w-14 h-14 bg-light/30 border-2 border-primary/10 flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
-                  <company.icon className="w-7 h-7 group-hover:scale-110 transition-transform" />
+      {/* Philosophy Section */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-20 items-start">
+                <div className="sticky top-32">
+                    <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/20">
+                        <ShieldCheck size={24} />
+                    </div>
+                    <h2 className="text-4xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none mb-6">Un-eBay <br/>Philosophy.</h2>
+                    <p className="text-zinc-400 font-medium text-sm leading-relaxed uppercase mb-8">
+                        We don't just host listings. We Physically catalog, verify, and manage every asset that passes through our marketplace.
+                    </p>
+                    <div className="flex flex-col gap-4">
+                        {[
+                            { label: "Founded", val: "1981" },
+                            { label: "HQ", val: "Alexandria, VA" },
+                            { label: "Status", val: "Licensed & Bonded" },
+                        ].map((stat, i) => (
+                            <div key={i} className="flex justify-between items-center py-3 border-b border-zinc-100">
+                                <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">{stat.label}</span>
+                                <span className="text-xs font-bold text-secondary uppercase italic">{stat.val}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <h3 className="font-black text-xl uppercase tracking-tight text-secondary mb-4">{company.name}</h3>
-                <p className="text-sm text-neutral/60 font-medium leading-relaxed">
-                  {company.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* CONTACT CTA */}
-        <div className="bg-light/10 border-4 border-dashed border-primary/30 p-16 text-center">
-          <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-secondary mb-6">
-            Have a project? Let&apos;s discuss.
-          </h2>
-          <p className="text-neutral/60 font-medium mb-10 max-w-2xl mx-auto uppercase tracking-tight text-lg">
-            Call us to discuss your orderly liquidation or specialty auction project.
-          </p>
-          <a 
-            href="tel:7037689000" 
-            className="inline-flex items-center gap-4 bg-primary text-white px-12 py-6 text-sm font-black uppercase tracking-widest hover:bg-secondary transition-all shadow-[8px_8px_0px_0px_rgba(11,43,83,0.2)]"
-          >
-            (703) 768-9000 <ArrowRight className="w-5 h-5" />
-          </a>
-        </div>
+                <div className="space-y-16">
+                    <div className="p-10 md:p-16 bg-white rounded-[48px] border border-zinc-100 shadow-sm italic group hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500">
+                        <h3 className="text-2xl font-bold text-secondary font-display uppercase mb-8">Professional Technical Assessment</h3>
+                        <p className="text-zinc-500 text-lg leading-relaxed uppercase font-medium">
+                            Virginia Liquidation specializes in industrial auctions, large lots of bulk items, and overstocked inventory from manufacturers. Unlike generic marketplaces, we provide high-resolution technical documentation and physically verified reports for every asset.
+                        </p>
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="p-10 bg-white border border-zinc-100 rounded-[40px] italic group hover:border-primary/20 transition-all shadow-sm">
+                            <Zap className="text-primary mb-6" size={32} />
+                            <h4 className="text-xl font-bold font-display uppercase text-secondary mb-4">The Advantage</h4>
+                            <p className="text-sm text-zinc-400 leading-relaxed uppercase">
+                                Our platform leverages modern SaaS architecture to provide instant bidding, real-time surenchére, and secure Stripe-backed transactions.
+                            </p>
+                        </div>
+                        <div className="p-10 bg-white border border-zinc-100 rounded-[40px] italic group hover:border-primary/20 transition-all shadow-sm">
+                            <Users className="text-primary mb-6" size={32} />
+                            <h4 className="text-xl font-bold font-display uppercase text-secondary mb-4">Dedicated Team</h4>
+                            <p className="text-sm text-zinc-400 leading-relaxed uppercase">
+                                Our team of specialists handles everything from lot identification to rigging supervision and logistics coordination.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      {/* Corporate Family - Clean SaaS Light Grid */}
+      <section className="py-24 px-6 bg-white border-t border-zinc-100 italic">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="mb-16">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-1 w-8 bg-primary rounded-full" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Institutional Strength</span>
+                </div>
+                <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none">The Corporate <span className="text-primary">Family</span>.</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {corporateEntities.map((entity, i) => (
+                    <div key={i} className="p-8 bg-zinc-50 border border-zinc-100 rounded-[32px] hover:bg-white hover:border-primary/20 hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500 group">
+                        <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center border border-zinc-100 mb-6 group-hover:bg-primary/5 transition-all">
+                            <Building2 className="text-zinc-300 group-hover:text-primary transition-colors" size={24} />
+                        </div>
+                        <h4 className="text-lg font-bold text-secondary mb-2 uppercase italic leading-none">{entity.name}</h4>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-8">{entity.specialty}</p>
+                        <div className="pt-6 border-t border-zinc-100 flex items-center justify-between">
+                            <span className="text-[9px] font-bold text-zinc-300 uppercase">{entity.location}</span>
+                            <ChevronRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
+        <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold text-secondary font-display uppercase italic mb-8">Ready to Engage Our Services?</h2>
+            <Link href="/engage" className="bg-primary text-white px-12 py-6 rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-secondary transition-all shadow-2xl shadow-primary/20 italic">
+                Get Strategic Consultation
+            </Link>
+        </div>
       </section>
     </div>
   );

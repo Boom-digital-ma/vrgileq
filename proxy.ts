@@ -63,39 +63,140 @@ export async function proxy(request: NextRequest) {
         }
       }
 
-      // 4. If not admin or not logged in, show maintenance page
-      // We can redirect to a special route or rewrite to a maintenance view
-      // For simplicity, let's redirect to a simple static maintenance page if it exists
-      // or just return a simple response.
-      return new NextResponse(
+      // 4. Realtime SaaS Premium Maintenance Page
+      const response = new NextResponse(
         `
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Maintenance Mode | Virginia Liquidation</title>
-            <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@900&family=Manrope:wght@400&display=swap" rel="stylesheet">
+            <title>System Update | Virginia Liquidation</title>
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+            <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
             <style>
-                body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0B2B53; color: white; font-family: 'Manrope', sans-serif; text-align: center; }
-                .card { border: 4px solid #049A9E; padding: 3rem; max-width: 500px; background: white; color: #464646; box-shadow: 12px 12px 0px 0px #049A9E; }
-                h1 { font-family: 'Urbanist', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em; color: #049A9E; font-size: 3rem; margin: 0 0 1rem 0; font-style: italic; }
-                p { font-weight: 500; margin-bottom: 2rem; }
-                .logo { height: 60px; margin-bottom: 2rem; }
+                :root { --primary: #049A9E; --secondary: #0B2B53; --bg: #F9FAFB; }
+                body { 
+                    margin: 0; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    min-height: 100vh; 
+                    background: var(--bg); 
+                    color: var(--secondary); 
+                    font-family: 'Plus Jakarta Sans', sans-serif; 
+                    text-align: center; 
+                    padding: 24px;
+                }
+                .card { 
+                    background: white; 
+                    padding: 60px; 
+                    max-width: 500px; 
+                    width: 100%;
+                    border-radius: 48px; 
+                    box-shadow: 0 30px 60px rgba(11, 43, 83, 0.05);
+                    border: 1px solid rgba(11, 43, 83, 0.05);
+                    position: relative;
+                    overflow: hidden;
+                }
+                .logo { height: 40px; margin-bottom: 40px; opacity: 0.9; }
+                .badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: rgba(4, 154, 158, 0.1);
+                    color: var(--primary);
+                    padding: 6px 16px;
+                    border-radius: 100px;
+                    font-size: 10px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.2em;
+                    margin-bottom: 24px;
+                }
+                .pulse { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; animation: pulse 2s infinite; }
+                @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.5; } 70% { transform: scale(1.5); opacity: 0; } 100% { transform: scale(0.95); opacity: 0; } }
+                h1 { 
+                    font-size: 42px; 
+                    font-weight: 800; 
+                    text-transform: uppercase; 
+                    letter-spacing: -0.04em; 
+                    line-height: 0.9;
+                    margin: 0 0 24px 0; 
+                    font-style: italic; 
+                }
+                p { font-size: 16px; color: #94A3B8; font-weight: 500; line-height: 1.6; margin-bottom: 40px; }
+                .footer { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3em; color: #CBD5E1; }
+                .bg-glow {
+                    position: absolute;
+                    bottom: -50px;
+                    right: -50px;
+                    width: 200px;
+                    height: 200px;
+                    background: var(--primary);
+                    filter: blur(80px);
+                    opacity: 0.05;
+                    border-radius: 50%;
+                }
             </style>
         </head>
         <body>
             <div class="card">
+                <div class="bg-glow"></div>
                 <img src="/images/logo-virginia-transparent.png" class="logo" alt="Logo">
-                <h1>Under Maintenance</h1>
-                <p>We are currently updating our industrial catalog. Please check back later today.</p>
-                <div style="font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #DADADA;">Virginia Liquidation • Industrial Auctions</div>
+                <br/>
+                <div class="badge">
+                    <span class="pulse"></span>
+                    System Protocol Active
+                </div>
+                <h1>Catalogue <span style="color: var(--primary)">Sync</span> in Progress.</h1>
+                <p>We are currently synchronizing our industrial inventory. Our bidding gateway will resume operations shortly.</p>
+                <div class="footer">Virginia Liquidation • Industrial Governance</div>
             </div>
+
+            <script>
+                // Realtime synchronization to auto-reload when maintenance ends
+                const SUPABASE_URL = "${process.env.NEXT_PUBLIC_SUPABASE_URL}";
+                const SUPABASE_ANON_KEY = "${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}";
+                
+                if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+                    console.log('🔌 Connecting to Maintenance Realtime Protocol...');
+                    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    client
+                        .channel('public:site_settings')
+                        .on('postgres_changes', { 
+                            event: 'UPDATE', 
+                            schema: 'public', 
+                            table: 'site_settings', 
+                            filter: 'id=eq.global' 
+                        }, payload => {
+                            console.log('🔄 Maintenance status update received:', payload.new.maintenance_mode);
+                            if (payload.new && payload.new.maintenance_mode === false) {
+                                console.log('✅ Maintenance ended. Reloading...');
+                                window.location.reload();
+                            }
+                        })
+                        .subscribe((status) => {
+                            if (status === 'SUBSCRIBED') {
+                                console.log('✅ Connected to Maintenance Channel');
+                            }
+                        });
+                } else {
+                    console.error('❌ Supabase keys missing for maintenance mode realtime');
+                }
+            </script>
         </body>
         </html>
         `,
         { status: 503, headers: { 'content-type': 'text/html' } }
       )
+      
+      // Prevent caching of the maintenance page
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      response.headers.set('Expires', '0');
+      
+      return response;
     }
   } catch (error) {
     // If DB fails, we proceed normally to avoid blocking the site

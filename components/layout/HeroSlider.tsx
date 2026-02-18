@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Gavel, ArrowRight } from "lucide-react";
 import SLIDES from "@/data/slides.json";
+import { cn } from "@/lib/utils";
 
 export default function HeroSlider() {
   const [current, setCurrent] = useState(0);
@@ -18,52 +19,67 @@ export default function HeroSlider() {
   };
 
   useEffect(() => {
-    const timer = setInterval(nextSlide, 6000);
+    const timer = setInterval(nextSlide, 8000);
     return () => clearInterval(timer);
   }, [nextSlide]);
 
   return (
-    <section className="relative h-[800px] w-full bg-primary overflow-hidden">
+    <section className="relative h-[700px] md:h-[850px] w-full bg-secondary overflow-hidden">
       {SLIDES.map((slide, index) => (
         <div
           key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            index === current ? "opacity-100 z-10" : "opacity-0 z-0"
-          }`}
+          className={cn(
+            "absolute inset-0 transition-all duration-1000 ease-in-out",
+            index === current ? "opacity-100 scale-100 z-10" : "opacity-0 scale-110 z-0"
+          )}
         >
-          {/* Background Image */}
-          <Image
-            src={slide.image}
-            alt={slide.title}
-            fill
-            className="object-cover opacity-40 scale-105"
-            priority={index === 0}
-          />
+          {/* Background Image with sophisticated overlay */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={slide.image}
+              alt={slide.title}
+              fill
+              className="object-cover opacity-50"
+              priority={index === 0}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-secondary/40 via-secondary/60 to-secondary" />
+          </div>
           
           {/* Content */}
-          <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center items-center px-6 z-10 text-center">
-            <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-8 duration-1000 flex flex-col items-center">
-              <div className="mb-6 inline-block bg-secondary px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-[4px_4px_0px_0px_rgba(11,43,83,1)]">
-                {slide.welcome}
+          <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-6 z-10">
+            <div className={cn(
+                "max-w-4xl transition-all duration-1000 delay-300",
+                index === current ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
+            )}>
+              <div className="mb-6 flex items-center gap-3">
+                <div className="h-[1px] w-12 bg-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">
+                    {slide.welcome}
+                </span>
               </div>
-              <h1 className="mb-8 text-4xl font-black uppercase tracking-tighter sm:text-6xl lg:text-7xl leading-none text-white drop-shadow-2xl">
-                {slide.title}
+              
+              <h1 className="mb-8 text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl leading-[0.9] text-white font-display italic uppercase">
+                {slide.title.split(' ').map((word, i) => (
+                    <span key={i} className={i === 1 ? "text-primary block" : "block"}>{word}</span>
+                ))}
               </h1>
-              <p className="mb-12 max-w-2xl text-lg font-bold text-white/90 leading-relaxed uppercase tracking-tight drop-shadow-lg">
+              
+              <p className="mb-12 max-w-xl text-lg font-medium text-white/60 leading-relaxed italic">
                 {slide.description}
               </p>
-              <div className="flex flex-wrap justify-center gap-6">
+
+              <div className="flex flex-wrap gap-4">
                 <Link 
                   href={slide.link} 
-                  className="bg-primary text-white px-10 py-5 text-xs font-black uppercase tracking-widest transition-all hover:bg-secondary border-2 border-primary shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+                  className="bg-primary text-white px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-white hover:text-secondary shadow-2xl shadow-primary/20 flex items-center gap-3 group"
                 >
-                  {slide.cta}
+                  {slide.cta} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link 
                   href="/contact" 
-                  className="bg-white/10 backdrop-blur-md text-white border-2 border-white px-10 py-5 text-xs font-black uppercase tracking-widest transition-all hover:bg-white hover:text-primary"
+                  className="bg-white/5 backdrop-blur-md text-white border border-white/10 px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-white/10"
                 >
-                  Contact Us
+                  View Corporate Family
                 </Link>
               </div>
             </div>
@@ -71,33 +87,37 @@ export default function HeroSlider() {
         </div>
       ))}
 
-      {/* Navigation Controls */}
-      <div className="absolute bottom-12 right-6 z-20 flex gap-4 md:right-12">
+      {/* Navigation Controls - Minimalist SaaS */}
+      <div className="absolute bottom-12 right-6 z-20 flex gap-2 md:right-12">
         <button 
           onClick={prevSlide}
-          className="group flex h-12 w-12 items-center justify-center border-2 border-white/30 text-white transition-all hover:border-secondary hover:bg-secondary"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-white/40 transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-5 w-5" />
         </button>
         <button 
           onClick={nextSlide}
-          className="group flex h-12 w-12 items-center justify-center border-2 border-white/30 text-white transition-all hover:border-secondary hover:bg-secondary"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-white/40 transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
         >
-          <ChevronRight className="h-6 w-6" />
+          <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Progress Dots */}
-      <div className="absolute bottom-12 left-6 z-20 flex gap-3 md:left-12">
-        {SLIDES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`h-1 transition-all duration-500 ${
-              i === current ? "w-12 bg-secondary" : "w-6 bg-white/30"
-            }`}
-          />
-        ))}
+      {/* Modern Progress Indicators */}
+      <div className="absolute bottom-12 left-6 z-20 flex items-center gap-4 md:left-12">
+        <div className="flex gap-2">
+            {SLIDES.map((_, i) => (
+            <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={cn(
+                    "h-1 rounded-full transition-all duration-500",
+                    i === current ? "w-12 bg-primary" : "w-4 bg-white/10 hover:bg-white/20"
+                )}
+            />
+            ))}
+        </div>
+        <span className="text-[10px] font-bold text-white/20 tabular-nums">0{current + 1} / 0{SLIDES.length}</span>
       </div>
     </section>
   );

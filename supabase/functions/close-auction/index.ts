@@ -18,7 +18,7 @@ serve(async (req) => {
 
     // 1. Get the auction and the winning bid
     const { data: auction, error: auctionError } = await supabaseAdmin
-      .from("auction-images")
+      .from("auctions")
       .select("*, bids(id, stripe_payment_intent_id, user_id)")
       .eq("id", auction_id)
       .eq("bids.status", "active")
@@ -38,7 +38,7 @@ serve(async (req) => {
 
       // 3. Update auction and bid status
       await supabaseAdmin
-        .from("auction-images")
+        .from("auctions")
         .update({ status: "sold", winner_id: winningBid.user_id })
         .eq("id", auction_id)
 
@@ -46,6 +46,13 @@ serve(async (req) => {
         .from("bids")
         .update({ status: "won" })
         .eq("id", winningBid.id)
+
+      // 3b. Fetch the generated sale ID (created by DB trigger)
+      const { data: sale } = await supabaseAdmin
+        .from("sales")
+        .select("id")
+        .eq("auction_id", auction_id)
+        .single()
 
       // 4. Create Notification for winner
       await supabaseAdmin
@@ -66,6 +73,8 @@ serve(async (req) => {
         .single()
 
       if (winnerProfile?.email) {
+        const invoiceUrl = `${Deno.env.get("SITE_URL") || 'http://localhost:3000'}/invoices/${sale?.id || ''}`
+        
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -81,9 +90,9 @@ serve(async (req) => {
                 <h1 style="color: #049A9E; text-transform: uppercase; letter-spacing: -0.05em;">You won the auction!</h1>
                 <p>Congratulations ${winnerProfile.full_name || 'Bidder'},</p>
                 <p>You are the winning bidder for <strong>"${auction.title}"</strong> with a final bid of <strong>$${Number(auction.current_price).toLocaleString()}</strong>.</p>
-                <p>Please log in to your account to finalize your purchase and arrange removal.</p>
+                <p>Your invoice is now available. Please review it and finalize your purchase.</p>
                 <div style="margin: 30px 0;">
-                  <a href="${Deno.env.get("SITE_URL") || 'http://localhost:3000'}/profile" style="background-color: #0B2B53; color: white; padding: 15px 25px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px;">View My Account</a>
+                  <a href="${invoiceUrl}" style="background-color: #0B2B53; color: white; padding: 15px 25px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px;">View My Invoice</a>
                 </div>
                 <p style="color: #666; font-size: 12px; margin-top: 40px;">Virginia Liquidation • Industrial Auctions</p>
               </div>
@@ -94,7 +103,7 @@ serve(async (req) => {
     } else {
       // No winner, just end it
       await supabaseAdmin
-        .from("auction-images")
+        .from("auctions")
         .update({ status: "ended" })
         .eq("id", auction_id)
     }

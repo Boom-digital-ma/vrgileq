@@ -2,22 +2,22 @@
 
 import React from "react"
 import { useForm } from "@refinedev/core"
-import { Save, Loader2, Shield, Globe, Bell, CreditCard } from "lucide-react"
+import { Save, Loader2, Shield, Globe, Bell, CreditCard, Percent, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 export default function SettingsPage() {
-    // We use useForm to handle settings (assuming a single record in site_settings table)
-    // For a static MVP, we'll simulate the UI structure
     const result = useForm({
         resource: "site_settings",
         action: "edit",
         id: "global",
-        redirect: false
+        redirect: false,
+        onMutationSuccess: () => toast.success("Configuration updated successfully"),
+        onMutationError: (err) => toast.error("Update failed: " + err.message)
     })
 
     const { onFinish, formLoading } = result
     const queryResult = (result as any).queryResult || (result as any).query
-
     const settings = (queryResult as any)?.data?.data || {}
 
     const inputClasses = "w-full h-11 bg-zinc-50 border border-zinc-200 rounded-xl px-4 text-sm outline-none focus:bg-white focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all font-medium text-zinc-900 font-sans disabled:opacity-50"
@@ -25,38 +25,59 @@ export default function SettingsPage() {
 
     const sections = [
         {
-            title: "Platform Economics",
-            icon: CreditCard,
+            title: "Financial Protocols",
+            icon: Percent,
+            description: "Manage fees, taxes and deposit requirements.",
             fields: [
-                { label: "Buyer's Premium (%)", name: "buyers_premium", type: "number", placeholder: "15", defaultValue: settings.buyers_premium || 15 },
-                { label: "Default Deposit Amount ($)", name: "default_deposit", type: "number", placeholder: "500", defaultValue: settings.default_deposit || 500 },
+                { label: "Buyer's Premium (%)", name: "buyers_premium", type: "number", step: "0.01", defaultValue: settings.buyers_premium },
+                { label: "Sales Tax Rate (%)", name: "tax_rate", type: "number", step: "0.01", defaultValue: settings.tax_rate },
+                { label: "Default Registration Deposit ($)", name: "default_deposit", type: "number", defaultValue: settings.default_deposit },
             ]
         },
         {
-            title: "Support & Contact",
-            icon: Globe,
+            title: "Bidding Engine",
+            icon: Zap,
+            description: "Configure anti-sniping and automated rules.",
             fields: [
-                { label: "Public Support Email", name: "support_email", type: "email", placeholder: "support@virginialiquidation.com", defaultValue: settings.support_email },
-                { label: "Contact Phone", name: "support_phone", type: "text", placeholder: "(703) 555-0123", defaultValue: settings.support_phone },
+                { label: "Auto-Extend Trigger (Mins)", name: "auto_extend_threshold_mins", type: "number", defaultValue: settings.auto_extend_threshold_mins },
+                { label: "Auto-Extend Duration (Mins)", name: "auto_extend_duration_mins", type: "number", defaultValue: settings.auto_extend_duration_mins },
             ]
         },
         {
-            title: "System Availability",
+            title: "Site Security & Features",
             icon: Shield,
+            description: "Control access and advanced bidding features.",
             fields: [
                 { 
                     label: "Maintenance Mode", 
                     name: "maintenance_mode", 
                     type: "checkbox", 
                     defaultValue: settings.maintenance_mode,
-                    info: "If enabled, only logged-in admins can access the public site."
+                    info: "Restrict public access to Admins only."
                 },
+                { 
+                    label: "Proxy Bidding (Max Bid)", 
+                    name: "proxy_bidding_enabled", 
+                    type: "checkbox", 
+                    defaultValue: settings.proxy_bidding_enabled,
+                    info: "Enable automated surenchére system."
+                },
+            ]
+        },
+        {
+            title: "Communications",
+            icon: Globe,
+            description: "Contact details and public announcements.",
+            fields: [
+                { label: "Public Support Email", name: "support_email", type: "email", defaultValue: settings.support_email },
+                { label: "Contact Phone", name: "support_phone", type: "text", defaultValue: settings.support_phone },
+                { label: "Global Header Announcement", name: "global_announcement", type: "text", placeholder: "e.g. System Maintenance tonight at 10 PM", defaultValue: settings.global_announcement },
             ]
         }
     ]
 
     return (
-        <div className="space-y-8 text-zinc-900 font-sans">
+        <div className="space-y-8 text-zinc-900 font-sans pb-20">
             <div>
                 <h1 className="text-2xl font-bold tracking-tight">System Settings</h1>
                 <p className="text-sm text-zinc-500 font-medium uppercase tracking-widest text-[10px]">Platform Configuration & Policy Control</p>
@@ -71,24 +92,30 @@ export default function SettingsPage() {
 
             <form onSubmit={(e) => {
                 e.preventDefault()
-                if (queryResult?.isError) return alert("Storage table missing. Please run migrations first.")
+                if (queryResult?.isError) {
+                    toast.error("Storage table missing. Please run migrations first.")
+                    return
+                }
                 const formData = new FormData(e.currentTarget)
                 
                 const data: any = Object.fromEntries(formData.entries())
-                // Proper boolean handling for checkboxes in Refine/Supabase
                 data.maintenance_mode = formData.get('maintenance_mode') === 'on'
+                data.proxy_bidding_enabled = formData.get('proxy_bidding_enabled') === 'on'
                 
                 onFinish(data)
             }} className="space-y-8">
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {sections.map((section, idx) => (
-                        <div key={idx} className="bg-white border border-zinc-200 rounded-3xl p-8 shadow-sm space-y-6">
-                            <div className="flex items-center gap-3 pb-4 border-b border-zinc-50">
-                                <div className="p-2 bg-zinc-900 rounded-lg">
-                                    <section.icon size={18} className="text-white" />
+                        <div key={idx} className="bg-white border border-zinc-200 rounded-[32px] p-8 shadow-sm space-y-6 flex flex-col">
+                            <div className="flex items-center gap-4 pb-6 border-b border-zinc-50">
+                                <div className="h-12 w-12 bg-zinc-900 rounded-2xl flex items-center justify-center shrink-0">
+                                    <section.icon size={20} className="text-white" />
                                 </div>
-                                <h2 className="text-sm font-black uppercase tracking-widest">{section.title}</h2>
+                                <div>
+                                    <h2 className="text-sm font-black uppercase tracking-widest text-zinc-900">{section.title}</h2>
+                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5 italic">{section.description}</p>
+                                </div>
                             </div>
                             
                             <div className="space-y-4">
@@ -110,6 +137,7 @@ export default function SettingsPage() {
                                             <input 
                                                 name={field.name}
                                                 type={field.type}
+                                                step={(field as any).step}
                                                 placeholder={(field as any).placeholder}
                                                 defaultValue={field.defaultValue}
                                                 className={inputClasses}
@@ -121,32 +149,27 @@ export default function SettingsPage() {
                         </div>
                     ))}
 
-                    <div className="bg-zinc-900 rounded-3xl p-8 text-white flex flex-col justify-between relative overflow-hidden">
+                    <div className="bg-zinc-900 rounded-3xl p-8 text-white flex flex-col justify-between relative overflow-hidden lg:col-span-2">
                         <div className="relative z-10">
                             <div className="flex items-center gap-3 mb-6">
-                                <Shield className="text-primary" size={24} />
-                                <h2 className="text-sm font-black uppercase tracking-widest">Security Override</h2>
+                                <Zap className="text-primary" size={24} />
+                                <h2 className="text-sm font-black uppercase tracking-widest">Commit All Changes</h2>
                             </div>
                             <p className="text-xs text-zinc-400 leading-relaxed mb-6 font-medium italic">
-                                Changing platform economics (Buyer's Premium) will affect all future invoices. 
-                                Ensure you have legal clearance before modifying these parameters.
+                                Modifying financial rules or bidding logic will affect all active auctions immediately. Ensure your legal terms reflect these settings.
                             </p>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                                <Bell size={12} />
-                                Logs will track this change
-                            </div>
                         </div>
                         <div className="mt-8 relative z-10">
                             <button 
                                 type="submit"
                                 disabled={formLoading}
-                                className="w-full bg-white text-zinc-900 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary hover:text-white transition-all shadow-xl flex items-center justify-center gap-2"
+                                className="w-full bg-white text-zinc-900 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-primary hover:text-white transition-all shadow-xl flex items-center justify-center gap-2"
                             >
-                                {formLoading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                                Commit Configuration
+                                {formLoading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                                Save Global Configuration
                             </button>
                         </div>
-                        <div className="absolute -top-10 -right-10 h-40 w-40 bg-white/5 blur-3xl rounded-full"></div>
+                        <div className="absolute -top-10 -right-10 h-64 w-64 bg-white/5 blur-3xl rounded-full"></div>
                     </div>
                 </div>
             </form>

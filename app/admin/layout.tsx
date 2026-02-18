@@ -135,7 +135,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {
             name: "bids",
             list: "/admin/bids",
-            meta: { label: "Transactions" }
+            meta: { label: "Live Bids" }
+        },
+        {
+            name: "sales",
+            list: "/admin/sales",
+            show: "/admin/sales/:id",
+            meta: { label: "Sales & Invoices" }
+        },
+        {
+            name: "logistics",
+            list: "/admin/logistics",
+            meta: { label: "Warehouse Logistics" }
         },
         {
             name: "profiles",

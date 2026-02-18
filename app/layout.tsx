@@ -1,24 +1,17 @@
 import type { Metadata } from "next";
-import { Urbanist, Manrope, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Geist } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
-const urbanist = Urbanist({
-  variable: "--font-urbanist",
+const displayFont = Geist({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  display: 'swap',
 });
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const sansFont = Plus_Jakarta_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700", "800"],
-  display: 'swap',
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -41,8 +34,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${manrope.variable} ${urbanist.variable} ${geistMono.variable} font-sans antialiased min-h-screen flex flex-col`}>
+      <body className={`${sansFont.variable} ${displayFont.variable} font-sans antialiased min-h-screen flex flex-col`}>
         {children}
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

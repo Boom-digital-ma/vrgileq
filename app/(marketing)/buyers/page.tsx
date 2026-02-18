@@ -1,217 +1,129 @@
-import React from 'react';
-import Link from 'next/link';
-import { Gavel, Truck, Eye, CreditCard, AlertTriangle, Info, CheckCircle2, ShieldCheck, ArrowRight, Users, Megaphone } from 'lucide-react';
+import { Gavel, CreditCard, Truck, Search, ShieldCheck, HelpCircle, ArrowRight, CheckCircle2, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function BuyersPage() {
+  const steps = [
+    {
+      title: "Inspection",
+      icon: Search,
+      desc: "Items are available for physical inspection prior to the auction close. We strongly recommend viewing assets in-situ to assess condition."
+    },
+    {
+      title: "Registration",
+      icon: CheckCircle2,
+      desc: "Create an account and authorize your bidding capacity. A fully refundable deposit may be required for specific industrial events."
+    },
+    {
+      title: "Bidding",
+      icon: Gavel,
+      desc: "Place your bids in real-time or set a Maximum Bid (Proxy). Our system automatically handles increments to keep you in the lead."
+    },
+    {
+      title: "Closing",
+      icon: ShieldCheck,
+      desc: "Auctions close dynamically. Any last-minute bid triggers an automatic time extension to ensure fair market value for all parties."
+    },
+    {
+      title: "Payment",
+      icon: CreditCard,
+      desc: "Invoices are generated immediately after the event. Payment is processed securely via the card on file or wire transfer for large amounts."
+    },
+    {
+      title: "Removal",
+      icon: Truck,
+      desc: "Buyers are responsible for asset removal. Our logistics partners can assist with rigging, extraction, and nationwide shipping."
+    }
+  ];
+
   return (
-    <div className="bg-white font-sans tracking-tight text-neutral">
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-        
-        {/* HEADER */}
-        <header className="mb-24 text-center">
-          <div className="text-primary font-black uppercase tracking-[0.3em] text-xs mb-4 text-center">BUYER GUIDE</div>
-          <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter text-secondary mb-6 leading-none">
-            Welcome to <br />Virginia Liquidation
-          </h1>
-          <p className="text-xl text-neutral/60 font-medium max-w-2xl mx-auto italic">"The stuff you need at the price you set."</p>
-        </header>
-
-        {/* 1 & 2: INTRODUCTION */}
-        <div className="grid md:grid-cols-2 gap-12 mb-24">
-          <article className="bg-white p-10 border-2 border-primary shadow-[12px_12px_0px_0px_rgba(4,154,158,1)] flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 bg-primary text-white flex items-center justify-center font-black">1</div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-secondary">Before We Begin</h2>
+    <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
+      {/* SaaS Premium Header */}
+      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
+        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <div className="flex items-center justify-center gap-3 mb-8">
+                <div className="h-[1px] w-10 bg-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Protocol & Guidelines</span>
+                <div className="h-[1px] w-10 bg-primary" />
             </div>
-            <p className="text-neutral/70 font-medium leading-relaxed">
-              Unlike traditional live auctions or eBay online-only auctions, Virginia Liquidation brings you a piece of every aspect of the auction buying experience. We are a little bit traditional (with previews and pickups), a little bit eBay (online bidding), and something altogether different (event-based photo catalogs and credit card only payments). Even if you're familiar with our auctions, take a look around; you will likely find information about our process, policies, or techniques which will help you better navigate the site and have the best bidding experience possible.
+            <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
+                Buyer's <br/> <span className="text-primary">Guide</span>.
+            </h1>
+            <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
+                Everything you need to know about participating in Northern Virginia's premier industrial auctions.
             </p>
-          </article>
+        </div>
+        {/* Background Depth */}
+        <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
+      </section>
 
-          <article className="bg-white p-10 border-2 border-secondary shadow-[12px_12px_0px_0px_rgba(11,43,83,1)] flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 bg-secondary text-white flex items-center justify-center font-black">2</div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-secondary">Getting Started</h2>
+      {/* Steps Grid - Modern SaaS Cards */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {steps.map((step, i) => (
+                    <div key={i} className="group bg-white p-10 rounded-[40px] border border-zinc-100 transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.05)] hover:-translate-y-2 flex flex-col italic">
+                        <div className="h-14 w-14 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all mb-8 border border-zinc-100 group-hover:border-primary/20">
+                            <step.icon size={28} strokeWidth={1.5} />
+                        </div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-[10px] font-bold text-primary tabular-nums">0{i+1}</span>
+                            <h3 className="text-2xl font-bold text-secondary font-display uppercase leading-none">{step.title}</h3>
+                        </div>
+                        <p className="text-zinc-400 text-[13px] font-medium leading-relaxed uppercase">
+                            {step.desc}
+                        </p>
+                    </div>
+                ))}
             </div>
-            <p className="text-neutral/70 font-medium leading-relaxed mb-6">
-              We are the place to get great values. To ensure that buyers get the stuff they need at the price they set, we have developed buyer rights and responsibilities. Please read thoroughly through this page for a smooth buying experience.
+        </div>
+      </section>
+
+      {/* Referral Banner - High Contrast SaaS CTA */}
+      <section className="px-6 py-12">
+        <div className="max-w-7xl mx-auto">
+            <div className="bg-secondary rounded-[48px] p-12 md:p-20 text-white relative overflow-hidden italic shadow-2xl shadow-secondary/20">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 items-center">
+                    <div>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight uppercase font-display leading-[0.9] mb-8">
+                            Have an industrial <span className="text-primary">lead</span>? <br/> Earn up to 20% fees.
+                        </h2>
+                        <p className="text-lg text-white/50 font-medium max-w-xl mb-10">
+                            Virginia Liquidation is proud to pay industry-leading referral fees for successful auction placements and asset acquisitions.
+                        </p>
+                        <div className="flex flex-wrap gap-6">
+                            <Link href="/contact" className="bg-primary text-white px-10 py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-secondary transition-all shadow-xl shadow-primary/20 flex items-center gap-3 group">
+                                Contact Our Team <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="hidden lg:flex justify-center">
+                        <div className="h-48 w-48 rounded-full border border-white/10 flex items-center justify-center p-4 relative">
+                            <div className="absolute inset-0 border-2 border-dashed border-primary/30 rounded-full animate-[spin_20s_linear_infinite]" />
+                            <MessageSquare size={64} className="text-primary" />
+                        </div>
+                    </div>
+                </div>
+                {/* Background Decoration */}
+                <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/10 to-transparent pointer-events-none" />
+            </div>
+        </div>
+      </section>
+
+      {/* FAQ Link Section */}
+      <section className="py-24 px-6 bg-white border-t border-zinc-100">
+        <div className="max-w-3xl mx-auto text-center">
+            <div className="h-12 w-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 mx-auto mb-8 border border-zinc-100">
+                <HelpCircle size={24} />
+            </div>
+            <h2 className="text-3xl font-bold text-secondary font-display uppercase italic mb-6">Need Further Clarification?</h2>
+            <p className="text-zinc-400 font-medium uppercase text-sm mb-10">
+                Our support desk is available Monday - Friday to assist with bidding registration, payment processing, or removal scheduling.
             </p>
-            <div className="mt-auto">
-              <span className="bg-secondary/10 text-secondary px-4 py-2 text-[10px] font-black uppercase tracking-widest border border-secondary/20">
-                Internet-only sales throughout the United States
-              </span>
-            </div>
-          </article>
-        </div>
-
-        {/* 3, 4, 5, 6: THE PROCESS */}
-        <div className="mb-32">
-          <div className="flex items-center gap-4 mb-16">
-            <div className="h-12 w-12 bg-primary text-white flex items-center justify-center font-black">3-6</div>
-            <h2 className="text-3xl font-black uppercase tracking-tighter text-secondary">The Buying Process</h2>
-            <div className="h-[2px] flex-1 bg-primary/20"></div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12">
-            <div className="space-y-12">
-              <div className="flex gap-8">
-                <div className="h-16 w-16 bg-light/30 flex items-center justify-center shrink-0 border-2 border-primary/20 group hover:border-primary transition-colors">
-                  <Gavel className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight text-secondary mb-3">3. Bidding</h3>
-                  <p className="text-neutral/60 font-medium leading-relaxed">
-                    Once you are registered, bidding is easy. Visit an open event with an active catalog. Click the item to enter bidding. Place the Bid Required in the 'your bid' box and your Max bid in the 'your maximum bid' box. Bids are processed at the bottom of EACH page. Enter your username and password to confirm.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-8">
-                <div className="h-16 w-16 bg-light/30 flex items-center justify-center shrink-0 border-2 border-primary/20 group hover:border-primary transition-colors">
-                  <Truck className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight text-secondary mb-3">4. Removal</h3>
-                  <p className="text-neutral/60 font-medium leading-relaxed">
-                    All items are assumed to be picked up at the physical location noted in the event details. Virginia Liquidation does not offer any type of shipping, packing, or assistance during removal. Our clients often need their location empty; items not picked up during the removal will be considered abandoned.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-12">
-              <div className="flex gap-8">
-                <div className="h-16 w-16 bg-light/30 flex items-center justify-center shrink-0 border-2 border-primary/20 group hover:border-primary transition-colors">
-                  <Eye className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight text-secondary mb-3">5. Inspection</h3>
-                  <p className="text-neutral/60 font-medium leading-relaxed">
-                    Most events feature a preview inspection or open house one or two days prior to the conclusion of the auction. This is a showcase of the items at their physical location. You must register before bidding. Bidders should carefully consider the photos, details, and terms of sale, then bid accordingly if there is no preview.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-8">
-                <div className="h-16 w-16 bg-light/30 flex items-center justify-center shrink-0 border-2 border-primary/20 group hover:border-primary transition-colors">
-                  <CreditCard className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight text-secondary mb-3">6. Payment</h3>
-                  <p className="text-neutral/60 font-medium leading-relaxed">
-                    Accepted forms of payment are MasterCard/Visa. You must have available balance on your credit card for your auto purchases. At the conclusion of the event, your card is automatically charged for the entire amount of your purchases. Please note: A 15% buyer's premium will be added to each purchase.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 7: TERMINATION POLICY */}
-        <div className="mb-32 border-4 border-red-600 bg-white shadow-[20px_20px_0px_0px_rgba(220,38,38,0.1)]">
-          <div className="bg-red-600 px-8 py-6 flex items-center gap-4">
-            <div className="h-10 w-10 bg-white text-red-600 flex items-center justify-center font-black">7</div>
-            <h2 className="text-xl font-black uppercase tracking-widest text-white">Bidder Responsibility & Termination Policy</h2>
-          </div>
-          
-          <div className="p-12">
-            <p className="mb-12 text-neutral/80 font-medium leading-relaxed text-lg">
-              We are so grateful that you choose Virginia Liquidation Auctions. Out of respect for our sellers and for the vast majority of buyers that take these responsibilities to heart, we will terminate a buyer's bidding privileges after two infractions.
-            </p>
-            
-            <div className="grid md:grid-cols-2 gap-12 mb-12">
-              <div className="flex gap-6 p-8 bg-yellow-50 border-2 border-yellow-200">
-                <AlertTriangle className="h-8 w-8 text-yellow-600 shrink-0" />
-                <div>
-                  <h4 className="font-black text-xs uppercase tracking-widest text-yellow-700 mb-2">First Occurrence</h4>
-                  <p className="text-neutral/70 font-medium leading-relaxed">
-                    If a buyer does not live up to their responsibilities... we will suspend bidding privileges until one of our customer service team members is able to speak with the buyer and resolve the issue.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-6 p-8 bg-red-50 border-2 border-red-200">
-                <ShieldCheck className="h-8 w-8 text-red-600 shrink-0" />
-                <div>
-                  <h4 className="font-black text-xs uppercase tracking-widest text-red-700 mb-2">Final Occurrence</h4>
-                  <p className="text-neutral/70 font-medium leading-relaxed">
-                    If a buyer does not live up to their responsibilities... a second time, we will terminate bidding privileges.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <div className="inline-block bg-neutral text-white px-6 py-3 text-sm font-black uppercase tracking-widest">
-                "This termination policy makes everyone equal, every time."
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 8: GREAT DEALS */}
-        <div className="bg-secondary text-white p-16 shadow-[24px_24px_0px_0px_rgba(4,154,158,1)] mb-32">
-          <div className="flex items-center gap-4 mb-12">
-            <div className="h-12 w-12 bg-primary text-white flex items-center justify-center font-black text-xl">8</div>
-            <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter">With Great Deals Come Responsibilities</h2>
-          </div>
-          
-          <p className="text-xl font-medium text-white/80 mb-12 leading-relaxed italic">
-            "In order to keep those exciting deals coming, we have to be responsible and respectful to their owners. This means:"
-          </p>
-
-          <div className="grid md:grid-cols-1 gap-6">
-            {[
-              "Picking up items during specified removal times and only during specified removal times.",
-              "Bringing all tools, people, and resources to safely disassemble and remove items.",
-              "Bidding only on those items you are serious about winning.",
-              "Following through on auction purchases.",
-              "Understanding that your credit card will be charged immediately following the close of an event."
-            ].map((text, i) => (
-              <div key={i} className="flex items-start gap-6 group">
-                <div className="h-8 w-8 rounded-full border-2 border-primary flex items-center justify-center shrink-0 mt-1 group-hover:bg-primary transition-colors">
-                  <ArrowRight className="h-4 w-4 text-primary group-hover:text-white" />
-                </div>
-                <p className="text-lg md:text-2xl font-black uppercase tracking-tighter leading-tight group-hover:text-primary transition-colors text-white">
-                  {text}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* BOTTOM CTAs */}
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* SELLERS CTA */}
-          <div className="bg-white border-4 border-primary p-12 flex flex-col items-center text-center shadow-[16px_16px_0px_0px_rgba(4,154,158,0.1)] transition-transform hover:-translate-y-2">
-            <Users className="w-12 h-12 text-primary mb-6" />
-            <h2 className="text-3xl font-black uppercase tracking-tighter text-secondary mb-4">Sellers</h2>
-            <p className="text-neutral/60 font-bold uppercase tracking-tight text-sm mb-8">
-              Find out more on our sellers page.
-            </p>
-            <Link 
-              href="/sellers" 
-              className="bg-primary text-white px-10 py-4 text-xs font-black uppercase tracking-widest hover:bg-secondary transition-all shadow-[4px_4px_0px_0px_rgba(11,43,83,0.2)]"
-            >
-              Click Here
+            <Link href="/contact" className="text-xs font-bold uppercase tracking-[0.2em] text-primary border-b-2 border-primary pb-1 hover:text-secondary hover:border-secondary transition-all">
+                Access Support Center →
             </Link>
-          </div>
-
-          {/* REFERRALS CTA */}
-          <div className="bg-white border-4 border-secondary p-12 flex flex-col items-center text-center shadow-[16px_16px_0px_0px_rgba(11,43,83,0.1)] transition-transform hover:-translate-y-2">
-            <Megaphone className="w-12 h-12 text-secondary mb-6" />
-            <h2 className="text-3xl font-black uppercase tracking-tighter text-secondary mb-4">Referrals</h2>
-            <p className="text-neutral/60 font-bold uppercase tracking-tight text-sm mb-8">
-              We are proud to pay up to 20% referral fees. Have a lead?
-            </p>
-            <Link 
-              href="/contact" 
-              className="bg-secondary text-white px-10 py-4 text-xs font-black uppercase tracking-widest hover:bg-primary transition-all shadow-[4px_4px_0px_0px_rgba(4,154,158,0.2)]"
-            >
-              Click Here
-            </Link>
-          </div>
         </div>
-
       </section>
     </div>
   );

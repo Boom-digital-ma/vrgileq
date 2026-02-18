@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { importLots } from "@/app/actions/lots"
+import { toast } from "sonner"
 import * as XLSX from 'xlsx'
 import Papa from 'papaparse'
 import { cn } from "@/lib/utils"
@@ -51,12 +52,18 @@ export const AdvancedInventoryLoader = () => {
   }
 
   const startSync = async () => {
-    if (!selectedFiles.excel) return alert("Please select an Excel or CSV file first.")
-    if (!eventId) return alert("System Error: Event ID not found.")
+    if (!selectedFiles.excel) {
+        toast.error("Please select an Excel or CSV file first.")
+        return
+    }
+    if (!eventId) {
+        toast.error("System Error: Event ID not found.")
+        return
+    }
 
     setImportLoading(true)
     try {
-        setImportProgress({ current: 0, total: 0, phase: "Parsing inventory data..." })
+        // ... (previous logic)
         const data: any[] = await new Promise((resolve) => {
             if (selectedFiles.excel!.name.endsWith('.csv')) {
                 Papa.parse(selectedFiles.excel!, {
@@ -140,7 +147,7 @@ export const AdvancedInventoryLoader = () => {
 
         const res = await importLots(eventId, finalLots)
         if (res.success) {
-            alert(`SUCCESS: ${res.count} lots imported successfully.`)
+            toast.success(`${res.count} lots imported successfully.`)
             invalidate({ resource: "auctions", invalidates: ["list"] })
             list("auction_events")
         } else {
@@ -148,7 +155,7 @@ export const AdvancedInventoryLoader = () => {
         }
 
     } catch (err: any) {
-        alert("CRITICAL SYNC ERROR: " + err.message)
+        toast.error("CRITICAL SYNC ERROR: " + err.message)
     } finally {
         setImportLoading(false)
     }
