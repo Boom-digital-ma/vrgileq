@@ -3,7 +3,7 @@ import { outbidTemplate } from './templates/outbid';
 import { winningTemplate } from './templates/won';
 import { closingSoonTemplate } from './templates/closing-soon';
 
-const FROM_EMAIL = 'Virginia Liquidation <notifications@virginialiquidation.com>';
+const FROM_EMAIL = process.env.NEXT_PUBLIC_RESEND_FROM || 'Virginia Liquidation <onboarding@resend.dev>';
 
 export async function sendOutbidEmail({
   to,

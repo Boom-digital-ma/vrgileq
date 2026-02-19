@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
       // 6. Send Email via Resend API (Direct Fetch to avoid library issues)
       if (RESEND_API_KEY && sale) {
         const { data: winnerProfile } = await supabaseAdmin.from('profiles').select('full_name, email').eq('id', winningBid.user_id).single()
+        const fromEmail = Deno.env.get("RESEND_FROM") || "Virginia Liquidation <onboarding@resend.dev>"
         
         if (winnerProfile?.email) {
           await fetch("https://api.resend.com/emails", {
@@ -92,7 +93,7 @@ Deno.serve(async (req) => {
               Authorization: `Bearer ${RESEND_API_KEY}`,
             },
             body: JSON.stringify({
-              from: "Virginia Liquidation <notifications@virginialiquidation.com>",
+              from: fromEmail,
               to: winnerProfile.email,
               subject: `CONGRATULATIONS! You won: ${auction.title}`,
               html: `<h1>You won!</h1><p>Congratulations, you are the winner of <b>${auction.title}</b>.</p><p><a href="${SITE_URL}/invoices/${sale.id}">View Invoice</a></p>`,
