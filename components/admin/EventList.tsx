@@ -1,11 +1,13 @@
 'use client'
 
 import { useTable, useNavigation, useDelete, useForm, useList } from "@refinedev/core"
-import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save } from "lucide-react"
+import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save, Gavel } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { Modal, ConfirmModal } from "./Modal"
 import { ImageUpload } from "./ImageUpload"
+import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 
 export const EventList = () => {
   const result = useTable({
@@ -89,9 +91,28 @@ export const EventList = () => {
             <h1 className="text-3xl font-black uppercase tracking-tighter">Auction Events</h1>
             <p className="text-sm text-zinc-500 font-medium uppercase tracking-widest text-[10px]">Global sales administration</p>
         </div>
-        <button onClick={() => { setUploadedImages([]); setIsCreateOpen(true); }} className="bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95">
-            <Plus size={16} className="inline mr-2" /> Launch Event
-        </button>
+        <div className="flex items-center gap-3">
+            <button 
+                onClick={async () => {
+                    const confirmClose = confirm("Execute closing sequence for all expired lots across all events?");
+                    if (!confirmClose) return;
+                    try {
+                        const { error } = await createClient().rpc('check_and_close_auctions');
+                        if (error) throw error;
+                        toast.success("Global closing sequence executed");
+                        tableQuery.refetch();
+                    } catch (err: any) {
+                        toast.error("Execution failed: " + err.message);
+                    }
+                }}
+                className="bg-rose-50 text-rose-600 border border-rose-100 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 hover:bg-rose-100"
+            >
+                <Gavel size={16} /> Force Close Expired
+            </button>
+            <button onClick={() => { setUploadedImages([]); setIsCreateOpen(true); }} className="bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95">
+                <Plus size={16} className="inline mr-2" /> Launch Event
+            </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
