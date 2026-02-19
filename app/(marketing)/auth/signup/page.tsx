@@ -97,8 +97,8 @@ export default function SignUpPage() {
   const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-3.5 sm:py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none"
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4 sm:p-6 font-sans text-secondary italic">
-      <div className="w-full max-w-2xl bg-white rounded-[32px] sm:rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-6 sm:p-10 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4 sm:p-6 font-sans text-secondary">
+      <div className="w-full max-w-2xl bg-white rounded-[32px] sm:rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-6 sm:p-10 relative overflow-hidden italic">
         
         {/* Modern Progress Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-end gap-6 mb-8 relative z-10">
@@ -237,7 +237,7 @@ export default function SignUpPage() {
                 </div>
             </div>
 
-            <div className="bg-zinc-50 p-6 sm:p-8 rounded-[32px] border border-zinc-100 mb-8 shadow-inner relative z-20">
+            <div className="bg-zinc-50 p-6 sm:p-8 rounded-[32px] border border-zinc-100 mb-8">
                 <Elements stripe={stripePromise} options={{ locale: 'en' }}>
                     <CardValidation hideHeader onPaymentMethodCreated={(id) => {
                         updateForm({ paymentMethodId: id })

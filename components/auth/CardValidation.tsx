@@ -67,7 +67,7 @@ export default function CardValidation({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="min-h-[200px]">
+    <form onSubmit={handleSubmit} className="w-full">
       <div className={cn("space-y-6 sm:space-y-8", !hideHeader && "bg-white p-4 sm:p-8 rounded-[32px] italic")}>
         {!hideHeader && (
             <div className="flex items-center gap-4">
@@ -109,7 +109,7 @@ export default function CardValidation({
         </button>
         
         <div className="pt-4 sm:pt-6 border-t border-zinc-100">
-            <p className="text-[8px] font-bold text-zinc-300 uppercase text-center leading-loose">
+            <p className="text-[8px] font-bold text-zinc-300 uppercase text-center leading-loose italic">
                 By executing this protocol, you authorize Virginia Liquidation to perform a temporary $1 authorization to validate your credentials. Funds are never permanently withdrawn.
             </p>
         </div>

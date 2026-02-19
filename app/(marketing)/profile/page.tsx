@@ -254,7 +254,7 @@ export default function ProfilePage() {
                                   </div>
                                   <button onClick={() => setShowAddCard(false)} className="text-[10px] font-bold uppercase text-zinc-300 hover:text-rose-500 transition-colors">Discard</button>
                               </div>
-                              <Elements stripe={stripePromise}>
+                              <Elements stripe={stripePromise} options={{ locale: 'en' }}>
                                   <CardValidation onOptionalSuccess={() => { fetchData(); setShowAddCard(false); }} />
                               </Elements>
                           </div>

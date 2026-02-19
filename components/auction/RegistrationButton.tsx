@@ -206,10 +206,10 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
         } 
         maxWidth="max-w-md"
       >
-        <div className="p-6 sm:p-8 space-y-6 italic">
+        <div className="p-6 sm:p-8 space-y-6">
             {/* STEP: PROFILE */}
             {currentStep === 'profile' && (
-                <form onSubmit={handleProfileSubmit} className="space-y-6">
+                <form onSubmit={handleProfileSubmit} className="space-y-6 italic">
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 text-primary">
                             <User size={16} />
@@ -301,7 +301,7 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
             {/* STEP: PAYMENT ADD */}
             {currentStep === 'payment_add' && (
                 <div className="space-y-6">
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center italic">
                         <div className="flex items-center gap-2 text-primary">
                             <CreditCard size={16} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">Financial Protocol</span>
@@ -327,7 +327,7 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
                     </div>
 
                     
-                    <p className="text-[11px] text-zinc-400 font-medium uppercase leading-relaxed">
+                    <p className="text-[11px] text-zinc-400 font-medium uppercase leading-relaxed italic">
                         A valid industrial-grade payment method is required to secure your bidding capacity.
                     </p>
 
@@ -343,7 +343,7 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
 
             {/* STEP: PAYMENT SELECTOR */}
             {currentStep === 'payment_selector' && (
-                <div className="space-y-8">
+                <div className="space-y-8 italic">
                     <div className="space-y-2">
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Select Authorization Source</h4>
                         <p className="text-[11px] font-medium text-zinc-300 uppercase leading-relaxed">Choose card for the ${depositAmount.toLocaleString()} security hold.</p>

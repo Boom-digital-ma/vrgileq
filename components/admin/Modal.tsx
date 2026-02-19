@@ -30,14 +30,14 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-2xl"
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 italic">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div 
         className="absolute inset-0 bg-secondary/40 backdrop-blur-md animate-in fade-in duration-500" 
         onClick={onClose}
       />
       
       <div className={cn(
-        "relative w-full bg-white rounded-[40px] shadow-2xl shadow-secondary/20 overflow-hidden animate-in zoom-in-95 fade-in duration-500 border border-zinc-100",
+        "relative w-full bg-white rounded-[40px] shadow-2xl shadow-secondary/20 overflow-hidden animate-in zoom-in-95 fade-in duration-500 border border-zinc-100 italic",
         maxWidth
       )}>
         <div className="flex items-center justify-between px-10 py-8 border-b border-zinc-50 bg-zinc-50/30">
@@ -80,9 +80,9 @@ export const ConfirmModal = ({
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 italic">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-secondary/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
-            <div className="relative w-full max-w-sm bg-white rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-300 border border-zinc-100">
+            <div className="relative w-full max-w-sm bg-white rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-300 border border-zinc-100 italic">
                 <div className={cn(
                     "h-12 w-12 rounded-2xl flex items-center justify-center mb-6 shadow-sm border",
                     variant === 'danger' ? "bg-rose-50 text-rose-500 border-rose-100" : "bg-primary/10 text-primary border-primary/10"
