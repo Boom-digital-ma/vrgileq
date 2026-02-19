@@ -68,71 +68,73 @@ export const UserList = () => {
   )
 
   return (
-    <div className="space-y-6 text-zinc-900 font-sans">
-      <div className="flex justify-between items-end">
+    <div className="space-y-6 text-zinc-900 font-sans pb-20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-            <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
-            <p className="text-sm text-zinc-500 font-medium uppercase tracking-widest text-[10px]">Access Control & Identity Audit</p>
+            <h1 className="text-3xl font-black uppercase tracking-tighter italic">User Registry</h1>
+            <p className="text-sm text-zinc-500 font-medium uppercase tracking-widest text-[10px] italic">Security Directory • {profiles.length} Active Records</p>
         </div>
-        <button onClick={() => setIsCreateOpen(true)} className="inline-flex items-center gap-2 bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm active:scale-95 transition-all hover:bg-zinc-800">
-            <Plus size={16} /> Add User
+        <button onClick={() => setIsCreateOpen(true)} className="bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold shadow-lg active:scale-95 transition-all flex items-center gap-2">
+            <Plus size={16} /> Provision New Account
         </button>
       </div>
 
       <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex items-center gap-3">
         <Search className="text-zinc-400" size={18} />
-        <input type="text" placeholder="Search by name..." onChange={(e) => handleSearch(e.target.value)} className="flex-1 outline-none text-sm bg-transparent" />
+        <input type="text" placeholder="Search identity registry..." onChange={(e) => handleSearch(e.target.value)} className="flex-1 outline-none text-sm bg-transparent font-sans" />
       </div>
 
-      <div className="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden text-sm font-sans">
+      <div className="bg-white border border-zinc-200 rounded-3xl shadow-sm overflow-hidden text-sm font-sans">
         <table className="w-full text-left">
           <thead>
-            <tr className="text-zinc-500 font-medium border-b border-zinc-100 bg-zinc-50/50">
-              <th className="px-6 py-4 font-semibold uppercase text-[10px] tracking-widest">Identity</th>
-              <th className="px-6 py-4 font-semibold uppercase text-[10px] tracking-widest text-center">Role</th>
-              <th className="px-6 py-4 font-semibold uppercase text-[10px] tracking-widest text-right">Bidding Status</th>
-              <th className="px-6 py-4 font-semibold uppercase text-[10px] tracking-widest text-right italic">Actions</th>
+            <tr className="text-zinc-400 font-bold border-b border-zinc-100 bg-zinc-50/50 text-[10px] uppercase tracking-widest font-sans italic">
+              <th className="px-8 py-5">Identity Protocol</th>
+              <th className="px-8 py-5 text-center">Authorization</th>
+              <th className="px-8 py-5 text-right">Verification</th>
+              <th className="px-8 py-5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-zinc-100 font-sans">
             {profiles.map((profile: any) => (
               <tr key={profile.id} className="hover:bg-zinc-50/50 transition-colors group text-zinc-900">
-                <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 bg-zinc-100 rounded-full flex items-center justify-center border border-zinc-200"><User size={14} className="text-zinc-400" /></div>
+                <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 bg-zinc-50 rounded-xl flex items-center justify-center border border-zinc-100 group-hover:border-primary/20 transition-colors">
+                            <User size={18} className="text-zinc-300 group-hover:text-primary transition-colors" />
+                        </div>
                         <div className="flex flex-col">
-                            <span className="font-bold uppercase tracking-tighter">{profile.full_name || 'Anonymous'}</span>
-                            <span className="text-[10px] text-zinc-400 font-mono">#{profile.id.slice(0,8)}</span>
+                            <span className="font-bold text-zinc-900 uppercase tracking-tight text-sm leading-none mb-1.5">{profile.full_name || 'Anonymous'}</span>
+                            <span className="text-[10px] text-zinc-400 font-mono italic">UID: {profile.id.slice(0,8)}</span>
                         </div>
                     </div>
                 </td>
-                <td className="px-6 py-4 text-center">
+                <td className="px-8 py-6 text-center">
                   <span className={cn(
-                      "inline-flex items-center px-2.5 py-0.5 rounded text-[9px] font-black border uppercase tracking-widest",
+                      "inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black border uppercase tracking-[0.15em]",
                       profile.role === 'admin' ? "bg-zinc-900 text-white border-zinc-950 shadow-sm" : 
                       profile.role === 'moderator' ? "bg-blue-50 text-blue-700 border-blue-100" :
                       "bg-zinc-50 text-zinc-500 border-zinc-200"
                   )}>{profile.role}</span>
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-8 py-6 text-right font-sans">
                   {profile.role === 'admin' || profile.role === 'moderator' ? (
-                      <span className="inline-flex items-center gap-1.5 text-zinc-400 font-black text-[10px] uppercase">
-                          <StaffIcon size={14} /> AUTHORIZED STAFF
+                      <span className="inline-flex items-center gap-1.5 text-zinc-300 font-black text-[9px] uppercase tracking-widest italic">
+                          INTERNAL STAFF
                       </span>
                   ) : profile.is_verified ? (
-                      <span className="inline-flex items-center gap-1.5 text-emerald-600 font-black text-[10px] uppercase">
-                          <BadgeCheck size={14} /> VERIFIED BIDDER
+                      <span className="inline-flex items-center gap-1.5 text-emerald-600 font-black text-[9px] uppercase tracking-widest">
+                          <BadgeCheck size={14} /> SECURITY CLEARED
                       </span>
                   ) : (
-                      <span className="inline-flex items-center gap-1.5 text-rose-400 font-black text-[10px] uppercase italic">
-                          <ShieldAlert size={14} /> UNVERIFIED
+                      <span className="inline-flex items-center gap-1.5 text-rose-400 font-black text-[9px] uppercase tracking-widest italic">
+                          <ShieldAlert size={14} /> PENDING REVIEW
                       </span>
                   )}
                 </td>
-                <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => show("profiles", profile.id)} className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-md"><Eye size={16} /></button>
-                        <button onClick={() => { setSelectedId(profile.id); setIsDeleteOpen(true); }} className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-md"><Trash2 size={16} /></button>
+                <td className="px-8 py-6 text-right font-sans">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all font-sans">
+                        <button onClick={() => show("profiles", profile.id)} className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all"><Eye size={18} /></button>
+                        <button onClick={() => { setSelectedId(profile.id); setIsDeleteOpen(true); }} className="p-2 text-zinc-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={18} /></button>
                     </div>
                 </td>
               </tr>
