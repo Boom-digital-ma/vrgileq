@@ -26,6 +26,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [isUrgent, setIsUrgent] = useState(false);
   const [realtimePrice, setRealtimePrice] = useState(initialPrice);
   const [realtimeBids, setRealtimeBids] = useState(bids);
+  const [realtimeEndsAt, setRealtimeEndsAt] = useState(endsAt);
   const [bidAmount, setBidAmount] = useState<number>(initialPrice + minIncrement);
   const [isProxy, setIsProxy] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -74,6 +75,9 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
       }, (payload) => {
         if (isMounted) {
           setRealtimePrice(Number(payload.new.current_price));
+          if (payload.new.ends_at) {
+            setRealtimeEndsAt(new Date(payload.new.ends_at));
+          }
         }
       })
       .on('postgres_changes', {
@@ -90,7 +94,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
     const timer = setInterval(() => {
       const now = new Date().getTime();
-      const distance = endsAt.getTime() - now;
+      const distance = realtimeEndsAt.getTime() - now;
 
       if (distance < 0) {
         clearInterval(timer);
@@ -118,7 +122,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         clearInterval(timer);
         supabase.removeChannel(channel);
     };
-  }, [endsAt, supabase, eventId, auctionId]);
+  }, [realtimeEndsAt, supabase, eventId, auctionId]);
 
   // Sync with props if parent updates
   useEffect(() => {
@@ -128,6 +132,10 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   useEffect(() => {
     setRealtimeBids(bids);
   }, [bids]);
+
+  useEffect(() => {
+    setRealtimeEndsAt(endsAt);
+  }, [endsAt]);
 
   useEffect(() => {
     setBidAmount(realtimePrice + minIncrement);

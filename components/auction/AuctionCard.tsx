@@ -44,6 +44,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [realtimePrice, setRealtimePrice] = useState(product.price);
   const [realtimeBidCount, setRealtimeBidCount] = useState(product.bidCount);
+  const [realtimeEndsAt, setRealtimeEndsAt] = useState(product.endsAt);
   const router = useRouter();
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
@@ -55,7 +56,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
     setBidAmount(realtimePrice + (product.minIncrement || 100));
 
     const calculateTimeLeft = () => {
-      const target = new Date(product.endsAt).getTime();
+      const target = new Date(realtimeEndsAt).getTime();
       const now = new Date().getTime();
       const diff = target - now;
       if (diff <= 0) return "Auction Ended";
@@ -87,6 +88,9 @@ export default function AuctionCard({ product, user }: { product: Product, user:
       }, (payload) => {
         if (isMounted) {
           setRealtimePrice(Number(payload.new.current_price));
+          if (payload.new.ends_at) {
+            setRealtimeEndsAt(payload.new.ends_at);
+          }
         }
       })
       .on('postgres_changes', {
@@ -115,7 +119,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
         clearInterval(timer);
         supabase.removeChannel(channel);
     };
-  }, [product.id, product.endsAt, product.minIncrement, supabase, user]);
+  }, [product.id, realtimeEndsAt, product.minIncrement, supabase, user]);
 
   useEffect(() => {
     setBidAmount(realtimePrice + (product.minIncrement || 100));
