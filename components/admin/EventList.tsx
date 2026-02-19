@@ -107,10 +107,19 @@ export const EventList = () => {
 
             <div className="p-8 flex-1">
                 <div className="flex justify-between items-start mb-4">
-                    <span className={cn(
-                        "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
-                        event.status === 'live' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-zinc-50 text-zinc-400 border-zinc-100"
-                    )}>{event.status}</span>
+                    {(() => {
+                        const isEnded = new Date(event.ends_at) <= new Date();
+                        const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
+                        
+                        return (
+                            <span className={cn(
+                                "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                                displayStatus === 'live' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : 
+                                displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900 shadow-sm" :
+                                "bg-zinc-50 text-zinc-400 border-zinc-100"
+                            )}>{displayStatus}</span>
+                        );
+                    })()}
                     <div className="flex gap-1">
                         <button onClick={() => handleEditClick(event)} className="p-2 hover:bg-zinc-50 rounded-xl transition-colors text-zinc-400 hover:text-zinc-900"><Edit size={18} /></button>
                         <button onClick={() => show("auction_events", event.id)} className="p-2 hover:bg-zinc-50 rounded-xl transition-colors text-zinc-400 hover:text-zinc-900"><Eye size={18} /></button>

@@ -269,10 +269,23 @@ export const EventShow = () => {
                                     </div>
                                 </td>
                                 <td className="px-8 py-4">
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-zinc-900">{lot.title}</span>
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Status: {lot.status}</span>
-                                    </div>
+                                    {(() => {
+                                        const isEnded = new Date(lot.ends_at) <= new Date();
+                                        const displayStatus = isEnded && lot.status === 'live' ? 'ended' : lot.status;
+                                        return (
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-zinc-900">{lot.title}</span>
+                                                <span className={cn(
+                                                    "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border w-fit mt-1",
+                                                    displayStatus === 'live' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+                                                    displayStatus === 'sold' ? "bg-blue-50 text-blue-700 border-blue-100" :
+                                                    "bg-zinc-100 text-zinc-400 border-zinc-200"
+                                                )}>
+                                                    {displayStatus}
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
                                 </td>
                                 <td className="px-8 py-4 text-center">
                                     <div className="flex items-center justify-center gap-2">
