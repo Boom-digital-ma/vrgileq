@@ -46,6 +46,7 @@ export default function SignUpPage() {
   }
 
   const nextStep = () => {
+    /* VALIDATION DISABLED FOR TESTING
     if (step === 1) {
         if (!formData.fullName || !formData.email || !formData.phone || !formData.password) {
             setError("All identity fields are required.")
@@ -67,6 +68,7 @@ export default function SignUpPage() {
             return
         }
     }
+    */
     setError(null)
     setStep(s => (s < 4 ? (s + 1) as any : s))
   }
