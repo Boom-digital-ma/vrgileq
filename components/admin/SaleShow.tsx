@@ -5,15 +5,18 @@ import { ArrowLeft, User, Package, Calendar, Clock, CreditCard, CheckCircle2, XC
 import { format } from "date-fns"
 import { useParams } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { updateSaleStatus } from "@/app/actions/sales"
+import { updateSaleStatus, refundSale } from "@/app/actions/sales"
 import { toast } from "sonner"
 import { useState } from "react"
 import Link from "next/link"
+import PickupScheduler from "@/components/auction/PickupScheduler"
+import { useList } from "@refinedev/core"
 
 export const SaleShow = () => {
   const { id } = useParams()
   const { list } = useNavigation()
   const [loading, setLoading] = useState(false)
+  const [refunding, setRefunding] = useState(false)
 
   const result = useShow({
     resource: "sales",
@@ -27,6 +30,17 @@ export const SaleShow = () => {
   const sale = query?.data?.data
   const isLoading = query?.isLoading
 
+  // Fetch available slots if sale is loaded
+  const { data: slotsRes } = useList({
+    resource: "pickup_slots_with_counts",
+    filters: [
+        { field: "event_id", operator: "eq", value: sale?.event_id }
+    ],
+    pagination: { mode: "off" },
+    queryOptions: { enabled: !!sale?.event_id }
+  }) as any
+  const slots = slotsRes?.data || []
+
   const handleStatusUpdate = async (newStatus: any) => {
     setLoading(true)
     const res = await updateSaleStatus(id as string, newStatus)
@@ -34,6 +48,19 @@ export const SaleShow = () => {
     else toast.error(res.error)
     query?.refetch()
     setLoading(false)
+  }
+
+  const handleRefund = async () => {
+    if (!confirm("CRITICAL: This will return the full amount to the customer via Stripe. Proceed?")) return
+    setRefunding(true)
+    const res = await refundSale(id as string)
+    if (res.success) {
+        toast.success("Full refund issued successfully")
+        query?.refetch()
+    } else {
+        toast.error("Refund failed: " + res.error)
+    }
+    setRefunding(false)
   }
 
   if (isLoading) return <div className="p-20 text-center text-zinc-400 font-bold uppercase tracking-widest text-[10px]">Loading Transaction Record...</div>
@@ -139,47 +166,15 @@ export const SaleShow = () => {
                 </div>
             </section>
 
-            {/* Pickup Info */}
-            <section className={cn(
-                "border rounded-[32px] overflow-hidden shadow-sm",
-                sale.pickup_slot ? "bg-emerald-50/30 border-emerald-100" : "bg-white border-zinc-200"
-            )}>
-                <div className="p-6 border-b border-zinc-100 flex items-center gap-3">
-                    <Truck className={sale.pickup_slot ? "text-emerald-500" : "text-zinc-400"} size={18} />
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Logistics & Removal</h3>
-                </div>
-                <div className="p-8">
-                    {sale.pickup_slot ? (
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
-                                    <Calendar size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-lg font-bold text-zinc-900">
-                                        {sale.pickup_slot?.start_at ? format(new Date(sale.pickup_slot.start_at), 'EEEE, MMMM dd') : 'Invalid Date'}
-                                    </p>
-                                    <p className="text-sm font-medium text-emerald-600 flex items-center gap-2">
-                                        <Clock size={14} /> 
-                                        {sale.pickup_slot?.start_at ? format(new Date(sale.pickup_slot.start_at), 'hh:mm a') : '--:--'} - 
-                                        {sale.pickup_slot?.end_at ? format(new Date(sale.pickup_slot.end_at), 'hh:mm a') : '--:--'}
-                                    </p>
-                                </div>
-                            </div>
-                            <Link 
-                                href={`/gate-pass/${sale.id}`}
-                                target="_blank"
-                                className="bg-white border border-emerald-200 text-emerald-600 px-6 py-2 rounded-xl text-xs font-bold hover:bg-emerald-50 transition-colors"
-                            >
-                                Print Gate Pass
-                            </Link>
-                        </div>
-                    ) : (
-                        <div className="text-center py-4">
-                            <p className="text-zinc-400 text-sm italic">No pickup appointment scheduled yet.</p>
-                        </div>
-                    )}
-                </div>
+            {/* Pickup Info / Assignment */}
+            <section>
+                <PickupScheduler 
+                    saleId={sale.id}
+                    eventId={sale.event_id}
+                    currentSlotId={sale.pickup_slot_id}
+                    slots={slots}
+                    isPaid={sale.status === 'paid'}
+                />
             </section>
         </div>
 
@@ -225,10 +220,12 @@ export const SaleShow = () => {
                     )}
                     {sale.status === 'paid' && (
                         <button 
-                          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-amber-100 text-amber-600 text-xs font-bold hover:bg-amber-50 transition-all"
+                          disabled={refunding}
+                          onClick={handleRefund}
+                          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-amber-100 text-amber-600 text-xs font-bold hover:bg-amber-50 transition-all disabled:opacity-50"
                         >
-                            Issue Full Refund
-                            <CreditCard size={16} />
+                            {refunding ? "Processing Refund..." : "Issue Full Refund"}
+                            {refunding ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
                         </button>
                     )}
                 </div>

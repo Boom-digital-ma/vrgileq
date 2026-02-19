@@ -25,6 +25,7 @@ interface PickupSchedulerProps {
 
 export default function PickupScheduler({ saleId, eventId, currentSlotId, slots, isPaid }: PickupSchedulerProps) {
   const [loading, setLoading] = useState(false)
+  const [showGrid, setShowGrid] = useState(false)
   const currentSlot = slots.find(s => s.id === currentSlotId)
 
   const handleBook = async (slotId: string) => {
@@ -34,20 +35,21 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
       toast.error(res.error)
     } else {
       toast.success('Pickup scheduled successfully')
+      setShowGrid(false)
     }
     setLoading(false)
   }
 
-  if (currentSlot) {
+  if (currentSlot && !showGrid) {
     return (
-      <div className="bg-emerald-50 border border-emerald-100 rounded-[24px] p-6 flex flex-col sm:flex-row items-center justify-between gap-6 animate-in fade-in duration-500">
+      <div className="bg-emerald-50 border border-emerald-100 rounded-[24px] p-6 flex flex-col sm:flex-row items-center justify-between gap-6 animate-in fade-in duration-500 italic">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-emerald-200">
             <CheckCircle2 size={24} />
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600 mb-1">Pickup Scheduled</p>
-            <h4 className="text-xl font-bold text-prussian-blue font-geist">
+            <h4 className="text-xl font-bold text-zinc-900 font-display">
               {currentSlot.start_at ? format(new Date(currentSlot.start_at), 'EEEE, MMMM dd') : 'Invalid Date'}
             </h4>
             <p className="text-sm text-emerald-700 font-medium">
@@ -56,7 +58,7 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
           </div>
         </div>
         <button 
-          onClick={() => { /* logic to clear or change */ }}
+          onClick={() => setShowGrid(true)}
           className="text-xs font-bold uppercase text-emerald-600 border-b-2 border-emerald-200 hover:border-emerald-600 transition-all pb-0.5"
         >
           Change Appointment
@@ -67,9 +69,19 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
 
   return (
     <div className="bg-white border border-neutral-100 rounded-[32px] p-8 shadow-sm">
-      <div className="flex items-center gap-3 mb-6">
-        <Calendar className="text-teal-600" size={20} />
-        <h3 className="text-lg font-bold text-prussian-blue font-geist uppercase tracking-tight">Schedule Your Pickup</h3>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+            <Calendar className="text-teal-600" size={20} />
+            <h3 className="text-lg font-bold text-prussian-blue font-geist uppercase tracking-tight">Schedule Your Pickup</h3>
+        </div>
+        {showGrid && currentSlot && (
+            <button 
+                onClick={() => setShowGrid(false)}
+                className="text-xs font-bold uppercase text-zinc-400 hover:text-zinc-900 transition-colors"
+            >
+                Cancel
+            </button>
+        )}
       </div>
 
       {!isPaid && (

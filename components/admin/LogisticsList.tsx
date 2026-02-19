@@ -19,11 +19,11 @@ export const LogisticsList = () => {
     },
     filters: {
         permanent: [
-            { field: "pickup_slot_id", operator: "null", value: false } // Only those with an appointment
+            { field: "status", operator: "eq", value: "paid" } // Only paid items are eligible for collection
         ]
     },
     sorters: {
-        initial: [{ field: "pickup_slot_id", order: "asc" }] // We really want to sort by pickup_slot.start_at but Refine needs a direct field
+        initial: [{ field: "created_at", order: "desc" }]
     },
     pagination: { pageSize: 50 }
   })
@@ -32,9 +32,11 @@ export const LogisticsList = () => {
   const sales = tableQuery?.data?.data || []
   const isLoading = tableQuery?.isLoading
 
-  // Sort manually because Refine nested sort is tricky
+  // Sort: prioritize those with slots, then by date
   const sortedSales = [...sales].sort((a: any, b: any) => {
-    if (!a.pickup_slot || !b.pickup_slot) return 0
+    if (a.pickup_slot && !b.pickup_slot) return -1
+    if (!a.pickup_slot && b.pickup_slot) return 1
+    if (!a.pickup_slot && !b.pickup_slot) return 0
     return new Date(a.pickup_slot.start_at).getTime() - new Date(b.pickup_slot.start_at).getTime()
   })
 
@@ -120,7 +122,9 @@ export const LogisticsList = () => {
                             </span>
                         </div>
                     ) : (
-                        <span className="text-xs text-zinc-300 italic">No slot scheduled</span>
+                        <Link href={`/admin/sales/${sale.id}`} className="text-xs text-rose-500 font-bold italic hover:underline">
+                            Assign Slot Required
+                        </Link>
                     )}
                   </td>
                   <td className="px-8 py-6">
