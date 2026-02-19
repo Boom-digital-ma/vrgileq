@@ -45,8 +45,35 @@ export default function SignUpPage() {
     setFormData(prev => ({ ...prev, ...fields }))
   }
 
-  const nextStep = () => setStep(s => (s < 4 ? (s + 1) as any : s))
-  const prevStep = () => setStep(s => (s > 1 ? (s - 1) as any : s))
+  const nextStep = () => {
+    if (step === 1) {
+        if (!formData.fullName || !formData.email || !formData.phone || !formData.password) {
+            setError("All identity fields are required.")
+            return
+        }
+        if (formData.password !== formData.confirmPassword) {
+            setError("Security codes do not match.")
+            return
+        }
+        const phoneRegex = /[+]?[0-9\s\-()]{10,20}/
+        if (!phoneRegex.test(formData.phone)) {
+            setError("Please enter a valid mobile phone number.")
+            return
+        }
+    }
+    if (step === 2) {
+        if (!formData.address || !formData.city || !formData.zip) {
+            setError("Physical location details are required for logistics.")
+            return
+        }
+    }
+    setError(null)
+    setStep(s => (s < 4 ? (s + 1) as any : s))
+  }
+  const prevStep = () => {
+    setError(null)
+    setStep(s => (s > 1 ? (s - 1) as any : s))
+  }
 
   async function handleFinalSignup() {
     if (!acceptedTerms) {
@@ -67,29 +94,29 @@ export default function SignUpPage() {
   }
 
   const labelClasses = "block text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4 mb-2"
-  const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none"
+  const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-3.5 sm:py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none"
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 font-sans text-secondary italic">
-      <div className="w-full max-w-2xl bg-white rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-10 md:p-12 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4 sm:p-6 font-sans text-secondary italic">
+      <div className="w-full max-w-2xl bg-white rounded-[32px] sm:rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-6 sm:p-10 relative overflow-hidden">
         
         {/* Modern Progress Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-end gap-8 mb-12 relative z-10">
-            <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-end gap-6 mb-8 relative z-10">
+            <div className="flex items-center gap-2 sm:gap-3 justify-center md:justify-end">
                 {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="flex items-center gap-3">
+                    <div key={i} className="flex items-center gap-2 sm:gap-3">
                         <div className={cn(
                             "h-2 w-2 rounded-full transition-all duration-500",
-                            step === i ? "bg-primary scale-150 shadow-[0_0_10px_rgba(4,154,158,0.5)]" : (step > i ? "bg-secondary" : "bg-zinc-100")
+                            step === i ? "bg-primary scale-125 sm:scale-150 shadow-[0_0_10px_rgba(4,154,158,0.5)]" : (step > i ? "bg-secondary" : "bg-zinc-100")
                         )} />
-                        {i < 4 && <div className={cn("h-[1px] w-6 md:w-10 bg-zinc-100", step > i && "bg-secondary/20")} />}
+                        {i < 4 && <div className={cn("h-[1px] w-4 sm:w-10 bg-zinc-100", step > i && "bg-secondary/20")} />}
                     </div>
                 ))}
             </div>
         </div>
 
         {error && (
-          <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-bold uppercase flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-bold uppercase flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
             <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
           </div>
@@ -98,18 +125,18 @@ export default function SignUpPage() {
         {/* STEP 1: IDENTITY */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-            <div className="flex items-center gap-5 mb-10">
-                <div className="h-14 w-14 bg-primary/10 rounded-[20px] flex items-center justify-center text-primary">
-                    <User size={28} />
+            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
+                    <User size={24} className="sm:size-7" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Identity</h1>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Personal Access Protocols</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Identity</h1>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Personal Access Protocols</p>
                 </div>
             </div>
 
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className={labelClasses}>Full Legal Name</label>
                     <input type="text" value={formData.fullName} onChange={e => updateForm({ fullName: e.target.value })} className={inputClasses} placeholder="FULL NAME" />
@@ -123,7 +150,7 @@ export default function SignUpPage() {
                 <label className={labelClasses}>Digital Mail</label>
                 <input type="email" value={formData.email} onChange={e => updateForm({ email: e.target.value })} className={inputClasses} placeholder="EMAIL@DOMAIN.COM" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className={labelClasses}>Security Code</label>
                     <input type="password" value={formData.password} onChange={e => updateForm({ password: e.target.value })} className={inputClasses} placeholder="••••••••" />
@@ -134,7 +161,7 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              <button onClick={nextStep} className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3">
+              <button onClick={nextStep} className="w-full bg-secondary text-white py-5 sm:py-6 rounded-3xl font-bold text-[11px] sm:text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-xl shadow-secondary/10 flex items-center justify-center gap-3">
                 Next: Physical Location <ArrowRight size={18} />
               </button>
             </div>
@@ -144,22 +171,22 @@ export default function SignUpPage() {
         {/* STEP 2: ADDRESS */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-            <div className="flex items-center gap-5 mb-10">
-                <div className="h-14 w-14 bg-primary/10 rounded-[20px] flex items-center justify-center text-primary">
-                    <MapPin size={28} />
+            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
+                    <MapPin size={24} className="sm:size-7" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Location</h1>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Tax & Logistics Compliance</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Location</h1>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Tax & Logistics Compliance</p>
                 </div>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div className="space-y-2">
                 <label className={labelClasses}>Street Address</label>
                 <input type="text" value={formData.address} onChange={e => updateForm({ address: e.target.value })} className={inputClasses} placeholder="STREET ADDRESS" />
               </div>
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className={labelClasses}>Country</label>
                     <select value={formData.country} onChange={e => updateForm({ country: e.target.value })} className={cn(inputClasses, "appearance-none")}>
@@ -174,7 +201,7 @@ export default function SignUpPage() {
                     </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className={labelClasses}>City Hub</label>
                     <input type="text" value={formData.city} onChange={e => updateForm({ city: e.target.value })} className={inputClasses} placeholder="CITY" />
@@ -186,10 +213,10 @@ export default function SignUpPage() {
               </div>
 
               <div className="flex gap-4">
-                <button onClick={prevStep} className="flex-1 bg-zinc-50 border-2 border-zinc-100 py-6 rounded-3xl font-bold uppercase tracking-widest text-zinc-400 hover:bg-white hover:text-secondary transition-all flex items-center justify-center gap-3">
+                <button onClick={prevStep} className="bg-zinc-50 border-2 border-zinc-100 px-6 sm:px-8 py-5 sm:py-6 rounded-3xl font-bold uppercase tracking-widest text-zinc-400 hover:bg-white hover:text-secondary transition-all flex items-center justify-center">
                     <ArrowLeft size={18} />
                 </button>
-                <button onClick={nextStep} className="flex-[3] bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3">
+                <button onClick={nextStep} className="flex-1 bg-secondary text-white py-5 sm:py-6 rounded-3xl font-bold text-[11px] sm:text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-xl shadow-secondary/10 flex items-center justify-center gap-3">
                     Next: Verification <ArrowRight size={18} />
                 </button>
               </div>
@@ -200,19 +227,19 @@ export default function SignUpPage() {
         {/* STEP 3: PAYMENT */}
         {step === 3 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-            <div className="flex items-center gap-5 mb-10">
-                <div className="h-14 w-14 bg-primary/10 rounded-[20px] flex items-center justify-center text-primary">
-                    <CreditCard size={28} />
+            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
+                    <CreditCard size={24} className="sm:size-7" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Security</h1>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Bidder Credit Authorization</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Security</h1>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Bidder Credit Authorization</p>
                 </div>
             </div>
 
-            <div className="bg-zinc-50 p-8 rounded-[32px] border border-zinc-100 mb-8 italic shadow-inner">
-                <Elements stripe={stripePromise}>
-                    <CardValidation onPaymentMethodCreated={(id) => {
+            <div className="bg-zinc-50 p-6 sm:p-8 rounded-[32px] border border-zinc-100 mb-8 italic shadow-inner">
+                <Elements stripe={stripePromise} options={{ locale: 'en' }}>
+                    <CardValidation hideHeader onPaymentMethodCreated={(id) => {
                         updateForm({ paymentMethodId: id })
                         nextStep()
                     }} />
@@ -220,7 +247,7 @@ export default function SignUpPage() {
             </div>
 
             <button onClick={prevStep} className="w-full text-zinc-300 hover:text-primary py-2 font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3">
-                <ArrowLeft size={14} /> Back to Information
+                <ArrowLeft size={14} /> Back to Location
             </button>
           </div>
         )}
@@ -228,17 +255,17 @@ export default function SignUpPage() {
         {/* STEP 4: TERMS & SUBMIT */}
         {step === 4 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-            <div className="flex items-center gap-5 mb-10">
-                <div className="h-14 w-14 bg-primary/10 rounded-[20px] flex items-center justify-center text-primary">
-                    <FileText size={28} />
+            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
+                    <FileText size={24} className="sm:size-7" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Agreements</h1>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Final Master Protocol</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Agreements</h1>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Final Master Protocol</p>
                 </div>
             </div>
 
-            <div className="bg-zinc-50 border border-zinc-100 p-8 rounded-[32px] mb-8 h-64 overflow-y-auto font-medium text-[11px] text-zinc-400 leading-relaxed uppercase shadow-inner">
+            <div className="bg-zinc-50 border border-zinc-100 p-6 sm:p-8 rounded-[32px] mb-8 h-48 sm:h-64 overflow-y-auto font-medium text-[11px] text-zinc-400 leading-relaxed uppercase shadow-inner italic">
                 <h4 className="font-bold text-secondary mb-6 border-b border-zinc-200 pb-2">Master Bidding Agreement</h4>
                 <p className="mb-6">1. ELIGIBILITY: You must be 18 years of age or older to participate in auctions. Every registration is a legal commitment to comply with industrial regulations.</p>
                 <p className="mb-6">2. BIDDING PROTOCOL: Every bid is a legally binding contract. Successful bidders are mandated to complete the acquisition process.</p>
@@ -248,7 +275,7 @@ export default function SignUpPage() {
             </div>
 
             <label className={cn(
-                "flex items-center gap-4 p-6 rounded-[24px] border-2 transition-all cursor-pointer mb-8 group",
+                "flex items-center gap-4 p-5 sm:p-6 rounded-[24px] border-2 transition-all cursor-pointer mb-8 group",
                 acceptedTerms ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:border-primary/20"
             )}>
                 <div className={cn(
@@ -262,13 +289,13 @@ export default function SignUpPage() {
             </label>
 
             <div className="flex gap-4">
-                <button onClick={prevStep} disabled={loading} className="flex-1 bg-zinc-50 border-2 border-zinc-100 py-6 rounded-3xl font-bold uppercase text-zinc-400 hover:bg-white hover:text-secondary transition-all disabled:opacity-50">
-                    <ArrowLeft size={18} className="mx-auto" />
+                <button onClick={prevStep} disabled={loading} className="bg-zinc-50 border-2 border-zinc-100 px-6 sm:px-8 py-5 sm:py-6 rounded-3xl font-bold uppercase text-zinc-400 hover:bg-white hover:text-secondary transition-all disabled:opacity-50">
+                    <ArrowLeft size={18} />
                 </button>
                 <button 
                     onClick={handleFinalSignup} 
                     disabled={loading || !acceptedTerms}
-                    className="flex-[3] bg-secondary text-white py-6 rounded-[32px] font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="flex-1 bg-secondary text-white py-5 sm:py-6 rounded-[32px] font-bold text-[11px] sm:text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
                 >
                     {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><CheckCircle2 size={18} /> Finalize Account Execution</>}
                 </button>

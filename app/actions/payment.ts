@@ -44,12 +44,15 @@ export async function savePaymentMethod(paymentMethodId: string) {
     })
     await stripe.paymentIntents.cancel(intent.id)
 
-    // 3. Set Default
+    // 3. Set Default in Stripe and Supabase
     await stripe.customers.update(customerId, {
       invoice_settings: { default_payment_method: paymentMethodId },
     })
 
-    await adminSupabase.from('profiles').update({ is_verified: true }).eq('id', user.id)
+    await adminSupabase.from('profiles').update({ 
+        is_verified: true,
+        default_payment_method_id: paymentMethodId 
+    }).eq('id', user.id)
     
     revalidatePath('/profile')
     return { success: true }

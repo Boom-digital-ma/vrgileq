@@ -24,6 +24,8 @@ interface BiddingWidgetProps {
 export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt, bids, minIncrement }: BiddingWidgetProps) {
   const [timeLeft, setTimeLeft] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
+  const [realtimePrice, setRealtimePrice] = useState(initialPrice);
+  const [realtimeBids, setRealtimeBids] = useState(bids);
   const [bidAmount, setBidAmount] = useState<number>(initialPrice + minIncrement);
   const [isProxy, setIsProxy] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -61,6 +63,31 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     }
     getInitialData();
 
+    // REALTIME SUBSCRIPTION
+    const channel = supabase
+      .channel(`bidding-widget-${auctionId}`)
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'auctions',
+        filter: `id=eq.${auctionId}`
+      }, (payload) => {
+        if (isMounted) {
+          setRealtimePrice(Number(payload.new.current_price));
+        }
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'bids',
+        filter: `auction_id=eq.${auctionId}`
+      }, (payload) => {
+        if (isMounted) {
+          setRealtimeBids(prev => [payload.new, ...prev]);
+        }
+      })
+      .subscribe();
+
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const distance = endsAt.getTime() - now;
@@ -89,8 +116,22 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     return () => {
         isMounted = false;
         clearInterval(timer);
+        supabase.removeChannel(channel);
     };
   }, [endsAt, supabase, eventId, auctionId]);
+
+  // Sync with props if parent updates
+  useEffect(() => {
+    setRealtimePrice(initialPrice);
+  }, [initialPrice]);
+
+  useEffect(() => {
+    setRealtimeBids(bids);
+  }, [bids]);
+
+  useEffect(() => {
+    setBidAmount(realtimePrice + minIncrement);
+  }, [realtimePrice, minIncrement]);
 
   const handleToggleWatch = async () => {
     if (!userProfile) {
@@ -133,7 +174,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
       const result = await placeBid({
         auctionId,
-        amount: isProxy ? initialPrice + minIncrement : bidAmount,
+        amount: isProxy ? realtimePrice + minIncrement : bidAmount,
         maxBidAmount: isProxy ? bidAmount : undefined,
       });
 
@@ -151,11 +192,11 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   };
 
   const hasCard = !!userProfile?.default_payment_method_id;
-  const sortedBids = [...bids].sort((a, b) => b.amount - a.amount);
+  const sortedBids = [...realtimeBids].sort((a, b) => b.amount - a.amount);
   
   const premiumPercent = settings?.buyers_premium || 20;
-  const premiumAmount = (isProxy ? initialPrice + minIncrement : bidAmount) * (premiumPercent / 100);
-  const totalWithPremium = (isProxy ? initialPrice + minIncrement : bidAmount) + premiumAmount;
+  const premiumAmount = (isProxy ? realtimePrice + minIncrement : bidAmount) * (premiumPercent / 100);
+  const totalWithPremium = (isProxy ? realtimePrice + minIncrement : bidAmount) + premiumAmount;
 
   return (
     <div className="sticky top-24 flex flex-col bg-white border border-zinc-200/80 rounded-[32px] p-8 shadow-[0_20px_50px_rgba(11,43,83,0.05)]">
@@ -190,11 +231,11 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
       <div className="grid grid-cols-2 gap-8 mb-10">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2">Current Bid</div>
-          <div className="text-3xl font-bold text-primary font-display italic tracking-tight">${initialPrice.toLocaleString()}</div>
+          <div className="text-3xl font-bold text-primary font-display italic tracking-tight">${realtimePrice.toLocaleString()}</div>
         </div>
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2">Next Min Bid</div>
-          <div className="text-3xl font-bold text-secondary/40 font-display italic tracking-tight">${(initialPrice + minIncrement).toLocaleString()}</div>
+          <div className="text-3xl font-bold text-secondary/40 font-display italic tracking-tight">${(realtimePrice + minIncrement).toLocaleString()}</div>
         </div>
       </div>
 
@@ -210,7 +251,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
                     </div>
                     <div>
                         <span className="text-xs font-bold text-zinc-900 block leading-none mb-1">Proxy Bidding</span>
-                        <span className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Auto-surenchère active</span>
+                        <span className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Auto-proxy active</span>
                     </div>
                 </div>
                 <button 
@@ -237,7 +278,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 text-xl font-bold font-display">$</span>
             <input
               type="number"
-              min={initialPrice + minIncrement}
+              min={realtimePrice + minIncrement}
               value={bidAmount}
               onChange={(e) => setBidAmount(Number(e.target.value))}
               className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-5 pl-10 pr-6 text-2xl font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all font-display italic outline-none"

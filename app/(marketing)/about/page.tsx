@@ -69,7 +69,7 @@ export default function AboutPage() {
                             <Zap className="text-primary mb-6" size={32} />
                             <h4 className="text-xl font-bold font-display uppercase text-secondary mb-4">The Advantage</h4>
                             <p className="text-sm text-zinc-400 leading-relaxed uppercase">
-                                Our platform leverages modern SaaS architecture to provide instant bidding, real-time surenchére, and secure Stripe-backed transactions.
+                                Our platform leverages modern SaaS architecture to provide instant bidding, real-time tracking, and secure Stripe-backed transactions.
                             </p>
                         </div>
                         <div className="p-10 bg-white border border-zinc-100 rounded-[40px] italic group hover:border-primary/20 transition-all shadow-sm">

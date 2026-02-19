@@ -60,7 +60,7 @@ export default function SettingsPage() {
                     name: "proxy_bidding_enabled", 
                     type: "checkbox", 
                     defaultValue: settings.proxy_bidding_enabled,
-                    info: "Enable automated surenchére system."
+                    info: "Enable automated bidding system."
                 },
             ]
         },

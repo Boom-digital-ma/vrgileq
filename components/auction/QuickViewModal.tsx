@@ -36,7 +36,9 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
   const [showShareTooltip, setShowShareTooltip] = useState(false);
   const [showHistory, setShowHistory] = useState(onlyHistory || false);
   const [timeLeft, setTimeLeft] = useState("");
-  const [bids, setBids] = useState<any[]>([]);
+  const [realtimeBids, setRealtimeBids] = useState<any[]>([]);
+  const [realtimePrice, setRealtimePrice] = useState(product.price);
+  const [realtimeBidCount, setRealtimeBidCount] = useState(product.bidCount);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -45,6 +47,8 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
 
   useEffect(() => {
     setMounted(true);
+    let isMounted = true;
+
     if (isOpen) {
       document.body.style.overflow = "hidden";
       if (initialBid) setBidAmount(initialBid);
@@ -68,12 +72,16 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
       };
 
       setTimeLeft(calculateTimeLeft());
-      const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
+      const timer = setInterval(() => {
+        if (isMounted) setTimeLeft(calculateTimeLeft());
+      }, 1000);
       
       supabase.auth.getUser().then(({ data }) => {
-          if (data.user) {
+          if (data.user && isMounted) {
               supabase.from('profiles').select('*').eq('id', data.user.id).single()
-                .then(({ data: profile }) => setUserProfile(profile));
+                .then(({ data: profile }) => {
+                  if (isMounted) setUserProfile(profile);
+                });
           }
       });
 
@@ -82,14 +90,48 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
         .eq('auction_id', product.id)
         .order('amount', { ascending: false })
         .limit(10)
-        .then(({ data }) => setBids(data || []));
+        .then(({ data }) => {
+          if (isMounted) setRealtimeBids(data || []);
+        });
+
+      // REALTIME SUBSCRIPTION
+      const channel = supabase
+        .channel(`quickview-${product.id}`)
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'auctions',
+          filter: `id=eq.${product.id}`
+        }, (payload) => {
+          if (isMounted) {
+            setRealtimePrice(Number(payload.new.current_price));
+          }
+        })
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'bids',
+          filter: `auction_id=eq.${product.id}`
+        }, (payload) => {
+          if (isMounted) {
+            setRealtimeBids(prev => [payload.new, ...prev].sort((a, b) => b.amount - a.amount).slice(0, 10));
+            setRealtimeBidCount(prev => prev + 1);
+          }
+        })
+        .subscribe();
 
       return () => {
+        isMounted = false;
         clearInterval(timer);
         document.body.style.overflow = "unset";
+        supabase.removeChannel(channel);
       };
     }
   }, [isOpen, initialBid, supabase, product.id, product.endsAt, onlyHistory]);
+
+  useEffect(() => {
+    setBidAmount(realtimePrice + (product.minIncrement || 100));
+  }, [realtimePrice, product.minIncrement]);
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,12 +203,12 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
           <div className="grid grid-cols-2 gap-8 mb-10 pb-8 border-b border-zinc-50 italic">
             <div>
               <p className="text-[9px] font-bold text-zinc-300 uppercase tracking-[0.2em] mb-1">Current Valuation</p>
-              <div className="text-3xl font-bold text-secondary font-display">${product.price.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-secondary font-display">${realtimePrice.toLocaleString()}</div>
             </div>
             <div>
               <p className="text-[9px] font-bold text-zinc-300 uppercase tracking-[0.2em] mb-1">Total Activity</p>
               <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-primary font-display">{product.bidCount}</span>
+                <span className="text-3xl font-bold text-primary font-display">{realtimeBidCount}</span>
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2">Offers</span>
               </div>
             </div>
@@ -182,7 +224,7 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
             </div>
 
             <div className="space-y-2.5 max-h-80 overflow-y-auto pr-2 mb-10">
-                {bids.map((bid, i) => (
+                {realtimeBids.map((bid, i) => (
                     <div key={i} className="flex justify-between items-center p-4 rounded-2xl bg-zinc-50/50 border border-zinc-100 hover:border-primary/20 transition-all group italic">
                         <div className="flex flex-col">
                             <span className="text-[10px] font-bold text-secondary uppercase tracking-tight">Bidder #{bid.id.slice(0,4)}</span>
@@ -193,7 +235,7 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
                         </div>
                     </div>
                 ))}
-                {bids.length === 0 && (
+                {realtimeBids.length === 0 && (
                     <div className="py-16 text-center border-2 border-dashed border-zinc-100 rounded-[32px]">
                         <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest italic">No activity recorded yet</p>
                     </div>

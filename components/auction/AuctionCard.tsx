@@ -42,6 +42,8 @@ export default function AuctionCard({ product, user }: { product: Product, user:
   const [loadingBid, setLoadingBid] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [realtimePrice, setRealtimePrice] = useState(product.price);
+  const [realtimeBidCount, setRealtimeBidCount] = useState(product.bidCount);
   const router = useRouter();
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
@@ -50,7 +52,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
   useEffect(() => {
     let isMounted = true;
     setMounted(true);
-    setBidAmount(product.price + (product.minIncrement || 100));
+    setBidAmount(realtimePrice + (product.minIncrement || 100));
 
     const calculateTimeLeft = () => {
       const target = new Date(product.endsAt).getTime();
@@ -74,6 +76,31 @@ export default function AuctionCard({ product, user }: { product: Product, user:
         if (isMounted) setTimeLeft(calculateTimeLeft());
     }, 1000);
 
+    // REALTIME SUBSCRIPTION
+    const channel = supabase
+      .channel(`auction-card-${product.id}`)
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'auctions',
+        filter: `id=eq.${product.id}`
+      }, (payload) => {
+        if (isMounted) {
+          setRealtimePrice(Number(payload.new.current_price));
+        }
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'bids',
+        filter: `auction_id=eq.${product.id}`
+      }, () => {
+        if (isMounted) {
+          setRealtimeBidCount(prev => prev + 1);
+        }
+      })
+      .subscribe();
+
     // Only fetch watchlist status if user is present
     async function checkWatchlist() {
         if (user && isMounted) {
@@ -86,8 +113,13 @@ export default function AuctionCard({ product, user }: { product: Product, user:
     return () => {
         isMounted = false;
         clearInterval(timer);
+        supabase.removeChannel(channel);
     };
-  }, [product.id, product.endsAt, product.price, product.minIncrement, supabase, user]);
+  }, [product.id, product.endsAt, product.minIncrement, supabase, user]);
+
+  useEffect(() => {
+    setBidAmount(realtimePrice + (product.minIncrement || 100));
+  }, [realtimePrice, product.minIncrement]);
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
@@ -231,14 +263,14 @@ export default function AuctionCard({ product, user }: { product: Product, user:
             <div>
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1 italic">Current Price</p>
               <div className="text-2xl font-bold text-secondary tabular-nums font-display leading-none">
-                ${mounted ? product.price.toLocaleString() : product.price.toString()}
+                ${mounted ? realtimePrice.toLocaleString() : realtimePrice.toString()}
               </div>
             </div>
             <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsHistoryModalOpen(true); }}
                 className="flex flex-col items-end group/bids"
             >
-              <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg group-hover/bids:bg-primary group-hover/bids:text-white transition-all">{product.bidCount} Bids</span>
+              <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg group-hover/bids:bg-primary group-hover/bids:text-white transition-all">{realtimeBidCount} Bids</span>
               <span className="text-[8px] font-bold text-zinc-300 uppercase mt-1">History →</span>
             </button>
           </div>
@@ -250,7 +282,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">$</span>
                     <input 
                       type="number" 
-                      min={product.price + (product.minIncrement || 1)} 
+                      min={realtimePrice + (product.minIncrement || 1)} 
                       value={bidAmount} 
                       onChange={(e) => setBidAmount(Number(e.target.value))} 
                       className="w-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-2.5 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 

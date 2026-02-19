@@ -15,7 +15,7 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
-  // Vérifier le rôle pour informer le client de la destination
+  // Check role to inform client of destination
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')

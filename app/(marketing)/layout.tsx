@@ -13,7 +13,7 @@ export default function MarketingLayout({
   children: React.ReactNode
 }>) {
   return (
-    <Elements stripe={stripePromise}>
+    <Elements stripe={stripePromise} options={{ locale: 'en' }}>
       <Header />
       <main className="flex-1">
         {children}

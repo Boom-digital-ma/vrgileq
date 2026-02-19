@@ -1,7 +1,7 @@
 'use server'
 
 import Stripe from 'stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { sendOutbidEmail } from '@/lib/emails'
 
@@ -51,7 +51,23 @@ export async function placeBid({
     .eq('id', user.id)
     .single()
 
-  const finalPaymentMethodId = paymentMethodId || profile?.default_payment_method_id
+  let finalPaymentMethodId = paymentMethodId || profile?.default_payment_method_id
+
+  // FALLBACK: If missing in profile but we have a stripe customer, fetch from Stripe
+  if (!finalPaymentMethodId && profile?.stripe_customer_id) {
+    try {
+        const customer = await stripe.customers.retrieve(profile.stripe_customer_id) as Stripe.Customer
+        finalPaymentMethodId = customer.invoice_settings.default_payment_method as string
+        
+        // Auto-fix the profile for next time
+        if (finalPaymentMethodId) {
+            const adminSupabase = createAdminClient()
+            await adminSupabase.from('profiles').update({ default_payment_method_id: finalPaymentMethodId }).eq('id', user.id)
+        }
+    } catch (e) {
+        console.error("Failed to fetch fallback PM from Stripe", e)
+    }
+  }
 
   if (!finalPaymentMethodId) {
     throw new Error('No payment method found. Please add a card to your profile.')
