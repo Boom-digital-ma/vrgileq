@@ -45,14 +45,14 @@ export const EventShow = () => {
   const isLoadingLots = tableQuery?.isLoading
 
   // 2b. Fetch pickup info
-  const { data: pickupCountRes } = useList({
+  const pickupSlotsResult = useList({
     resource: "pickup_slots",
     filters: [
       { field: "event_id", operator: "eq", value: eventId }
     ],
     pagination: { mode: "off" }
-  }) as any
-  const pickupCount = pickupCountRes?.total || 0
+  })
+  const pickupCount = (pickupSlotsResult as any).query?.data?.total || (pickupSlotsResult as any).query?.data?.data?.length || 0
 
   const {
     current = 1,
@@ -174,6 +174,26 @@ export const EventShow = () => {
             </div>
         </div>
         <div className="flex items-center gap-3">
+            <button 
+                onClick={async () => {
+                    setFormLoading(true);
+                    try {
+                        const { error } = await supabase.rpc('check_and_close_auctions');
+                        if (error) throw error;
+                        toast.success("Closing sequence executed");
+                        tableQuery?.refetch?.();
+                    } catch (err: any) {
+                        toast.error("Execution failed: " + err.message);
+                    } finally {
+                        setFormLoading(false);
+                    }
+                }}
+                disabled={formLoading}
+                className="bg-rose-50 text-rose-600 border border-rose-100 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 hover:bg-rose-100 disabled:opacity-50"
+            >
+                {formLoading ? <Loader2 size={16} className="animate-spin" /> : <Gavel size={16} />} 
+                Force Close Expired
+            </button>
             <button 
                 onClick={() => setIsPickupOpen(true)}
                 className="bg-white text-zinc-900 border border-zinc-200 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2"

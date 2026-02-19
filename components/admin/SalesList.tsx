@@ -2,7 +2,7 @@
 
 import { useTable } from "@refinedev/core"
 import { cn } from "@/lib/utils"
-import { Loader2, FileText, ExternalLink, Package } from "lucide-react"
+import { Loader2, FileText, Eye, Package } from "lucide-react"
 import Link from "next/link"
 
 export const SalesList = () => {
@@ -134,7 +134,7 @@ export const SalesList = () => {
                       className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"
                       title="Details"
                     >
-                      <ExternalLink size={18} />
+                      <Eye size={18} />
                     </Link>
                   </div>
                 </td>

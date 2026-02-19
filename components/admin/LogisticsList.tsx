@@ -70,15 +70,18 @@ export const LogisticsList = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white border border-zinc-200 p-6 rounded-[32px] shadow-sm italic">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Today's Appointments</p>
-            <p className="text-3xl font-black text-zinc-900">{sortedSales.filter((s: any) => isToday(new Date(s.pickup_slot?.start_at))).length}</p>
+            <p className="text-3xl font-black text-zinc-900">{sortedSales.filter((s: any) => s.pickup_slot?.start_at && isToday(new Date(s.pickup_slot.start_at))).length}</p>
         </div>
         <div className="bg-white border border-zinc-200 p-6 rounded-[32px] shadow-sm italic">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Tomorrow</p>
-            <p className="text-3xl font-black text-zinc-900">{sortedSales.filter((s: any) => isTomorrow(new Date(s.pickup_slot?.start_at))).length}</p>
+            <p className="text-3xl font-black text-zinc-900">{sortedSales.filter((s: any) => s.pickup_slot?.start_at && isTomorrow(new Date(s.pickup_slot.start_at))).length}</p>
         </div>
-        <div className="bg-prussian-blue p-6 rounded-[32px] shadow-xl shadow-prussian-blue/20 text-white italic">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Awaiting Collection</p>
-            <p className="text-3xl font-black text-white">{sortedSales.filter((s: any) => !s.collected_at).length}</p>
+        <div className="bg-zinc-900 p-6 rounded-[32px] shadow-xl shadow-zinc-200 text-white italic relative overflow-hidden border border-white/5">
+            <div className="relative z-10">
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-2">Awaiting Collection</p>
+                <p className="text-3xl font-black text-white">{sortedSales.filter((s: any) => !s.collected_at).length}</p>
+            </div>
+            <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-primary/10 blur-2xl rounded-full"></div>
         </div>
       </div>
 
@@ -95,7 +98,8 @@ export const LogisticsList = () => {
           <tbody className="divide-y divide-zinc-100">
             {sortedSales.map((sale: any) => {
               const isCollected = !!sale.collected_at;
-              const slotDate = new Date(sale.pickup_slot?.start_at);
+              const slotDate = sale.pickup_slot?.start_at ? new Date(sale.pickup_slot.start_at) : null;
+              const isValidDate = slotDate && !isNaN(slotDate.getTime());
               
               return (
                 <tr key={sale.id} className={cn(
@@ -103,17 +107,21 @@ export const LogisticsList = () => {
                     isCollected && "opacity-60"
                 )}>
                   <td className="px-8 py-6">
-                    <div className="flex flex-col">
-                        <span className={cn(
-                            "text-sm font-black italic",
-                            isToday(slotDate) ? "text-primary" : "text-zinc-900"
-                        )}>
-                            {format(slotDate, 'hh:mm a')}
-                        </span>
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                            {format(slotDate, 'MMM dd, yyyy')}
-                        </span>
-                    </div>
+                    {isValidDate ? (
+                        <div className="flex flex-col">
+                            <span className={cn(
+                                "text-sm font-black italic",
+                                isToday(slotDate) ? "text-primary" : "text-zinc-900"
+                            )}>
+                                {format(slotDate, 'hh:mm a')}
+                            </span>
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                                {format(slotDate, 'MMM dd, yyyy')}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-xs text-zinc-300 italic">No slot scheduled</span>
+                    )}
                   </td>
                   <td className="px-8 py-6">
                     <div className="flex flex-col">

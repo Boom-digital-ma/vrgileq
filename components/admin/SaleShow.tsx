@@ -74,7 +74,7 @@ export const SaleShow = () => {
                 <Printer size={16} className="text-zinc-400" /> View Invoice
             </Link>
             
-            {sale.status === 'pending' && (
+            {sale.status !== 'paid' && (
                 <button 
                   disabled={loading}
                   onClick={() => handleStatusUpdate('paid')}
@@ -156,9 +156,13 @@ export const SaleShow = () => {
                                     <Calendar size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-lg font-bold text-zinc-900">{format(new Date(sale.pickup_slot.start_at), 'EEEE, MMMM dd')}</p>
+                                    <p className="text-lg font-bold text-zinc-900">
+                                        {sale.pickup_slot?.start_at ? format(new Date(sale.pickup_slot.start_at), 'EEEE, MMMM dd') : 'Invalid Date'}
+                                    </p>
                                     <p className="text-sm font-medium text-emerald-600 flex items-center gap-2">
-                                        <Clock size={14} /> {format(new Date(sale.pickup_slot.start_at), 'hh:mm a')} - {format(new Date(sale.pickup_slot.end_at), 'hh:mm a')}
+                                        <Clock size={14} /> 
+                                        {sale.pickup_slot?.start_at ? format(new Date(sale.pickup_slot.start_at), 'hh:mm a') : '--:--'} - 
+                                        {sale.pickup_slot?.end_at ? format(new Date(sale.pickup_slot.end_at), 'hh:mm a') : '--:--'}
                                     </p>
                                 </div>
                             </div>
@@ -181,28 +185,29 @@ export const SaleShow = () => {
 
         {/* Right Col: Financials */}
         <div className="space-y-8">
-            <section className="bg-prussian-blue rounded-[32px] p-8 text-white shadow-2xl shadow-prussian-blue/20 italic">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-8">Financial Summary</h3>
-                <div className="space-y-4">
+            <section className="bg-zinc-900 rounded-[32px] p-8 text-white shadow-2xl shadow-zinc-200 relative overflow-hidden italic border border-white/5">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-8">Financial Summary</h3>
+                <div className="space-y-5">
                     <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-white/60">Hammer Price</span>
-                        <span className="font-bold tabular-nums">${Number(sale.hammer_price).toLocaleString()}</span>
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Hammer Price</span>
+                        <span className="font-bold tabular-nums text-white text-base">${Number(sale.hammer_price).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-white/60">Buyer's Premium ({sale.buyers_premium_rate}%)</span>
-                        <span className="font-bold tabular-nums">${Number(sale.buyers_premium_amount).toLocaleString()}</span>
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Buyer's Premium ({sale.buyers_premium_rate}%)</span>
+                        <span className="font-bold tabular-nums text-white text-base">${Number(sale.buyers_premium_amount).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-white/60">Tax ({sale.tax_rate}%)</span>
-                        <span className="font-bold tabular-nums">${Number(sale.tax_amount).toLocaleString()}</span>
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Tax ({sale.tax_rate}%)</span>
+                        <span className="font-bold tabular-nums text-white text-base">${Number(sale.tax_amount).toLocaleString()}</span>
                     </div>
                     <div className="pt-6 border-t border-white/10 mt-6">
                         <div className="flex justify-between items-end">
                             <span className="text-[10px] font-black uppercase tracking-widest text-primary">Total Collected</span>
-                            <span className="text-4xl font-black tabular-nums tracking-tighter">${Number(sale.total_amount).toLocaleString()}</span>
+                            <span className="text-4xl font-black tabular-nums tracking-tighter text-white">${Number(sale.total_amount).toLocaleString()}</span>
                         </div>
                     </div>
                 </div>
+                <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-primary/10 blur-3xl rounded-full"></div>
             </section>
 
             {/* Internal Actions */}

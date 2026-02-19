@@ -270,7 +270,7 @@ export default async function AuctionsPage({
                   </div>
                 )}
                 <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
-                  {event.status === 'live' ? (
+                  {event.status === 'live' && new Date(event.ends_at) > new Date() ? (
                     <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
@@ -280,7 +280,7 @@ export default async function AuctionsPage({
                     </div>
                   ) : (
                     <div className="bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border border-white/20 shadow-sm">
-                      {event.status}
+                      {new Date(event.ends_at) <= new Date() ? 'Closed' : event.status}
                     </div>
                   )}
                 </div>

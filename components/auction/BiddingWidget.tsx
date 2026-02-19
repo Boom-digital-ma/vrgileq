@@ -202,12 +202,17 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const hasCard = !!userProfile?.default_payment_method_id;
   const sortedBids = [...realtimeBids].sort((a, b) => b.amount - a.amount);
   
-  const premiumPercent = settings?.buyers_premium || 20;
-  const premiumAmount = (isProxy ? realtimePrice + minIncrement : bidAmount) * (premiumPercent / 100);
-  const totalWithPremium = (isProxy ? realtimePrice + minIncrement : bidAmount) + premiumAmount;
+  const premiumPercent = settings?.buyers_premium || 15;
+  const taxRate = settings?.tax_rate || 0;
+  
+  const currentHammer = isProxy ? realtimePrice + minIncrement : bidAmount;
+  const premiumAmount = currentHammer * (premiumPercent / 100);
+  const taxAmount = (currentHammer + premiumAmount) * (taxRate / 100);
+  const totalAuth = currentHammer + premiumAmount + taxAmount;
 
   return (
     <div className="sticky top-24 flex flex-col bg-white border border-zinc-200/80 rounded-[32px] p-8 shadow-[0_20px_50px_rgba(11,43,83,0.05)]">
+
       {/* Urgency-Driven Timer Section */}
       <div className={cn(
         "mb-10 p-6 rounded-[24px] border transition-all duration-500 flex items-center justify-between group",
@@ -348,16 +353,23 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           disabled={loading || timeLeft === "AUCTION ENDED"}
           className="w-full bg-secondary text-white py-5 rounded-[20px] font-bold text-base hover:bg-primary transition-all active:scale-[0.98] shadow-xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale font-display italic uppercase tracking-tight"
         >
-          {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Gavel className="h-6 w-6" />}
-          {userProfile ? (isProxy ? `Set Maximum $${bidAmount.toLocaleString()}` : `Place Bid $${bidAmount.toLocaleString()}`) : "Sign In to Bid"}
+          {loading ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : (
+            timeLeft === "AUCTION ENDED" ? <Lock className="h-6 w-6" /> : <Gavel className="h-6 w-6" />
+          )}
+          {timeLeft === "AUCTION ENDED" 
+            ? "Bidding Closed" 
+            : (userProfile ? (isProxy ? `Set Maximum $${bidAmount.toLocaleString()}` : `Place Bid $${bidAmount.toLocaleString()}`) : "Sign In to Bid")
+          }
         </button>
       </form>
 
       <div className="bg-zinc-50 rounded-2xl p-5 text-center mb-10 border border-zinc-100">
         <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest leading-relaxed">
-            * A {premiumPercent}% Buyer's Premium is applied.
+            * A {premiumPercent}% Buyer's Premium {taxRate > 0 ? `& ${taxRate}% Tax` : ''} is applied.
             <br />
-            <span className="text-secondary font-bold">Est. Auth Total: ${Math.round(totalWithPremium * 1.2).toLocaleString()}</span>
+            <span className="text-secondary font-bold">Est. Auth Total: ${Math.round(totalAuth).toLocaleString()}</span>
         </p>
       </div>
 

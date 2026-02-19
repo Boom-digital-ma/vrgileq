@@ -81,18 +81,32 @@ export async function placeBid({
     .eq('status', 'active')
     .single()
 
+  // 3b. Fetch settings for full authorization amount calculation
+  const { data: settings } = await supabase.from('site_settings').select('buyers_premium, tax_rate').eq('id', 'global').single()
+  const bpRate = settings?.buyers_premium || 15
+  const taxRate = settings?.tax_rate || 0
+
+  const bpAmount = amount * (bpRate / 100)
+  const taxAmount = (amount + bpAmount) * (taxRate / 100)
+  const totalAuthAmount = amount + bpAmount + taxAmount
+
   try {
-    // 4. Create Stripe PaymentIntent with Manual Capture
+    // 4. Create Stripe PaymentIntent with Manual Capture (Full Amount)
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
+      amount: Math.round(totalAuthAmount * 100),
       currency: 'usd',
       customer: profile?.stripe_customer_id,
       payment_method: finalPaymentMethodId,
       capture_method: 'manual',
       confirm: true,
       off_session: true,
-      description: `Bid on auction ${auctionId}`,
-      metadata: { auction_id: auctionId, user_id: user.id },
+      description: `Bid on auction ${auctionId} (Incl. Premium & Tax)`,
+      metadata: { 
+        auction_id: auctionId, 
+        user_id: user.id,
+        hammer_price: amount.toString(),
+        total_auth: totalAuthAmount.toString()
+      },
     }, {
       idempotencyKey: `bid_${user.id}_${auctionId}_${amount}_${Date.now()}`,
     })

@@ -10,11 +10,24 @@ import { cn } from "@/lib/utils";
 export default function AuctionDetailsRealtime({ initialLot, initialBids }: { initialLot: any, initialBids: any[] }) {
   const [lot, setLot] = useState(initialLot);
   const [mounted, setMounted] = useState(false);
+  const [isAuctionEnded, setIsAuctionEnded] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     setMounted(true);
     let isMounted = true;
+
+    // Timer to check for expiration
+    const checkExpiry = () => {
+        if (new Date(lot.ends_at) <= new Date()) {
+            setIsAuctionEnded(true);
+        } else {
+            setIsAuctionEnded(false);
+        }
+    };
+
+    checkExpiry();
+    const expiryTimer = setInterval(checkExpiry, 1000);
 
     const channel = supabase
       .channel(`auction-details-${lot.id}`)
@@ -32,9 +45,10 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
 
     return () => {
       isMounted = false;
+      clearInterval(expiryTimer);
       supabase.removeChannel(channel);
     };
-  }, [lot.id, supabase]);
+  }, [lot.id, lot.ends_at, supabase]);
 
   const secondaryImages = lot.auction_images?.map((img: any) => img.url) || [];
   const finalGallery = [
@@ -42,7 +56,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
     ...secondaryImages
   ].filter((url, index, self) => url && self.indexOf(url) === index);
 
-  const isLive = lot.status === 'live';
+  const isLive = lot.status === 'live' && !isAuctionEnded;
 
   return (
     <div className="container mx-auto px-6 py-12">
@@ -61,8 +75,8 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
                         Live Bidding
                     </div>
                   ) : (
-                    <div className="bg-zinc-900 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
-                        Auction {lot.status}
+                    <div className="bg-zinc-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-zinc-500/20">
+                        {isAuctionEnded ? 'Auction Ended' : `Auction ${lot.status}`}
                     </div>
                   )}
               </div>

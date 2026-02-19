@@ -48,10 +48,10 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600 mb-1">Pickup Scheduled</p>
             <h4 className="text-xl font-bold text-prussian-blue font-geist">
-              {format(new Date(currentSlot.start_at), 'EEEE, MMMM dd')}
+              {currentSlot.start_at ? format(new Date(currentSlot.start_at), 'EEEE, MMMM dd') : 'Invalid Date'}
             </h4>
             <p className="text-sm text-emerald-700 font-medium">
-              at {format(new Date(currentSlot.start_at), 'hh:mm a')} - {format(new Date(currentSlot.end_at), 'hh:mm a')}
+              at {currentSlot.start_at ? format(new Date(currentSlot.start_at), 'hh:mm a') : '--:--'} - {currentSlot.end_at ? format(new Date(currentSlot.end_at), 'hh:mm a') : '--:--'}
             </p>
           </div>
         </div>
@@ -87,24 +87,27 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
         ) : (
           slots.map((slot) => {
             const isFull = slot.booking_count >= slot.max_capacity
+            const slotDate = slot.start_at ? new Date(slot.start_at) : null;
+            const isValid = slotDate && !isNaN(slotDate.getTime());
+
             return (
               <button
                 key={slot.id}
-                disabled={loading || isFull}
+                disabled={loading || isFull || !isValid}
                 onClick={() => handleBook(slot.id)}
                 className={cn(
                   "p-4 rounded-2xl border transition-all text-center flex flex-col gap-1",
-                  isFull 
+                  (isFull || !isValid) 
                     ? "bg-neutral-50 border-neutral-100 text-neutral-300 cursor-not-allowed" 
                     : "bg-white border-neutral-100 hover:border-teal-600 hover:shadow-md text-prussian-blue"
                 )}
               >
                 <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">
-                  {format(new Date(slot.start_at), 'MMM dd')}
+                  {isValid ? format(slotDate, 'MMM dd') : '---'}
                 </span>
-                <span className="font-bold font-geist italic">{format(new Date(slot.start_at), 'hh:mm a')}</span>
+                <span className="font-bold font-geist italic">{isValid ? format(slotDate, 'hh:mm a') : '--:--'}</span>
                 <span className="text-[9px] font-medium uppercase text-neutral-400 mt-1">
-                  {isFull ? 'Fully Booked' : `${slot.max_capacity - slot.booking_count} left`}
+                  {isFull ? 'Fully Booked' : (!isValid ? 'Invalid Slot' : `${slot.max_capacity - slot.booking_count} left`)}
                 </span>
               </button>
             )

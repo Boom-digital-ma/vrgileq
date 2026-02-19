@@ -233,11 +233,11 @@ export default function SignUpPage() {
                 </div>
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Security</h1>
-                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Bidder Credit Authorization</p>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2 italic">Bidder Credit Authorization</p>
                 </div>
             </div>
 
-            <div className="bg-zinc-50 p-6 sm:p-8 rounded-[32px] border border-zinc-100 mb-8 italic shadow-inner">
+            <div className="bg-zinc-50 p-6 sm:p-8 rounded-[32px] border border-zinc-100 mb-8 shadow-inner relative z-20">
                 <Elements stripe={stripePromise} options={{ locale: 'en' }}>
                     <CardValidation hideHeader onPaymentMethodCreated={(id) => {
                         updateForm({ paymentMethodId: id })

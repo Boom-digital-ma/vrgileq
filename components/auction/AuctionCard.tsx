@@ -206,13 +206,20 @@ export default function AuctionCard({ product, user }: { product: Product, user:
             <div className="bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border border-white/20">
               #{product.lotNumber || product.id.slice(0,4)}
             </div>
-            <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
-                <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                </span>
-                Live
-            </div>
+            {mounted && timeLeft !== "Auction Ended" && (
+              <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
+                  <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                  </span>
+                  Live
+              </div>
+            )}
+            {mounted && timeLeft === "Auction Ended" && (
+              <div className="bg-zinc-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-zinc-500/20 animate-in fade-in zoom-in duration-500">
+                  Ended
+              </div>
+            )}
           </div>
 
           <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md border border-white/40 px-3 py-1.5 rounded-full flex items-center gap-2 text-[10px] font-bold text-primary shadow-sm">

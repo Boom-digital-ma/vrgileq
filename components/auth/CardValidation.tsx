@@ -67,8 +67,8 @@ export default function CardValidation({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="italic">
-      <div className={cn("space-y-6 sm:space-y-8", !hideHeader && "bg-white p-4 sm:p-8 rounded-[32px]")}>
+    <form onSubmit={handleSubmit} className="min-h-[200px]">
+      <div className={cn("space-y-6 sm:space-y-8", !hideHeader && "bg-white p-4 sm:p-8 rounded-[32px] italic")}>
         {!hideHeader && (
             <div className="flex items-center gap-4">
                 <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
