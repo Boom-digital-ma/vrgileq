@@ -31,15 +31,15 @@ export const SaleShow = () => {
   const isLoading = query?.isLoading
 
   // Fetch available slots if sale is loaded
-  const { data: slotsRes } = useList({
+  const slotsResult = useList({
     resource: "pickup_slots_with_counts",
     filters: [
         { field: "event_id", operator: "eq", value: sale?.event_id }
     ],
     pagination: { mode: "off" },
     queryOptions: { enabled: !!sale?.event_id }
-  }) as any
-  const slots = slotsRes?.data || []
+  })
+  const slots = (slotsResult as any).query?.data?.data || []
 
   const handleStatusUpdate = async (newStatus: any) => {
     setLoading(true)
@@ -174,6 +174,7 @@ export const SaleShow = () => {
                     currentSlotId={sale.pickup_slot_id}
                     slots={slots}
                     isPaid={sale.status === 'paid'}
+                    onSuccess={() => query?.refetch()}
                 />
             </section>
         </div>

@@ -6,6 +6,7 @@ import { Calendar, Clock, CheckCircle2, Loader2, AlertCircle } from 'lucide-reac
 import { cn } from '@/lib/utils'
 import { bookPickupSlot } from '@/app/actions/sales'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 interface Slot {
   id: string
@@ -21,11 +22,13 @@ interface PickupSchedulerProps {
   currentSlotId?: string
   slots: Slot[]
   isPaid: boolean
+  onSuccess?: () => void
 }
 
-export default function PickupScheduler({ saleId, eventId, currentSlotId, slots, isPaid }: PickupSchedulerProps) {
+export default function PickupScheduler({ saleId, eventId, currentSlotId, slots, isPaid, onSuccess }: PickupSchedulerProps) {
   const [loading, setLoading] = useState(false)
   const [showGrid, setShowGrid] = useState(false)
+  const router = useRouter()
   const currentSlot = slots.find(s => s.id === currentSlotId)
 
   const handleBook = async (slotId: string) => {
@@ -36,6 +39,8 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
     } else {
       toast.success('Pickup scheduled successfully')
       setShowGrid(false)
+      router.refresh()
+      if (onSuccess) onSuccess()
     }
     setLoading(false)
   }
