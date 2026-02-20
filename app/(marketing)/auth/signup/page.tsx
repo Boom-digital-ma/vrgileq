@@ -22,8 +22,13 @@ const US_STATES = [
 ]
 
 export default function SignUpPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(3)
   const [loading, setLoading] = useState(false)
+  
+  // Debug log for production key verification
+  if (typeof window !== 'undefined') {
+    console.log("Stripe Key Presence:", !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+  }
   const [error, setError] = useState<string | null>(null)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const router = useRouter()
