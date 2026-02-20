@@ -60,8 +60,14 @@ export default function AuctionCard({ product, user }: { product: Product, user:
     setBidAmount(realtimePrice + (product.minIncrement || 100));
 
     const calculateTimeLeft = () => {
-      const target = new Date(realtimeEndsAt).getTime();
       const now = new Date().getTime();
+      
+      // Handle upcoming state
+      if (!isStarted && product.startAt) {
+        return `Starts ${new Date(product.startAt).toLocaleDateString()}`;
+      }
+
+      const target = new Date(realtimeEndsAt).getTime();
       const diff = target - now;
       if (diff <= 0) return "Auction Ended";
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -232,7 +238,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
           </div>
 
           <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md border border-white/40 px-3 py-1.5 rounded-full flex items-center gap-2 text-[10px] font-bold text-primary shadow-sm">
-            <Timer className="h-3.5 w-3.5" /> {mounted ? timeLeft : "..."}
+            {isStarted ? <Timer className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />} {mounted ? timeLeft : "..."}
           </div>
 
           {allImages.length > 1 && (

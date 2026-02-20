@@ -98,7 +98,21 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
     const timer = setInterval(() => {
       const now = new Date().getTime();
-      const distance = realtimeEndsAt.getTime() - now;
+      const startTime = startAt ? new Date(startAt).getTime() : 0;
+      const endTime = realtimeEndsAt.getTime();
+      
+      const isUpcoming = startTime > now;
+
+      if (isUpcoming) {
+        if (isMounted) {
+            setTimeLeft(`Starts ${new Date(startTime).toLocaleDateString()}`);
+            setIsUrgent(false);
+        }
+        return;
+      }
+
+      const targetTime = endTime;
+      const distance = targetTime - now;
 
       if (distance < 0) {
         clearInterval(timer);
@@ -229,7 +243,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
             "text-[9px] font-bold uppercase tracking-[0.3em]",
             isUrgent ? "text-rose-500" : "text-zinc-400"
           )}>
-            {isUrgent ? "Auction Closing Soon" : "Time Remaining"}
+            {isUrgent ? "Auction Closing Soon" : (!isStarted ? "Starts In" : "Time Remaining")}
           </div>
           <div className={cn(
             "text-4xl font-bold tabular-nums font-display tracking-tight italic",

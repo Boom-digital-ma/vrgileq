@@ -57,7 +57,7 @@ export default async function EventPage({
   // 3. Fetch lots
   let query = supabase
     .from('auctions')
-    .select('*, categories(name), bids(count), auction_images(url), auction_events(location), lot_number', { count: 'exact' })
+    .select('*, categories(name), bids(count), auction_images(url), auction_events(location, start_at), lot_number', { count: 'exact' })
     .eq('event_id', id)
 
   if (category) {
@@ -81,7 +81,7 @@ export default async function EventPage({
     supplier: lot.categories?.name || "Industrial Liquidation",
     price: Number(lot.current_price),
     endsAt: lot.ends_at,
-    startAt: event.start_at,
+    startAt: (lot.auction_events as any)?.start_at,
     image: lot.image_url || "/images/placeholder.jpg",
     images: [
         ...(lot.image_url ? [lot.image_url] : []),
@@ -93,20 +93,21 @@ export default async function EventPage({
     minIncrement: Number(lot.min_increment)
   })) || []
 
+  const isUpcoming = new Date(event.start_at) > new Date();
+  const isEnded = new Date(event.ends_at) <= new Date();
+
   return (
     <div className="min-h-screen bg-zinc-50 pb-20 font-sans antialiased text-secondary">
       {/* SaaS Premium Event Header */}
-      <div className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden">
+      <div className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_1fr] gap-12 items-start">
             
-            {/* 3-Column Content Layout */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[240px_1fr_1.5fr] gap-10 items-start">
-              
-              {/* COL 1: Image & Stats */}
-              <div className="space-y-6">
+            {/* COL 1: IMAGE & STATS */}
+            <div className="space-y-8">
                 {event.image_url && (
-                    <div className="relative h-48 w-full rounded-3xl overflow-hidden border border-zinc-100 shadow-xl group">
+                    <div className="relative aspect-square w-full rounded-[40px] overflow-hidden border border-zinc-100 shadow-2xl group">
                         <Image 
                             src={event.image_url} 
                             alt={event.title} 
@@ -116,187 +117,179 @@ export default async function EventPage({
                     </div>
                 )}
                 
-                <div className="space-y-4 pt-2 italic">
-                    <div className="flex items-center gap-3 group">
-                        <div className="bg-zinc-50 p-2 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
-                            <Timer className="text-primary" size={18} />
+                <div className="grid grid-cols-1 gap-4 italic">
+                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                        <div className="bg-white p-2.5 rounded-xl shadow-sm text-primary">
+                            <Timer size={20} />
                         </div>
                         <div>
-                            <p className="text-[8px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Ending On</p>
-                            <p className="font-bold text-secondary text-xs uppercase">
-                                {new Date(event.ends_at).toLocaleDateString()}
-                            </p>
+                            <p className="text-[8px] font-black uppercase text-zinc-300 tracking-widest mb-0.5">Ending On</p>
+                            <p className="font-bold text-secondary text-xs uppercase">{new Date(event.ends_at).toLocaleDateString()}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 group">
-                        <div className="bg-zinc-50 p-2 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
-                            <ShieldCheck className="text-primary" size={18} />
+                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                        <div className="bg-white p-2.5 rounded-xl shadow-sm text-primary">
+                            <ShieldCheck size={20} />
                         </div>
                         <div>
-                            <p className="text-[8px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Bidding Hold</p>
+                            <p className="text-[8px] font-black uppercase text-zinc-300 tracking-widest mb-0.5">Bidding Hold</p>
                             <p className="font-bold text-secondary text-xs uppercase">${Number(event.deposit_amount).toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
-              </div>
+            </div>
 
-              {/* COL 2: Title & Status */}
-              <div className="space-y-4 italic">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="h-1 w-6 bg-primary rounded-full" />
+            {/* COL 2: TITLE & STATUS */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <div className="h-1 w-8 bg-primary rounded-full" />
                     {(() => {
-                        const isEnded = new Date(event.ends_at) <= new Date();
-                        const isUpcoming = new Date(event.start_at) > new Date();
-                        const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : event.status);
+                        const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
+                        const isLive = displayStatus === 'live' && !isUpcoming;
                         
                         return (
                             <span className={cn(
-                                "px-3 py-1 rounded-full font-bold uppercase text-[9px] tracking-widest border transition-all",
-                                displayStatus === 'live' ? "bg-primary/5 text-primary border-primary/10" : 
-                                displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900 shadow-sm" :
-                                "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in"
+                                "px-4 py-1.5 rounded-full font-bold uppercase text-[10px] tracking-[0.2em] border italic transition-all",
+                                isLive ? "bg-rose-50 text-rose-600 border-rose-100 animate-pulse" : 
+                                isEnded ? "bg-zinc-900 text-white border-zinc-900" :
+                                "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20"
                             )}>
-                                {displayStatus} Event
+                                {isUpcoming ? 'upcoming' : displayStatus} Event
                             </span>
                         );
                     })()}
                 </div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-secondary leading-tight font-display uppercase">
+                
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-secondary leading-[0.9] font-display italic">
                     {event.title}
                 </h1>
-              </div>
-
-              {/* COL 3: Description */}
-              <div className="pt-2 md:pt-10 lg:pt-10 italic">
-                <p className="text-zinc-500 font-medium text-sm md:text-base leading-relaxed">
-                    {event.description}
-                </p>
-              </div>
-
             </div>
 
-            {/* Premium Registration Card */}
-            <div className="w-full lg:w-[380px] bg-secondary rounded-[40px] p-10 relative overflow-hidden shadow-2xl shadow-secondary/20 italic text-white group hover:-translate-y-1 transition-all duration-500 shrink-0">
-              <div className="relative z-10">
-                <h3 className="text-2xl font-bold uppercase tracking-tight mb-4 font-display">Bidding <span className="text-primary">Passport</span></h3>
-                <p className="text-sm font-medium text-white/50 mb-8 leading-relaxed">
-                    A security deposit of ${Number(event.deposit_amount).toLocaleString()} is required to enable bidding protocols for this event. 
-                </p>
-                
-                <RegistrationButton 
-                    eventId={event.id} 
-                    depositAmount={Number(event.deposit_amount)} 
-                    isUpcoming={new Date(event.start_at) > new Date()}
-                />
-                
-                <div className="mt-6 flex items-center gap-2 text-[10px] text-white/30 font-bold uppercase tracking-widest">
-                    <Info size={14} className="text-primary" /> Verified members only
+            {/* COL 3: DESCRIPTION */}
+            <div className="lg:pt-12">
+                <div className="bg-zinc-50/50 rounded-[32px] p-8 border border-zinc-100 italic">
+                    <p className="text-zinc-500 font-medium text-lg leading-relaxed first-letter:text-4xl first-letter:font-black first-letter:text-primary first-letter:mr-1">
+                        {event.description}
+                    </p>
                 </div>
-              </div>
-              <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-primary/20 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-700" />
             </div>
 
           </div>
         </div>
-        {/* Subtle texture background */}
+        {/* Background depth */}
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent opacity-50" />
+        <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
       </div>
 
-      {/* Grid Content Section */}
+      {/* Main Content Body */}
       <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex flex-col lg:flex-row gap-12">
-            {/* SaaS Refined Sidebar */}
-            <aside className="lg:w-64 shrink-0">
-                <div className="sticky top-32 space-y-10">
-                    <div>
-                        <div className="flex items-center gap-2 mb-6">
-                            <SlidersHorizontal size={14} className="text-primary" />
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary italic">Inventory Categories</h3>
-                        </div>
-                        <nav className="flex flex-col gap-1.5">
-                            <Link 
-                                href={`/events/${id}`}
-                                className={cn(
-                                    "px-4 py-3 text-[11px] font-bold uppercase tracking-tight border flex items-center justify-between rounded-xl transition-all",
-                                    !category 
-                                        ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10" 
-                                        : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-300"
-                                )}
-                            >
-                                All Lots
-                                {!category && <ChevronRight size={14} className="text-primary" />}
-                            </Link>
-                            {uniqueCategories.map((cat: any) => (
-                                <Link 
-                                    key={cat.id}
-                                    href={`/events/${id}?category=${cat.id}`}
-                                    className={cn(
-                                        "px-4 py-3 text-[11px] font-bold uppercase tracking-tight border flex items-center justify-between rounded-xl transition-all",
-                                        category === cat.id 
-                                            ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10" 
-                                            : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-300"
-                                    )}
-                                >
-                                    {cat.name}
-                                    {category === cat.id && <ChevronRight size={14} className="text-primary" />}
-                                </Link>
-                            ))}
-                        </nav>
-                    </div>
-
-                    <div className="bg-primary/10 rounded-3xl p-6 border border-primary/20 italic">
-                        <h4 className="font-bold uppercase text-[10px] text-primary mb-3 tracking-widest flex items-center gap-2">
-                            <MapPin size={12} /> Inspection
-                        </h4>
-                        <p className="text-[10px] font-medium text-primary/70 uppercase leading-relaxed">Most items available for on-site inspection. Contact support to schedule.</p>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Lot Catalog Grid */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-12 border-b border-zinc-200 pb-8">
-                    <div className="flex items-center gap-4">
+        <div className="flex flex-col lg:flex-row gap-16">
+            
+            {/* Left Content Area */}
+            <div className="flex-1 min-w-0 space-y-12">
+                
+                {/* Categories Header */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 pb-8">
+                    <div className="flex items-center gap-4 italic">
                         <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
                             <LayoutGrid size={24} />
                         </div>
                         <div>
-                            <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase italic">
-                                {category ? 'Filtered Selection' : 'Event Catalog'}
-                            </h2>
-                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{count} Assets available</p>
+                            <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase">Event Catalog</h2>
+                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{count} Assets available for protocol</p>
                         </div>
                     </div>
+
+                    <nav className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+                        <Link 
+                            href={`/events/${id}`}
+                            className={cn(
+                                "px-5 py-2 text-[10px] font-black uppercase tracking-widest border rounded-xl transition-all whitespace-nowrap",
+                                !category ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
+                            )}
+                        >
+                            All Assets
+                        </Link>
+                        {uniqueCategories.map((cat: any) => (
+                            <Link 
+                                key={cat.id}
+                                href={`/events/${id}?category=${cat.id}`}
+                                className={cn(
+                                    "px-5 py-2 text-[10px] font-black uppercase tracking-widest border rounded-xl transition-all whitespace-nowrap",
+                                    category === cat.id ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
+                                )}
+                            >
+                                {cat.name}
+                            </Link>
+                        ))}
+                    </nav>
                 </div>
 
+                {/* Catalog Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     {mappedLots.map((product) => (
                         <AuctionCard key={product.id} product={product} user={user} />
                     ))}
                 </div>
 
-                {/* SaaS Pagination */}
+                {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="mt-16 pt-12 border-t border-zinc-100">
-                        <Pagination 
-                            currentPage={currentPage} 
-                            totalPages={totalPages} 
-                            baseUrl={`/events/${id}`} 
-                            queryParams={{ category }}
-                        />
-                    </div>
-                )}
-
-                {mappedLots.length === 0 && (
-                    <div className="py-32 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic">
-                        <Package size={48} className="mx-auto text-zinc-100 mb-6" />
-                        <p className="text-zinc-300 font-bold uppercase text-2xl tracking-tighter">No assets found in this category</p>
-                        <Link href={`/events/${id}`} className="mt-8 inline-flex items-center gap-2 bg-secondary text-white px-8 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary transition-all">
-                            View Full Catalog <ArrowRight size={14} />
-                        </Link>
+                    <div className="pt-12 border-t border-zinc-100">
+                        <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl={`/events/${id}`} queryParams={{ category }} />
                     </div>
                 )}
             </div>
+
+            {/* Right Sidebar: Passport & Inspection */}
+            <aside className="lg:w-[380px] shrink-0">
+                <div className="sticky top-32 space-y-8">
+                    {/* Bidding Passport Card */}
+                    <div className={cn(
+                        "rounded-[40px] p-10 relative overflow-hidden shadow-2xl transition-all duration-500 italic",
+                        isUpcoming ? "bg-zinc-100 text-zinc-400 border border-zinc-200" : "bg-secondary text-white shadow-secondary/20 hover:-translate-y-1"
+                    )}>
+                        <div className="relative z-10">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-2xl font-bold uppercase tracking-tight font-display">Bidding <span className={isUpcoming ? "text-zinc-500" : "text-primary"}>Passport</span></h3>
+                                <Lock size={20} className={isUpcoming ? "text-zinc-300" : "text-primary/40"} />
+                            </div>
+                            
+                            <p className={cn("text-sm font-medium mb-10 leading-relaxed", isUpcoming ? "text-zinc-400" : "text-white/50")}>
+                                {isUpcoming 
+                                    ? "Registration protocols are currently locked. Bidding authorization will open once the event transition to 'Live' status."
+                                    : `A security deposit of $${Number(event.deposit_amount).toLocaleString()} is required to enable bidding protocols for this event.`
+                                }
+                            </p>
+                            
+                            <RegistrationButton 
+                                eventId={event.id} 
+                                depositAmount={Number(event.deposit_amount)} 
+                                isUpcoming={isUpcoming}
+                            />
+                            
+                            <div className="mt-8 flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
+                                <ShieldCheck size={14} /> Global Identity Verification
+                            </div>
+                        </div>
+                        {!isUpcoming && <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-primary/20 blur-[60px] rounded-full" />}
+                    </div>
+
+                    {/* Inspection Block */}
+                    <div className="bg-white border border-zinc-200 rounded-[32px] p-8 italic shadow-sm">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-primary/10 rounded-xl text-primary"><MapPin size={18} /></div>
+                            <h4 className="font-black uppercase text-xs text-secondary tracking-widest">Site Inspection</h4>
+                        </div>
+                        <p className="text-sm text-zinc-400 font-medium leading-relaxed mb-6 uppercase">
+                            Assets are located at our {event.location || "Regional Hub"}. Physical inspection is mandated for high-value acquisitions.
+                        </p>
+                        <Link href="/contact" className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2 hover:underline">
+                            Request Access Protocol <ChevronRight size={14} />
+                        </Link>
+                    </div>
+                </div>
+            </aside>
+
         </div>
       </div>
     </div>
@@ -316,49 +309,20 @@ function Pagination({
 }) {
     const buildUrl = (p: number) => {
         const params = new URLSearchParams()
-        Object.entries(queryParams).forEach(([k, v]) => {
-            if (v) params.set(k, v)
-        })
+        Object.entries(queryParams).forEach(([k, v]) => { if (v) params.set(k, v) })
         params.set('page', p.toString())
         return `${baseUrl}?${params.toString()}`
     }
 
     return (
         <div className="flex justify-center items-center gap-3 italic">
-            <Link 
-                href={currentPage > 1 ? buildUrl(currentPage - 1) : '#'}
-                className={cn(
-                    "px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all",
-                    currentPage === 1 ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95"
-                )}
-            >
-                Prev
-            </Link>
+            <Link href={currentPage > 1 ? buildUrl(currentPage - 1) : '#'} className={cn("px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all", currentPage === 1 ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95")}>Prev</Link>
             <div className="flex items-center gap-2">
                 {Array.from({ length: totalPages }).map((_, i) => (
-                    <Link 
-                        key={i}
-                        href={buildUrl(i + 1)}
-                        className={cn(
-                            "w-10 h-10 flex items-center justify-center text-[10px] font-bold border rounded-xl transition-all",
-                            currentPage === i + 1 
-                                ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10 scale-110" 
-                                : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-200"
-                        )}
-                    >
-                        {i + 1}
-                    </Link>
+                    <Link key={i} href={buildUrl(i + 1)} className={cn("w-10 h-10 flex items-center justify-center text-[10px] font-bold border rounded-xl transition-all", currentPage === i + 1 ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10 scale-110" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-200")}>{i + 1}</Link>
                 ))}
             </div>
-            <Link 
-                href={currentPage < totalPages ? buildUrl(currentPage + 1) : '#'}
-                className={cn(
-                    "px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all",
-                    currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95"
-                )}
-            >
-                Next
-            </Link>
+            <Link href={currentPage < totalPages ? buildUrl(currentPage + 1) : '#'} className={cn("px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all", currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95")}>Next</Link>
         </div>
     )
 }
