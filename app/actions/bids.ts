@@ -35,7 +35,8 @@ export async function placeBid({
   if (!auction) throw new Error('Auction not found')
 
   const now = new Date()
-  const startAt = auction.auction_events?.start_at ? new Date(auction.auction_events.start_at) : null
+  const eventData = Array.isArray(auction.auction_events) ? auction.auction_events[0] : auction.auction_events
+  const startAt = eventData?.start_at ? new Date(eventData.start_at) : null
   const endsAt = new Date(auction.ends_at)
 
   if (startAt && now < startAt) {

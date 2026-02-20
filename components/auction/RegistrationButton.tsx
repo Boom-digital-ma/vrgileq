@@ -17,7 +17,15 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 type RegistrationStep = 'idle' | 'profile' | 'payment_selector' | 'payment_add'
 
-export default function RegistrationButton({ eventId, depositAmount }: { eventId: string, depositAmount: number }) {
+export default function RegistrationButton({ 
+    eventId, 
+    depositAmount,
+    isUpcoming = false
+}: { 
+    eventId: string, 
+    depositAmount: number,
+    isUpcoming?: boolean 
+}) {
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [registering, setRegistering] = useState(false)
@@ -189,11 +197,16 @@ export default function RegistrationButton({ eventId, depositAmount }: { eventId
         
         <button 
           onClick={handleInitialClick}
-          disabled={registering}
-          className="w-full bg-primary text-white py-5 rounded-[24px] font-bold uppercase text-[11px] tracking-[0.2em] hover:bg-secondary transition-all shadow-xl shadow-primary/20 active:scale-[0.98] flex items-center justify-center gap-3 italic"
+          disabled={registering || isUpcoming}
+          className={cn(
+            "w-full py-5 rounded-[24px] font-bold uppercase text-[11px] tracking-[0.2em] transition-all active:scale-[0.98] flex items-center justify-center gap-3 italic",
+            isUpcoming 
+                ? "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5" 
+                : "bg-primary text-white hover:bg-secondary shadow-xl shadow-primary/20"
+          )}
         >
-          {registering ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock size={14} />}
-          Authorize Bidding
+          {registering ? <Loader2 className="h-4 w-4 animate-spin" /> : (isUpcoming ? <Lock size={14} /> : <Lock size={14} />)}
+          {isUpcoming ? "Registration Pending" : "Authorize Bidding"}
         </button>
       </div>
 

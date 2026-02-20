@@ -14,12 +14,14 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const supabase = await createClient();
+  const now = new Date().toISOString();
 
   const { data: events } = await supabase
     .from('auction_events')
     .select('*')
     .neq('status', 'draft')
-    .order('created_at', { ascending: false })
+    .gt('ends_at', now) // Show only live and upcoming events
+    .order('start_at', { ascending: true })
     .limit(3);
 
   return (
@@ -33,10 +35,10 @@ export default async function HomePage() {
             <div className="max-w-2xl">
                 <div className="flex items-center gap-2 mb-4">
                     <div className="h-1 w-8 bg-primary rounded-full" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Active Auctions</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Strategic Inventory</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary italic font-display uppercase leading-none">
-                    Current <span className="text-primary">Live</span> Events
+                    Market <span className="text-primary">Opportunities</span>
                 </h2>
             </div>
             <Link href="/auctions" className="group flex items-center gap-3 bg-white border border-zinc-200 px-6 py-3 rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:border-primary/30 transition-all shadow-sm">
@@ -45,88 +47,85 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
-          {events?.map((event) => (
-            <div key={event.id} className="group flex flex-col bg-white rounded-[32px] border border-zinc-100 overflow-hidden transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.08)] hover:-translate-y-2">
-              <Link href={`/events/${event.id}`} className="block relative aspect-[4/3] w-full overflow-hidden bg-zinc-50">
-                {event.image_url ? (
-                    <Image
-                        src={event.image_url}
-                        alt={event.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        sizes="(max-width: 768px) 100vw, 400px"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-200 text-[10px] font-bold uppercase italic p-12 text-center">
-                        Image Pending
-                    </div>
-                )}
-                <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
-                  {(() => {
-                    const isEnded = new Date(event.ends_at) <= new Date();
-                    const status = isEnded ? 'closed' : event.status;
+          {events?.map((event) => {
+            const isEnded = new Date(event.ends_at) <= new Date();
+            const isUpcoming = new Date(event.start_at) > new Date();
+            const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : event.status);
 
-                    if (status === 'live') {
-                      return (
-                        <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                            </span>
-                            Live
-                        </div>
-                      );
-                    }
-                    return (
+            return (
+              <div key={event.id} className="group flex flex-col bg-white rounded-[32px] border border-zinc-100 overflow-hidden transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.08)] hover:-translate-y-2">
+                <Link href={`/events/${event.id}`} className="block relative aspect-[4/3] w-full overflow-hidden bg-zinc-50 border-b border-zinc-100">
+                  {event.image_url ? (
+                      <Image
+                          src={event.image_url}
+                          alt={event.title}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-110"
+                          sizes="(max-width: 768px) 100vw, 400px"
+                      />
+                  ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-200 text-[10px] font-bold uppercase italic p-12 text-center">
+                          Image Pending
+                      </div>
+                  )}
+                  <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
+                    {displayStatus === 'live' ? (
+                      <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
+                          <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                          </span>
+                          Live
+                      </div>
+                    ) : (
                       <div className={cn(
                         "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm transition-all",
-                        status === 'closed' ? "bg-zinc-900 text-white border-zinc-900" : "bg-white/90 backdrop-blur-md text-secondary border-white/20"
+                        displayStatus === 'upcoming' ? "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in duration-500" :
+                        "bg-white/90 backdrop-blur-md text-secondary border-white/20"
                       )}>
-                        {status}
+                        {displayStatus}
                       </div>
-                    );
-                  })()}
-                </div>
-              </Link>
-              
-              <div className="p-8 flex flex-col flex-1">
-                <div className="flex items-center gap-2 mb-4 text-zinc-400">
-                  <Calendar size={14} className="text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">
-                    {new Date(event.ends_at) <= new Date() ? 'Event Ended' : `Ends ${new Date(event.ends_at).toLocaleDateString()}`}
-                  </span>
-                </div>
-                
-                <h3 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors italic font-display uppercase leading-tight line-clamp-2 h-14">
-                    {event.title}
-                </h3>
-
-                <p className="text-[11px] font-medium text-zinc-400 leading-relaxed uppercase mb-8 line-clamp-3 italic">
-                    {event.description || "Industrial assets and surplus equipment liquidation event. Preview open for registered bidders."}
-                </p>
-                
-                <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
-                    {new Date(event.ends_at) <= new Date() ? (
-                        <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-zinc-300" />
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">Auction Closed</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest italic">Open for Bidding</span>
-                        </div>
                     )}
-                    <Link 
-                        href={`/events/${event.id}`} 
-                        className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white"
-                    >
-                        <ArrowRight size={20} />
-                    </Link>
+                  </div>
+                </Link>
+                
+                <div className="p-8 flex flex-col flex-1">
+                  <div className="flex items-center gap-2 mb-4 text-zinc-400">
+                    <Calendar size={14} className="text-primary" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                        {isUpcoming ? `Starts ${new Date(event.start_at).toLocaleDateString()}` : `Ends ${new Date(event.ends_at).toLocaleDateString()}`}
+                    </span>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors italic font-display uppercase leading-tight line-clamp-2 h-14">
+                      {event.title}
+                  </h3>
+
+                  <p className="text-[11px] font-medium text-zinc-400 leading-relaxed uppercase mb-8 line-clamp-3 italic">
+                      {event.description || "Industrial assets and surplus equipment liquidation event. Preview open for registered bidders."}
+                  </p>
+                  
+                  <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "h-2 w-2 rounded-full animate-pulse",
+                            isUpcoming ? "bg-blue-500" : "bg-emerald-500"
+                          )} />
+                          <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest italic">
+                              {isUpcoming ? 'Opening Soon' : 'Open for Bidding'}
+                          </span>
+                      </div>
+                      <Link 
+                          href={`/events/${event.id}`} 
+                          className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white"
+                      >
+                          <ArrowRight size={20} />
+                      </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           </div>
         </div>
       </section>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star } from "lucide-react";
+import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star, Clock } from "lucide-react";
 import { placeBid } from "@/app/actions/bids";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { checkRegistration } from "@/app/actions/registrations";

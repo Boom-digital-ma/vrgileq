@@ -4,6 +4,7 @@ import AuctionCard from '@/components/auction/AuctionCard'
 import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, ChevronRight, SlidersHorizontal, MapPin, Package } from 'lucide-react'
 import RegistrationButton from '@/components/auction/RegistrationButton'
 import Link from 'next/link'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Metadata } from 'next'
 
@@ -150,12 +151,29 @@ export default async function EventPage({
             {/* Premium Registration Card */}
             <div className="w-full lg:w-[400px] bg-secondary rounded-[40px] p-10 relative overflow-hidden shadow-2xl shadow-secondary/20 italic text-white group hover:-translate-y-1 transition-all duration-500">
               <div className="relative z-10">
+                {/* Event Image Thumbnail */}
+                {event.image_url && (
+                    <div className="mb-8 relative h-32 w-full rounded-2xl overflow-hidden border border-white/10">
+                        <Image 
+                            src={event.image_url} 
+                            alt={event.title} 
+                            fill 
+                            className="object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-secondary to-transparent" />
+                    </div>
+                )}
+
                 <h3 className="text-2xl font-bold uppercase tracking-tight mb-4 font-display">Bidding <span className="text-primary">Passport</span></h3>
                 <p className="text-sm font-medium text-white/50 mb-8 leading-relaxed">
                     A security deposit of ${Number(event.deposit_amount).toLocaleString()} is required to enable bidding protocols for this event. 
                 </p>
                 
-                <RegistrationButton eventId={event.id} depositAmount={Number(event.deposit_amount)} />
+                <RegistrationButton 
+                    eventId={event.id} 
+                    depositAmount={Number(event.deposit_amount)} 
+                    isUpcoming={new Date(event.start_at) > new Date()}
+                />
                 
                 <div className="mt-6 flex items-center gap-2 text-[10px] text-white/30 font-bold uppercase tracking-widest">
                     <Info size={14} className="text-primary" /> Verified members only
