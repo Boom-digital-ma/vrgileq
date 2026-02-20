@@ -10,7 +10,8 @@ import CardValidation from '@/components/auth/CardValidation'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 const US_STATES = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", 
@@ -21,7 +22,7 @@ const US_STATES = [
 ]
 
 export default function SignUpPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(3)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
@@ -238,12 +239,18 @@ export default function SignUpPage() {
             </div>
 
             <div className="bg-white p-6 sm:p-8 rounded-[32px] border-2 border-primary/10 mb-8 shadow-xl shadow-primary/5 relative z-40">
-                <Elements key="stripe-signup" stripe={stripePromise} options={{ locale: 'en' }}>
-                    <CardValidation hideHeader onPaymentMethodCreated={(id) => {
-                        updateForm({ paymentMethodId: id })
-                        nextStep()
-                    }} />
-                </Elements>
+                {stripePromise ? (
+                    <Elements key="stripe-signup" stripe={stripePromise} options={{ locale: 'en' }}>
+                        <CardValidation hideHeader onPaymentMethodCreated={(id) => {
+                            updateForm({ paymentMethodId: id })
+                            nextStep()
+                        }} />
+                    </Elements>
+                ) : (
+                    <div className="p-8 text-center text-rose-500 font-bold uppercase text-xs italic">
+                        Stripe Financial Protocol not initialized. Check System Keys.
+                    </div>
+                )}
             </div>
 
             <button onClick={prevStep} className="w-full text-zinc-300 hover:text-primary py-2 font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3">
