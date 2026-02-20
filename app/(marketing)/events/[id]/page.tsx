@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import AuctionCard from '@/components/auction/AuctionCard'
-import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, ChevronRight, SlidersHorizontal, MapPin, Package } from 'lucide-react'
+import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, ChevronRight, SlidersHorizontal, MapPin, Package, Clock } from 'lucide-react'
 import RegistrationButton from '@/components/auction/RegistrationButton'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -99,71 +99,84 @@ export default async function EventPage({
       <div className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
-            <div className="max-w-3xl flex flex-col md:flex-row gap-8 items-start">
-              {/* Event Image Thumbnail - Left Side */}
-              {event.image_url && (
-                  <div className="relative h-48 w-full md:w-64 rounded-3xl overflow-hidden border border-zinc-100 shadow-xl shrink-0 group">
-                      <Image 
-                          src={event.image_url} 
-                          alt={event.title} 
-                          fill 
-                          className="object-cover group-hover:scale-110 transition-transform duration-700" 
-                      />
-                  </div>
-              )}
-
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-1 w-8 bg-primary rounded-full" />
-                    {(() => {
-                    const isEnded = new Date(event.ends_at) <= new Date();
-                    const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
-                    return (
-                        <span className={cn(
-                        "px-3 py-1 rounded-full font-bold uppercase text-[10px] tracking-widest border italic transition-all",
-                        displayStatus === 'live' ? "bg-primary/5 text-primary border-primary/10" : 
-                        displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900" :
-                        "bg-zinc-50 text-zinc-400 border-zinc-100"
-                        )}>
-                            {displayStatus} Event
-                        </span>
-                    );
-                    })()}
-                </div>
+            
+            {/* 3-Column Content Layout */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[240px_1fr_1.5fr] gap-10 items-start">
+              
+              {/* COL 1: Image & Stats */}
+              <div className="space-y-6">
+                {event.image_url && (
+                    <div className="relative h-48 w-full rounded-3xl overflow-hidden border border-zinc-100 shadow-xl group">
+                        <Image 
+                            src={event.image_url} 
+                            alt={event.title} 
+                            fill 
+                            className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                        />
+                    </div>
+                )}
                 
-                <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-[0.9] italic font-display uppercase">
-                    {event.title}
-                </h1>
-                
-                <p className="text-zinc-400 font-medium italic text-base md:text-lg leading-relaxed mb-10 uppercase">
-                    {event.description}
-                </p>
-                
-                <div className="flex flex-wrap gap-10 border-t border-zinc-50 pt-10">
-                    <div className="flex items-center gap-4 group">
-                    <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
-                        <Timer className="text-primary" size={24} />
+                <div className="space-y-4 pt-2 italic">
+                    <div className="flex items-center gap-3 group">
+                        <div className="bg-zinc-50 p-2 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
+                            <Timer className="text-primary" size={18} />
+                        </div>
+                        <div>
+                            <p className="text-[8px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Ending On</p>
+                            <p className="font-bold text-secondary text-xs uppercase">
+                                {new Date(event.ends_at).toLocaleDateString()}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-[10px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Ending On</p>
-                        <p className="font-bold text-secondary italic uppercase text-sm">{new Date(event.ends_at).toLocaleDateString()} @ {new Date(event.ends_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                    </div>
-                    </div>
-                    <div className="flex items-center gap-4 group">
-                    <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
-                        <ShieldCheck className="text-primary" size={24} />
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Bidding Hold</p>
-                        <p className="font-bold text-secondary italic uppercase text-sm">${Number(event.deposit_amount).toLocaleString()}</p>
-                    </div>
+                    <div className="flex items-center gap-3 group">
+                        <div className="bg-zinc-50 p-2 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
+                            <ShieldCheck className="text-primary" size={18} />
+                        </div>
+                        <div>
+                            <p className="text-[8px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Bidding Hold</p>
+                            <p className="font-bold text-secondary text-xs uppercase">${Number(event.deposit_amount).toLocaleString()}</p>
+                        </div>
                     </div>
                 </div>
               </div>
+
+              {/* COL 2: Title & Status */}
+              <div className="space-y-4 italic">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="h-1 w-6 bg-primary rounded-full" />
+                    {(() => {
+                        const isEnded = new Date(event.ends_at) <= new Date();
+                        const isUpcoming = new Date(event.start_at) > new Date();
+                        const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : event.status);
+                        
+                        return (
+                            <span className={cn(
+                                "px-3 py-1 rounded-full font-bold uppercase text-[9px] tracking-widest border transition-all",
+                                displayStatus === 'live' ? "bg-primary/5 text-primary border-primary/10" : 
+                                displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900 shadow-sm" :
+                                "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in"
+                            )}>
+                                {displayStatus} Event
+                            </span>
+                        );
+                    })()}
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-secondary leading-tight font-display uppercase">
+                    {event.title}
+                </h1>
+              </div>
+
+              {/* COL 3: Description */}
+              <div className="pt-2 md:pt-10 lg:pt-10 italic">
+                <p className="text-zinc-500 font-medium text-sm md:text-base leading-relaxed">
+                    {event.description}
+                </p>
+              </div>
+
             </div>
 
             {/* Premium Registration Card */}
-            <div className="w-full lg:w-[400px] bg-secondary rounded-[40px] p-10 relative overflow-hidden shadow-2xl shadow-secondary/20 italic text-white group hover:-translate-y-1 transition-all duration-500">
+            <div className="w-full lg:w-[380px] bg-secondary rounded-[40px] p-10 relative overflow-hidden shadow-2xl shadow-secondary/20 italic text-white group hover:-translate-y-1 transition-all duration-500 shrink-0">
               <div className="relative z-10">
                 <h3 className="text-2xl font-bold uppercase tracking-tight mb-4 font-display">Bidding <span className="text-primary">Passport</span></h3>
                 <p className="text-sm font-medium text-white/50 mb-8 leading-relaxed">
@@ -180,9 +193,9 @@ export default async function EventPage({
                     <Info size={14} className="text-primary" /> Verified members only
                 </div>
               </div>
-              {/* Background Glow */}
               <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-primary/20 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-700" />
             </div>
+
           </div>
         </div>
         {/* Subtle texture background */}
@@ -235,7 +248,7 @@ export default async function EventPage({
                         <h4 className="font-bold uppercase text-[10px] text-primary mb-3 tracking-widest flex items-center gap-2">
                             <MapPin size={12} /> Inspection
                         </h4>
-                        <p className="text-[10px] font-medium text-primary/70 uppercase leading-relaxed leading-relaxed">Most items available for on-site inspection. Contact support to schedule.</p>
+                        <p className="text-[10px] font-medium text-primary/70 uppercase leading-relaxed">Most items available for on-site inspection. Contact support to schedule.</p>
                     </div>
                 </div>
             </aside>
@@ -311,7 +324,7 @@ function Pagination({
     }
 
     return (
-        <div className="flex justify-center items-center gap-3">
+        <div className="flex justify-center items-center gap-3 italic">
             <Link 
                 href={currentPage > 1 ? buildUrl(currentPage - 1) : '#'}
                 className={cn(
@@ -329,7 +342,7 @@ function Pagination({
                         className={cn(
                             "w-10 h-10 flex items-center justify-center text-[10px] font-bold border rounded-xl transition-all",
                             currentPage === i + 1 
-                                ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10 italic scale-110" 
+                                ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10 scale-110" 
                                 : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-200"
                         )}
                     >
