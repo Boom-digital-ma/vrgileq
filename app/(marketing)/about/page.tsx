@@ -34,7 +34,7 @@ export default function AboutPage() {
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-20 items-start">
-                <div className="sticky top-32">
+                <div className="lg:sticky lg:top-32">
                     <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/20">
                         <ShieldCheck size={24} />
                     </div>
