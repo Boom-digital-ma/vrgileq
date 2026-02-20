@@ -150,6 +150,16 @@ export default async function AuctionsPage({
                             ))}
                         </div>
 
+                        {(!lots || lots.length === 0) && (
+                            <div className="py-32 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic mb-16">
+                                <Package size={48} className="mx-auto text-zinc-100 mb-6" />
+                                <p className="text-zinc-300 font-bold uppercase text-2xl tracking-tighter">No assets matching your protocol</p>
+                                <Link href="/auctions" className="mt-8 inline-flex items-center gap-2 bg-secondary text-white px-8 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary transition-all">
+                                    Clear Search & Filters <ArrowRight size={14} />
+                                </Link>
+                            </div>
+                        )}
+
                         {totalPages > 1 && (
                             <Pagination 
                                 currentPage={currentPage} 
