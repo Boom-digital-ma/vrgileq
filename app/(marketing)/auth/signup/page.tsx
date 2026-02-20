@@ -22,18 +22,8 @@ const US_STATES = [
 ]
 
 export default function SignUpPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(3)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
   const [loading, setLoading] = useState(false)
-  
-  // Debug log for production key verification
-  if (typeof window !== 'undefined') {
-    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    console.log("Stripe Key Detection:", {
-        exists: !!key,
-        length: key?.length || 0,
-        prefix: key?.substring(0, 7)
-    });
-  }
   const [error, setError] = useState<string | null>(null)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const router = useRouter()
