@@ -97,156 +97,115 @@ export default async function EventPage({
   const isEnded = new Date(event.ends_at) <= new Date();
 
   return (
-    <div className="min-h-screen bg-zinc-50 pb-20 font-sans antialiased text-secondary">
-      {/* SaaS Premium Event Header */}
-      <div className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_1fr] gap-12 items-start">
+    <div className="min-h-screen bg-zinc-50 pb-20 font-sans antialiased text-secondary italic">
+      <div className="max-w-7xl mx-auto px-6 py-12 lg:py-20">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
             
-            {/* COL 1: IMAGE & STATS */}
-            <div className="space-y-8">
-                {event.image_url && (
-                    <div className="relative aspect-square w-full rounded-[40px] overflow-hidden border border-zinc-100 shadow-2xl group">
-                        <Image 
-                            src={event.image_url} 
-                            alt={event.title} 
-                            fill 
-                            className="object-cover group-hover:scale-110 transition-transform duration-700" 
-                        />
-                    </div>
-                )}
+            {/* MAIN CONTENT AREA (Left) */}
+            <div className="flex-1 min-w-0 space-y-16">
                 
-                <div className="grid grid-cols-1 gap-4 italic">
-                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                        <div className="bg-white p-2.5 rounded-xl shadow-sm text-primary">
-                            <Timer size={20} />
-                        </div>
-                        <div>
-                            <p className="text-[8px] font-black uppercase text-zinc-300 tracking-widest mb-0.5">Ending On</p>
-                            <p className="font-bold text-secondary text-xs uppercase">{new Date(event.ends_at).toLocaleDateString()}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                        <div className="bg-white p-2.5 rounded-xl shadow-sm text-primary">
-                            <ShieldCheck size={20} />
-                        </div>
-                        <div>
-                            <p className="text-[8px] font-black uppercase text-zinc-300 tracking-widest mb-0.5">Bidding Hold</p>
-                            <p className="font-bold text-secondary text-xs uppercase">${Number(event.deposit_amount).toLocaleString()}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* COL 2: TITLE & STATUS */}
-            <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                    <div className="h-1 w-8 bg-primary rounded-full" />
-                    {(() => {
-                        const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
-                        const isLive = displayStatus === 'live' && !isUpcoming;
+                {/* Event Header Sub-Section */}
+                <div className="space-y-10">
+                    <div className="flex flex-col md:flex-row gap-8 items-start">
+                        {/* Thumbnail */}
+                        {event.image_url && (
+                            <div className="relative h-32 w-32 md:h-40 md:w-40 rounded-3xl overflow-hidden border border-zinc-200 shadow-xl shrink-0">
+                                <Image src={event.image_url} alt={event.title} fill className="object-cover" />
+                            </div>
+                        )}
                         
-                        return (
-                            <span className={cn(
-                                "px-4 py-1.5 rounded-full font-bold uppercase text-[10px] tracking-[0.2em] border italic transition-all",
-                                isLive ? "bg-rose-50 text-rose-600 border-rose-100 animate-pulse" : 
-                                isEnded ? "bg-zinc-900 text-white border-zinc-900" :
-                                "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20"
-                            )}>
-                                {isUpcoming ? 'upcoming' : displayStatus} Event
-                            </span>
-                        );
-                    })()}
-                </div>
-                
-                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-secondary leading-[0.9] font-display italic">
-                    {event.title}
-                </h1>
-            </div>
-
-            {/* COL 3: DESCRIPTION */}
-            <div className="lg:pt-12">
-                <div className="bg-zinc-50/50 rounded-[32px] p-8 border border-zinc-100 italic">
-                    <p className="text-zinc-500 font-medium text-lg leading-relaxed first-letter:text-4xl first-letter:font-black first-letter:text-primary first-letter:mr-1">
-                        {event.description}
-                    </p>
-                </div>
-            </div>
-
-          </div>
-        </div>
-        {/* Background depth */}
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent opacity-50" />
-        <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
-      </div>
-
-      {/* Main Content Body */}
-      <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex flex-col lg:flex-row gap-16">
-            
-            {/* Left Content Area */}
-            <div className="flex-1 min-w-0 space-y-12">
-                
-                {/* Categories Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 pb-8">
-                    <div className="flex items-center gap-4 italic">
-                        <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
-                            <LayoutGrid size={24} />
-                        </div>
-                        <div>
-                            <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase">Event Catalog</h2>
-                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{count} Assets available for protocol</p>
+                        <div className="flex-1 space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="h-1 w-6 bg-primary rounded-full" />
+                                {(() => {
+                                    const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
+                                    const isLive = displayStatus === 'live' && !isUpcoming;
+                                    return (
+                                        <span className={cn(
+                                            "px-3 py-1 rounded-full font-bold uppercase text-[9px] tracking-widest border transition-all",
+                                            isLive ? "bg-rose-50 text-rose-600 border-rose-100 animate-pulse" : 
+                                            isEnded ? "bg-zinc-900 text-white border-zinc-900" :
+                                            "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20"
+                                        )}>
+                                            {isUpcoming ? 'upcoming' : displayStatus} Event
+                                        </span>
+                                    );
+                                })()}
+                            </div>
+                            <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-secondary leading-tight font-display uppercase">
+                                {event.title}
+                            </h1>
                         </div>
                     </div>
 
-                    <nav className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-                        <Link 
-                            href={`/events/${id}`}
-                            className={cn(
-                                "px-5 py-2 text-[10px] font-black uppercase tracking-widest border rounded-xl transition-all whitespace-nowrap",
-                                !category ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
-                            )}
-                        >
-                            All Assets
-                        </Link>
-                        {uniqueCategories.map((cat: any) => (
+                    {/* Description below title/image */}
+                    <div className="bg-white rounded-[32px] p-8 md:p-10 border border-zinc-100 shadow-sm italic">
+                        <p className="text-zinc-500 font-medium text-base md:text-lg leading-relaxed first-letter:text-4xl first-letter:font-black first-letter:text-primary first-letter:mr-1">
+                            {event.description}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Catalog Grid Section */}
+                <div className="space-y-10">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 pb-8">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
+                                <LayoutGrid size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold tracking-tight text-secondary font-display uppercase">Event Catalog</h2>
+                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{count} Assets available</p>
+                            </div>
+                        </div>
+
+                        <nav className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
                             <Link 
-                                key={cat.id}
-                                href={`/events/${id}?category=${cat.id}`}
+                                href={`/events/${id}`}
                                 className={cn(
                                     "px-5 py-2 text-[10px] font-black uppercase tracking-widest border rounded-xl transition-all whitespace-nowrap",
-                                    category === cat.id ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
+                                    !category ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
                                 )}
                             >
-                                {cat.name}
+                                All Assets
                             </Link>
-                        ))}
-                    </nav>
-                </div>
-
-                {/* Catalog Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {mappedLots.map((product) => (
-                        <AuctionCard key={product.id} product={product} user={user} />
-                    ))}
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="pt-12 border-t border-zinc-100">
-                        <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl={`/events/${id}`} queryParams={{ category }} />
+                            {uniqueCategories.map((cat: any) => (
+                                <Link 
+                                    key={cat.id}
+                                    href={`/events/${id}?category=${cat.id}`}
+                                    className={cn(
+                                        "px-5 py-2 text-[10px] font-black uppercase tracking-widest border rounded-xl transition-all whitespace-nowrap",
+                                        category === cat.id ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
+                                    )}
+                                >
+                                    {cat.name}
+                                </Link>
+                            ))}
+                        </nav>
                     </div>
-                )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                        {mappedLots.map((product) => (
+                            <AuctionCard key={product.id} product={product} user={user} />
+                        ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                        <div className="pt-12 border-t border-zinc-100">
+                            <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl={`/events/${id}`} queryParams={{ category }} />
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Right Sidebar: Passport & Inspection */}
-            <aside className="lg:w-[380px] shrink-0">
+            {/* SIDEBAR AREA (Right) */}
+            <aside className="lg:w-[380px] shrink-0 space-y-8">
                 <div className="sticky top-32 space-y-8">
-                    {/* Bidding Passport Card - Hide if ended */}
+                    
+                    {/* Bidding Passport Card */}
                     {!isEnded && (
                         <div className={cn(
-                            "rounded-[40px] p-10 relative overflow-hidden shadow-2xl transition-all duration-500 italic",
+                            "rounded-[40px] p-10 relative overflow-hidden shadow-2xl transition-all duration-500",
                             isUpcoming ? "bg-zinc-100 text-zinc-400 border border-zinc-200" : "bg-secondary text-white shadow-secondary/20 hover:-translate-y-1"
                         )}>
                             <div className="relative z-10">
@@ -262,11 +221,7 @@ export default async function EventPage({
                                     }
                                 </p>
                                 
-                                <RegistrationButton 
-                                    eventId={event.id} 
-                                    depositAmount={Number(event.deposit_amount)} 
-                                    isUpcoming={isUpcoming}
-                                />
+                                <RegistrationButton eventId={event.id} depositAmount={Number(event.deposit_amount)} isUpcoming={isUpcoming} />
                                 
                                 <div className="mt-8 flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
                                     <ShieldCheck size={14} /> Global Identity Verification
@@ -275,6 +230,27 @@ export default async function EventPage({
                             {!isUpcoming && <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-primary/20 blur-[60px] rounded-full" />}
                         </div>
                     )}
+
+                    {/* Stats Block (Moved from Header) */}
+                    <div className="bg-zinc-900 rounded-[32px] p-8 text-white italic relative overflow-hidden border border-white/5 shadow-xl">
+                        <div className="relative z-10 space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2.5 bg-white/10 rounded-xl text-primary"><Timer size={20} /></div>
+                                <div>
+                                    <p className="text-[8px] font-black uppercase text-white/40 tracking-widest mb-0.5">Ending On</p>
+                                    <p className="font-bold text-white uppercase text-xs">{new Date(event.ends_at).toLocaleDateString()} @ {new Date(event.ends_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="p-2.5 bg-white/10 rounded-xl text-primary"><ShieldCheck size={20} /></div>
+                                <div>
+                                    <p className="text-[8px] font-black uppercase text-white/40 tracking-widest mb-0.5">Bidding Hold</p>
+                                    <p className="font-bold text-white uppercase text-xs">${Number(event.deposit_amount).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="absolute -bottom-10 -right-10 h-32 w-32 bg-primary/10 blur-3xl rounded-full" />
+                    </div>
 
                     {/* Inspection Block */}
                     <div className="bg-white border border-zinc-200 rounded-[32px] p-8 italic shadow-sm">
@@ -298,24 +274,13 @@ export default async function EventPage({
   )
 }
 
-function Pagination({ 
-    currentPage, 
-    totalPages, 
-    baseUrl, 
-    queryParams = {} 
-}: { 
-    currentPage: number, 
-    totalPages: number, 
-    baseUrl: string,
-    queryParams?: Record<string, any>
-}) {
+function Pagination({ currentPage, totalPages, baseUrl, queryParams = {} }: { currentPage: number, totalPages: number, baseUrl: string, queryParams?: Record<string, any> }) {
     const buildUrl = (p: number) => {
         const params = new URLSearchParams()
         Object.entries(queryParams).forEach(([k, v]) => { if (v) params.set(k, v) })
         params.set('page', p.toString())
         return `${baseUrl}?${params.toString()}`
     }
-
     return (
         <div className="flex justify-center items-center gap-3 italic">
             <Link href={currentPage > 1 ? buildUrl(currentPage - 1) : '#'} className={cn("px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all", currentPage === 1 ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95")}>Prev</Link>
