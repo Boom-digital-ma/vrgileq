@@ -134,6 +134,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
             eventId={lot.event_id}
             initialPrice={Number(lot.current_price)}
             endsAt={new Date(lot.ends_at)}
+            startAt={lot.auction_events?.start_at ? new Date(lot.auction_events.start_at) : undefined}
             bids={initialBids}
             minIncrement={Number(lot.min_increment)}
           />

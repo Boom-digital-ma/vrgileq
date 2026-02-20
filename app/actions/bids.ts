@@ -28,9 +28,23 @@ export async function placeBid({
 
   const { data: auction } = await supabase
     .from('auctions')
-    .select('title, winner_id')
+    .select('title, winner_id, event_id, ends_at, auction_events(start_at)')
     .eq('id', auctionId)
     .single()
+
+  if (!auction) throw new Error('Auction not found')
+
+  const now = new Date()
+  const startAt = auction.auction_events?.start_at ? new Date(auction.auction_events.start_at) : null
+  const endsAt = new Date(auction.ends_at)
+
+  if (startAt && now < startAt) {
+    throw new Error('Bidding has not started yet for this event.')
+  }
+
+  if (now > endsAt) {
+    throw new Error('This auction has already ended.')
+  }
 
   let previousWinnerProfile = null
   if (auction?.winner_id && auction.winner_id !== user.id) {

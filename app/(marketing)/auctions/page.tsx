@@ -39,7 +39,7 @@ export default async function AuctionsPage({
             lot_number,
             categories(name),
             auction_images(url),
-            auction_events(id, location, ends_at),
+            auction_events(id, location, ends_at, start_at),
             bids(count)
         `, { count: 'exact' })
         .eq('status', 'live')
@@ -62,7 +62,7 @@ export default async function AuctionsPage({
             lot_number,
             categories(name),
             auction_images(url),
-            auction_events(id, location, ends_at),
+            auction_events(id, location, ends_at, start_at),
             bids(count)
         `)
         .in('status', ['sold', 'ended'])
@@ -158,10 +158,10 @@ export default async function AuctionsPage({
                                                 lotNumber: lot.lot_number,
                                                 title: lot.title,
                                                 supplier: lot.categories?.name || 'General Industrial',
-                                                price: Number(lot.current_price),
-                                                endsAt: lot.ends_at || lot.auction_events?.ends_at,
-                                                image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
-                                                images: [
+                                                                                        price: Number(lot.current_price),
+                                                                                        endsAt: lot.ends_at || lot.auction_events?.ends_at,
+                                                                                        startAt: lot.auction_events?.start_at,
+                                                                                        image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",                                                images: [
                                                     ...(lot.image_url ? [lot.image_url] : []),
                                                     ...(lot.auction_images?.map((i: any) => i.url) || [])
                                                 ].filter((v, i, a) => a.indexOf(v) === i),
@@ -200,10 +200,10 @@ export default async function AuctionsPage({
                                                 lotNumber: lot.lot_number,
                                                 title: lot.title,
                                                 supplier: lot.categories?.name || 'General Industrial',
-                                                price: Number(lot.current_price),
-                                                endsAt: lot.ends_at || lot.auction_events?.ends_at,
-                                                image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
-                                                images: [
+                                                                                        price: Number(lot.current_price),
+                                                                                        endsAt: lot.ends_at || lot.auction_events?.ends_at,
+                                                                                        startAt: lot.auction_events?.start_at,
+                                                                                        image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",                                                images: [
                                                     ...(lot.image_url ? [lot.image_url] : []),
                                                     ...(lot.auction_images?.map((i: any) => i.url) || [])
                                                 ].filter((v, i, a) => a.indexOf(v) === i),

@@ -22,7 +22,7 @@ export default async function AuctionDetailPage({ params }: { params: { id: stri
     .from('auctions')
     .select(`
       *,
-      auction_events(id, title, location, ends_at),
+      auction_events(id, title, location, ends_at, start_at),
       categories(name),
       auction_images(*)
     `)

@@ -17,11 +17,12 @@ interface BiddingWidgetProps {
   eventId: string;
   initialPrice: number;
   endsAt: Date;
+  startAt?: Date;
   bids: any[];
   minIncrement: number;
 }
 
-export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt, bids, minIncrement }: BiddingWidgetProps) {
+export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt, startAt, bids, minIncrement }: BiddingWidgetProps) {
   const [timeLeft, setTimeLeft] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
   const [realtimePrice, setRealtimePrice] = useState(initialPrice);
@@ -38,6 +39,9 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const router = useRouter();
   
   const supabase = createClient();
+
+  const isStarted = !startAt || startAt <= new Date();
+  const isEnded = realtimeEndsAt <= new Date();
 
   useEffect(() => {
     let isMounted = true;
@@ -350,17 +354,20 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
         <button 
           type="submit"
-          disabled={loading || timeLeft === "AUCTION ENDED"}
+          disabled={loading || isEnded || !isStarted}
           className="w-full bg-secondary text-white py-5 rounded-[20px] font-bold text-base hover:bg-primary transition-all active:scale-[0.98] shadow-xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale font-display italic uppercase tracking-tight"
         >
           {loading ? (
             <Loader2 className="h-6 w-6 animate-spin" />
           ) : (
-            timeLeft === "AUCTION ENDED" ? <Lock className="h-6 w-6" /> : <Gavel className="h-6 w-6" />
+            isEnded ? <Lock className="h-6 w-6" /> : (isStarted ? <Gavel className="h-6 w-6" /> : <Clock className="h-6 w-6" />)
           )}
-          {timeLeft === "AUCTION ENDED" 
+          {isEnded 
             ? "Bidding Closed" 
-            : (userProfile ? (isProxy ? `Set Maximum $${bidAmount.toLocaleString()}` : `Place Bid $${bidAmount.toLocaleString()}`) : "Sign In to Bid")
+            : (!isStarted 
+                ? "Bidding Not Started" 
+                : (userProfile ? (isProxy ? `Set Maximum $${bidAmount.toLocaleString()}` : `Place Bid $${bidAmount.toLocaleString()}`) : "Sign In to Bid")
+              )
           }
         </button>
       </form>

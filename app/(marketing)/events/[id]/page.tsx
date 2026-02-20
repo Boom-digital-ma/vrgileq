@@ -80,6 +80,7 @@ export default async function EventPage({
     supplier: lot.categories?.name || "Industrial Liquidation",
     price: Number(lot.current_price),
     endsAt: lot.ends_at,
+    startAt: event.start_at,
     image: lot.image_url || "/images/placeholder.jpg",
     images: [
         ...(lot.image_url ? [lot.image_url] : []),

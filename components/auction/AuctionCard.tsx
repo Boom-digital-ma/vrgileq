@@ -21,6 +21,7 @@ interface Product {
   supplier: string;
   price: number;
   endsAt: string;
+  startAt?: string;
   image: string;
   images?: string[];
   bidCount: number;
@@ -49,6 +50,9 @@ export default function AuctionCard({ product, user }: { product: Product, user:
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const supabase = createClient();
+
+  const isStarted = !product.startAt || new Date(product.startAt) <= new Date();
+  const isEnded = new Date(realtimeEndsAt) <= new Date();
 
   useEffect(() => {
     let isMounted = true;
@@ -287,7 +291,20 @@ export default function AuctionCard({ product, user }: { product: Product, user:
           </div>
 
           {/* Conditional Bidding / Login UI */}
-          {user ? (
+          {!user ? (
+            <Link href="/auth/signin" className="w-full bg-primary/10 border-2 border-primary/20 text-primary py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group shadow-sm">
+                <LogIn size={16} className="group-hover:translate-x-1 transition-transform" />
+                Login to Bid
+            </Link>
+          ) : !isStarted ? (
+            <button 
+              disabled
+              className="w-full bg-zinc-50 border-2 border-zinc-100 text-zinc-400 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
+            >
+                <Clock size={16} />
+                Starting Soon
+            </button>
+          ) : (
             <form onSubmit={handleBid} className="flex gap-2">
                 <div className="relative flex-1 group/input">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">$</span>
@@ -301,18 +318,13 @@ export default function AuctionCard({ product, user }: { product: Product, user:
                 </div>
                 <button 
                   type="submit" 
-                  disabled={loadingBid || timeLeft === "Auction Ended"} 
+                  disabled={loadingBid || isEnded} 
                   className="bg-secondary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary transition-all active:scale-95 shadow-lg shadow-secondary/10 flex items-center gap-2 disabled:opacity-50"
                 >
                   {loadingBid ? <Loader2 size={14} className="animate-spin" /> : <Gavel size={14} />} 
                   Bid
                 </button>
             </form>
-          ) : (
-            <Link href="/auth/signin" className="w-full bg-primary/10 border-2 border-primary/20 text-primary py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group shadow-sm">
-                <LogIn size={16} className="group-hover:translate-x-1 transition-transform" />
-                Login to Bid
-            </Link>
           )}
         </div>
       </div>
