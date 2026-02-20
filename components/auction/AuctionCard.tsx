@@ -307,6 +307,14 @@ export default function AuctionCard({ product, user }: { product: Product, user:
                 <LogIn size={16} className="group-hover:translate-x-1 transition-transform" />
                 Login to Bid
             </Link>
+          ) : isEnded ? (
+            <button 
+              disabled
+              className="w-full bg-zinc-100 border-2 border-zinc-200 text-zinc-400 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
+            >
+                <Lock size={16} />
+                Bidding Closed
+            </button>
           ) : !isStarted ? (
             <button 
               disabled
@@ -329,8 +337,8 @@ export default function AuctionCard({ product, user }: { product: Product, user:
                 </div>
                 <button 
                   type="submit" 
-                  disabled={loadingBid || isEnded} 
-                  className="bg-secondary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary transition-all active:scale-95 shadow-lg shadow-secondary/10 flex items-center gap-2 disabled:opacity-50"
+                  disabled={loadingBid} 
+                  className="bg-secondary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary transition-all active:scale-95 shadow-lg shadow-secondary/10 flex items-center gap-2"
                 >
                   {loadingBid ? <Loader2 size={14} className="animate-spin" /> : <Gavel size={14} />} 
                   Bid

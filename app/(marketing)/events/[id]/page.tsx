@@ -243,36 +243,38 @@ export default async function EventPage({
             {/* Right Sidebar: Passport & Inspection */}
             <aside className="lg:w-[380px] shrink-0">
                 <div className="sticky top-32 space-y-8">
-                    {/* Bidding Passport Card */}
-                    <div className={cn(
-                        "rounded-[40px] p-10 relative overflow-hidden shadow-2xl transition-all duration-500 italic",
-                        isUpcoming ? "bg-zinc-100 text-zinc-400 border border-zinc-200" : "bg-secondary text-white shadow-secondary/20 hover:-translate-y-1"
-                    )}>
-                        <div className="relative z-10">
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-2xl font-bold uppercase tracking-tight font-display">Bidding <span className={isUpcoming ? "text-zinc-500" : "text-primary"}>Passport</span></h3>
-                                <Lock size={20} className={isUpcoming ? "text-zinc-300" : "text-primary/40"} />
+                    {/* Bidding Passport Card - Hide if ended */}
+                    {!isEnded && (
+                        <div className={cn(
+                            "rounded-[40px] p-10 relative overflow-hidden shadow-2xl transition-all duration-500 italic",
+                            isUpcoming ? "bg-zinc-100 text-zinc-400 border border-zinc-200" : "bg-secondary text-white shadow-secondary/20 hover:-translate-y-1"
+                        )}>
+                            <div className="relative z-10">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h3 className="text-2xl font-bold uppercase tracking-tight font-display">Bidding <span className={isUpcoming ? "text-zinc-500" : "text-primary"}>Passport</span></h3>
+                                    <Lock size={20} className={isUpcoming ? "text-zinc-300" : "text-primary/40"} />
+                                </div>
+                                
+                                <p className={cn("text-sm font-medium mb-10 leading-relaxed", isUpcoming ? "text-zinc-400" : "text-white/50")}>
+                                    {isUpcoming 
+                                        ? "Registration protocols are currently locked. Bidding authorization will open once the event transition to 'Live' status."
+                                        : `A security deposit of $${Number(event.deposit_amount).toLocaleString()} is required to enable bidding protocols for this event.`
+                                    }
+                                </p>
+                                
+                                <RegistrationButton 
+                                    eventId={event.id} 
+                                    depositAmount={Number(event.deposit_amount)} 
+                                    isUpcoming={isUpcoming}
+                                />
+                                
+                                <div className="mt-8 flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
+                                    <ShieldCheck size={14} /> Global Identity Verification
+                                </div>
                             </div>
-                            
-                            <p className={cn("text-sm font-medium mb-10 leading-relaxed", isUpcoming ? "text-zinc-400" : "text-white/50")}>
-                                {isUpcoming 
-                                    ? "Registration protocols are currently locked. Bidding authorization will open once the event transition to 'Live' status."
-                                    : `A security deposit of $${Number(event.deposit_amount).toLocaleString()} is required to enable bidding protocols for this event.`
-                                }
-                            </p>
-                            
-                            <RegistrationButton 
-                                eventId={event.id} 
-                                depositAmount={Number(event.deposit_amount)} 
-                                isUpcoming={isUpcoming}
-                            />
-                            
-                            <div className="mt-8 flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
-                                <ShieldCheck size={14} /> Global Identity Verification
-                            </div>
+                            {!isUpcoming && <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-primary/20 blur-[60px] rounded-full" />}
                         </div>
-                        {!isUpcoming && <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-primary/20 blur-[60px] rounded-full" />}
-                    </div>
+                    )}
 
                     {/* Inspection Block */}
                     <div className="bg-white border border-zinc-200 rounded-[32px] p-8 italic shadow-sm">
