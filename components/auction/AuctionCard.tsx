@@ -210,7 +210,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
             <div className="bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border border-white/20">
               #{product.lotNumber || product.id.slice(0,4)}
             </div>
-            {mounted && timeLeft !== "Auction Ended" && (
+            {mounted && isStarted && timeLeft !== "Auction Ended" && (
               <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
                   <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
@@ -219,7 +219,12 @@ export default function AuctionCard({ product, user }: { product: Product, user:
                   Live
               </div>
             )}
-            {mounted && timeLeft === "Auction Ended" && (
+            {mounted && !isStarted && (
+              <div className="bg-blue-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in duration-500">
+                  Upcoming
+              </div>
+            )}
+            {mounted && isStarted && timeLeft === "Auction Ended" && (
               <div className="bg-zinc-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-zinc-500/20 animate-in fade-in zoom-in duration-500">
                   Ended
               </div>

@@ -99,51 +99,65 @@ export default async function EventPage({
       <div className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
-            <div className="max-w-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-1 w-8 bg-primary rounded-full" />
-                {(() => {
-                  const isEnded = new Date(event.ends_at) <= new Date();
-                  const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
-                  return (
-                    <span className={cn(
-                      "px-3 py-1 rounded-full font-bold uppercase text-[10px] tracking-widest border italic transition-all",
-                      displayStatus === 'live' ? "bg-primary/5 text-primary border-primary/10" : 
-                      displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900" :
-                      "bg-zinc-50 text-zinc-400 border-zinc-100"
-                    )}>
-                        {displayStatus} Event
-                    </span>
-                  );
-                })()}
-              </div>
-              
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[0.9] italic font-display uppercase">
-                {event.title}
-              </h1>
-              
-              <p className="text-zinc-400 font-medium italic text-lg md:text-xl leading-relaxed mb-10 uppercase">
-                {event.description}
-              </p>
-              
-              <div className="flex flex-wrap gap-10 border-t border-zinc-50 pt-10">
-                <div className="flex items-center gap-4 group">
-                  <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
-                    <Timer className="text-primary" size={24} />
+            <div className="max-w-3xl flex flex-col md:flex-row gap-8 items-start">
+              {/* Event Image Thumbnail - Left Side */}
+              {event.image_url && (
+                  <div className="relative h-48 w-full md:w-64 rounded-3xl overflow-hidden border border-zinc-100 shadow-xl shrink-0 group">
+                      <Image 
+                          src={event.image_url} 
+                          alt={event.title} 
+                          fill 
+                          className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                      />
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Ending On</p>
-                    <p className="font-bold text-secondary italic uppercase">{new Date(event.ends_at).toLocaleDateString()} @ {new Date(event.ends_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                  </div>
+              )}
+
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-1 w-8 bg-primary rounded-full" />
+                    {(() => {
+                    const isEnded = new Date(event.ends_at) <= new Date();
+                    const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
+                    return (
+                        <span className={cn(
+                        "px-3 py-1 rounded-full font-bold uppercase text-[10px] tracking-widest border italic transition-all",
+                        displayStatus === 'live' ? "bg-primary/5 text-primary border-primary/10" : 
+                        displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900" :
+                        "bg-zinc-50 text-zinc-400 border-zinc-100"
+                        )}>
+                            {displayStatus} Event
+                        </span>
+                    );
+                    })()}
                 </div>
-                <div className="flex items-center gap-4 group">
-                  <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
-                    <ShieldCheck className="text-primary" size={24} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Bidding Hold</p>
-                    <p className="font-bold text-secondary italic uppercase">${Number(event.deposit_amount).toLocaleString()}</p>
-                  </div>
+                
+                <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-[0.9] italic font-display uppercase">
+                    {event.title}
+                </h1>
+                
+                <p className="text-zinc-400 font-medium italic text-base md:text-lg leading-relaxed mb-10 uppercase">
+                    {event.description}
+                </p>
+                
+                <div className="flex flex-wrap gap-10 border-t border-zinc-50 pt-10">
+                    <div className="flex items-center gap-4 group">
+                    <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
+                        <Timer className="text-primary" size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Ending On</p>
+                        <p className="font-bold text-secondary italic uppercase text-sm">{new Date(event.ends_at).toLocaleDateString()} @ {new Date(event.ends_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-center gap-4 group">
+                    <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 group-hover:bg-primary/10 transition-colors">
+                        <ShieldCheck className="text-primary" size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase text-zinc-300 tracking-widest leading-none mb-1">Bidding Hold</p>
+                        <p className="font-bold text-secondary italic uppercase text-sm">${Number(event.deposit_amount).toLocaleString()}</p>
+                    </div>
+                    </div>
                 </div>
               </div>
             </div>
@@ -151,19 +165,6 @@ export default async function EventPage({
             {/* Premium Registration Card */}
             <div className="w-full lg:w-[400px] bg-secondary rounded-[40px] p-10 relative overflow-hidden shadow-2xl shadow-secondary/20 italic text-white group hover:-translate-y-1 transition-all duration-500">
               <div className="relative z-10">
-                {/* Event Image Thumbnail */}
-                {event.image_url && (
-                    <div className="mb-8 relative h-32 w-full rounded-2xl overflow-hidden border border-white/10">
-                        <Image 
-                            src={event.image_url} 
-                            alt={event.title} 
-                            fill 
-                            className="object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" 
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-secondary to-transparent" />
-                    </div>
-                )}
-
                 <h3 className="text-2xl font-bold uppercase tracking-tight mb-4 font-display">Bidding <span className="text-primary">Passport</span></h3>
                 <p className="text-sm font-medium text-white/50 mb-8 leading-relaxed">
                     A security deposit of ${Number(event.deposit_amount).toLocaleString()} is required to enable bidding protocols for this event. 
