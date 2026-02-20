@@ -1,4 +1,4 @@
-import { resend } from '../resend';
+import { getResend } from '../resend';
 import { outbidTemplate } from './templates/outbid';
 import { winningTemplate } from './templates/won';
 import { closingSoonTemplate } from './templates/closing-soon';
@@ -19,6 +19,7 @@ export async function sendOutbidEmail({
   auctionUrl: string;
 }) {
   try {
+    const resend = getResend();
     await resend.emails.send({
       from: FROM_EMAIL,
       to,
@@ -46,6 +47,7 @@ export async function sendClosingSoonEmail({
   timeLeft: string;
 }) {
   try {
+    const resend = getResend();
     await resend.emails.send({
       from: FROM_EMAIL,
       to,
@@ -71,6 +73,7 @@ export async function sendWinningEmail({
   checkoutUrl: string;
 }) {
   try {
+    const resend = getResend();
     await resend.emails.send({
       from: FROM_EMAIL,
       to,
