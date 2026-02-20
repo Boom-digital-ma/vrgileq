@@ -81,7 +81,7 @@ export default function CardValidation({
             </div>
         )}
 
-        <div className="p-5 bg-white border-2 border-zinc-100 rounded-2xl transition-all focus-within:border-primary/20">
+        <div className="p-5 bg-white border-2 border-zinc-200 rounded-2xl min-h-[50px] flex flex-col justify-center">
             <CardElement options={{
             style: {
                 base: {

@@ -226,7 +226,7 @@ export default function SignUpPage() {
 
         {/* STEP 3: PAYMENT */}
         {step === 3 && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
+          <div className="animate-in fade-in duration-300 relative z-30">
             <div className="flex items-center gap-4 sm:gap-5 mb-8">
                 <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
                     <CreditCard size={24} className="sm:size-7" />
@@ -237,8 +237,8 @@ export default function SignUpPage() {
                 </div>
             </div>
 
-            <div className="bg-zinc-50 p-6 sm:p-8 rounded-[32px] border border-zinc-100 mb-8">
-                <Elements stripe={stripePromise} options={{ locale: 'en' }}>
+            <div className="bg-white p-6 sm:p-8 rounded-[32px] border-2 border-primary/10 mb-8 shadow-xl shadow-primary/5 relative z-40">
+                <Elements key="stripe-signup" stripe={stripePromise} options={{ locale: 'en' }}>
                     <CardValidation hideHeader onPaymentMethodCreated={(id) => {
                         updateForm({ paymentMethodId: id })
                         nextStep()
