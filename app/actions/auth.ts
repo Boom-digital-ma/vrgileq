@@ -65,8 +65,14 @@ export async function signup(formData: FormData, paymentMethodId?: string) {
   // If a payment method was provided during signup, attach it now
   if (paymentMethodId && data.user) {
     try {
+        const stripeSecret = process.env.STRIPE_SECRET_KEY
+        if (!stripeSecret) {
+            console.error("CRITICAL: STRIPE_SECRET_KEY is missing in environment variables.")
+            return { success: "Account created, but payment method could not be attached. Please add it in your profile." }
+        }
+
         const Stripe = (await import('stripe')).default
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        const stripe = new Stripe(stripeSecret, {
             apiVersion: '2026-01-28.clover',
         })
 
