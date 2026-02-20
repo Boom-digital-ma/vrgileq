@@ -1,9 +1,47 @@
-import { getResend } from '../resend';
 import { outbidTemplate } from './templates/outbid';
 import { winningTemplate } from './templates/won';
 import { closingSoonTemplate } from './templates/closing-soon';
 
 const FROM_EMAIL = process.env.NEXT_PUBLIC_RESEND_FROM || 'Virginia Liquidation <onboarding@resend.dev>';
+
+async function sendResendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('CRITICAL: RESEND_API_KEY is missing. Email skipped.');
+    return;
+  }
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to,
+        subject,
+        html,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Resend API Error:', error);
+    }
+  } catch (error) {
+    console.error('Failed to send email via Resend:', error);
+  }
+}
 
 export async function sendOutbidEmail({
   to,
@@ -18,17 +56,11 @@ export async function sendOutbidEmail({
   newAmount: number;
   auctionUrl: string;
 }) {
-  try {
-    const resend = getResend();
-    await resend.emails.send({
-      from: FROM_EMAIL,
-      to,
-      subject: `Outbid alert: ${auctionTitle}`,
-      html: outbidTemplate(bidderName, auctionTitle, newAmount, auctionUrl),
-    });
-  } catch (error) {
-    console.error('Failed to send outbid email:', error);
-  }
+  await sendResendEmail({
+    to,
+    subject: `Outbid alert: ${auctionTitle}`,
+    html: outbidTemplate(bidderName, auctionTitle, newAmount, auctionUrl),
+  });
 }
 
 export async function sendClosingSoonEmail({
@@ -46,17 +78,11 @@ export async function sendClosingSoonEmail({
   auctionUrl: string;
   timeLeft: string;
 }) {
-  try {
-    const resend = getResend();
-    await resend.emails.send({
-      from: FROM_EMAIL,
-      to,
-      subject: `Closing Soon: ${auctionTitle}`,
-      html: closingSoonTemplate(bidderName, auctionTitle, currentPrice, auctionUrl, timeLeft),
-    });
-  } catch (error) {
-    console.error('Failed to send closing soon email:', error);
-  }
+  await sendResendEmail({
+    to,
+    subject: `Closing Soon: ${auctionTitle}`,
+    html: closingSoonTemplate(bidderName, auctionTitle, currentPrice, auctionUrl, timeLeft),
+  });
 }
 
 export async function sendWinningEmail({
@@ -72,15 +98,9 @@ export async function sendWinningEmail({
   winningAmount: number;
   checkoutUrl: string;
 }) {
-  try {
-    const resend = getResend();
-    await resend.emails.send({
-      from: FROM_EMAIL,
-      to,
-      subject: `CONGRATULATIONS! You won: ${auctionTitle}`,
-      html: winningTemplate(bidderName, auctionTitle, winningAmount, checkoutUrl),
-    });
-  } catch (error) {
-    console.error('Failed to send winning email:', error);
-  }
+  await sendResendEmail({
+    to,
+    subject: `CONGRATULATIONS! You won: ${auctionTitle}`,
+    html: winningTemplate(bidderName, auctionTitle, winningAmount, checkoutUrl),
+  });
 }
