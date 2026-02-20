@@ -14,10 +14,12 @@ export const metadata: Metadata = {
 export default async function AuctionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string, category?: string, page?: string }>
+  searchParams: Promise<{ q?: string, category?: string, page?: string, filter?: 'live' | 'upcoming' | 'past' }>
 }) {
   const supabase = await createClient()
-  const { q, category, page } = await searchParams
+  const params = await searchParams
+  const { q, category, page } = params
+  let filter = params.filter
   const currentPage = parseInt(page || '1')
   const PAGE_SIZE_LOTS = 12
   const PAGE_SIZE_EVENTS = 9
@@ -234,18 +236,47 @@ export default async function AuctionsPage({
 
   }
 
-  // 2. DEFAULT VIEW: Show Events Grid
+  // 2. DEFAULT VIEW: Show Events Grid with Tabs & Auto-Fallback
+  const now = new Date().toISOString()
+
+  // Pre-fetch counts to determine default tab if none or if current is empty
+  const { count: liveCount } = await supabase.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live').lte('start_at', now).gt('ends_at', now)
+  const { count: upcomingCount } = await supabase.from('auction_events').select('*', { count: 'exact', head: true }).or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
+  
+  // Auto-fallback logic
+  if (!filter || (filter === 'live' && !liveCount)) {
+    if (liveCount) filter = 'live'
+    else if (upcomingCount) filter = 'upcoming'
+    else filter = 'past'
+  }
+
   const from = (currentPage - 1) * PAGE_SIZE_EVENTS
   const to = from + PAGE_SIZE_EVENTS - 1
 
-  const { data: events, count: eventCount } = await supabase
+  let eventQuery = supabase
     .from('auction_events')
     .select('*', { count: 'exact' })
     .neq('status', 'draft')
-    .order('start_at', { ascending: true })
+
+  if (filter === 'live') {
+    eventQuery = eventQuery.eq('status', 'live').lte('start_at', now).gt('ends_at', now)
+  } else if (filter === 'upcoming') {
+    eventQuery = eventQuery.or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
+  } else if (filter === 'past') {
+    eventQuery = eventQuery.or(`status.eq.closed,ends_at.lte.${now}`)
+  }
+
+  const { data: events, count: eventCount } = await eventQuery
+    .order(filter === 'past' ? 'ends_at' : 'start_at', { ascending: filter === 'past' ? false : true })
     .range(from, to)
 
   const totalEventPages = Math.ceil((eventCount || 0) / PAGE_SIZE_EVENTS)
+
+  const tabs = [
+    { id: 'live', label: 'Live Now', available: !!liveCount },
+    { id: 'upcoming', label: 'Upcoming', available: !!upcomingCount },
+    { id: 'past', label: 'Recent Archives', available: true }
+  ]
 
   return (
     <div className="min-h-screen bg-zinc-50 pb-20">
@@ -311,96 +342,128 @@ export default async function AuctionsPage({
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex items-center justify-between mb-12 border-b border-zinc-200 pb-6">
+        {/* Tab Selection */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 border-b border-zinc-200 pb-8">
             <div className="flex items-center gap-4">
                 <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
                     <Calendar size={24} />
                 </div>
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase italic">Open Events</h2>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Active opportunities for bidding</p>
+                    <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase italic">Market Events</h2>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{eventCount} Events in this protocol</p>
                 </div>
             </div>
+
+            <nav className="flex items-center bg-white p-1.5 rounded-2xl border border-zinc-100 shadow-sm">
+                {tabs.map((tab) => (
+                    <Link
+                        key={tab.id}
+                        href={`/auctions?filter=${tab.id}`}
+                        className={cn(
+                            "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all relative",
+                            filter === tab.id 
+                                ? "bg-secondary text-white shadow-lg shadow-secondary/20 italic" 
+                                : "text-zinc-400 hover:text-secondary hover:bg-zinc-50"
+                        )}
+                    >
+                        {tab.label}
+                        {tab.id === 'live' && tab.available && (
+                            <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </span>
+                        )}
+                    </Link>
+                ))}
+            </nav>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
-          {events?.map((event) => (
-            <Link 
-              href={`/events/${event.id}`} 
-              key={event.id}
-              className="group flex flex-col bg-white border border-zinc-100 rounded-[32px] overflow-hidden transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.08)] hover:-translate-y-2 h-full"
-            >
-              <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-50 border-b border-zinc-100">
-                {event.image_url ? (
-                  <img src={event.image_url} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center italic font-bold text-zinc-200 text-xs p-10 text-center uppercase">
-                    {event.title}
-                  </div>
+          {events?.map((event) => {
+            const isEnded = new Date(event.ends_at) <= new Date();
+            const isUpcoming = new Date(event.start_at) > new Date();
+            const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : event.status);
+
+            return (
+              <Link 
+                href={`/events/${event.id}`} 
+                key={event.id}
+                className={cn(
+                  "group flex flex-col bg-white border border-zinc-100 rounded-[32px] overflow-hidden transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.08)] hover:-translate-y-2 h-full",
+                  filter === 'past' && "grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100"
                 )}
-                <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
-                  {(() => {
-                    const isEnded = new Date(event.ends_at) <= new Date();
-                    const status = isEnded ? 'closed' : event.status;
-
-                    if (status === 'live') {
-                      return (
-                        <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                            </span>
-                            Live
-                        </div>
-                      );
-                    }
-                    return (
-                      <div className={cn(
-                        "px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border shadow-sm transition-all",
-                        status === 'closed' ? "bg-zinc-900 text-white border-zinc-900" : "bg-white/90 backdrop-blur-md text-secondary border-white/20"
-                      )}>
-                        {status}
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
-
-              <div className="p-8 flex flex-col flex-1">
-                <div className="flex items-center gap-2 mb-4 text-zinc-400">
-                    <Calendar size={14} className="text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">
-                      {new Date(event.ends_at) <= new Date() ? 'Event Ended' : `Ends ${new Date(event.ends_at).toLocaleDateString()}`}
-                    </span>
-                </div>
-
-                <h2 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors italic font-display uppercase leading-tight h-14 line-clamp-2">
-                  {event.title}
-                </h2>
-                
-                <p className="text-zinc-400 text-[11px] font-medium mb-8 line-clamp-3 uppercase leading-relaxed italic">
-                  {event.description}
-                </p>
-                
-                <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
-                    {new Date(event.ends_at) <= new Date() ? (
-                        <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-zinc-300" />
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">Auction Closed</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest italic">Open for Bidding</span>
-                        </div>
-                    )}
-                    <div className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white">
-                        <ArrowRight size={20} />
+              >
+                <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-50 border-b border-zinc-100">
+                  {event.image_url ? (
+                    <img src={event.image_url} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center italic font-bold text-zinc-200 text-xs p-10 text-center uppercase">
+                      {event.title}
                     </div>
+                  )}
+                  <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
+                    {displayStatus === 'live' ? (
+                      <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
+                          <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                          </span>
+                          Live
+                      </div>
+                    ) : (
+                      <div className={cn(
+                        "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm transition-all",
+                        displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900" : 
+                        displayStatus === 'upcoming' ? "bg-blue-500 text-white border-blue-500" :
+                        "bg-white/90 backdrop-blur-md text-secondary border-white/20"
+                      )}>
+                        {displayStatus}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+
+                <div className="p-8 flex flex-col flex-1">
+                  <div className="flex items-center gap-2 mb-4 text-zinc-400">
+                      <Calendar size={14} className="text-primary" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">
+                          {isEnded ? 'Event Ended' : (isUpcoming ? `Starts ${new Date(event.start_at).toLocaleDateString()}` : `Ends ${new Date(event.ends_at).toLocaleDateString()}`)}
+                      </span>
+                  </div>
+
+                  <h2 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors italic font-display uppercase leading-tight h-14 line-clamp-2">
+                    {event.title}
+                  </h2>
+                  
+                  <p className="text-zinc-400 text-[11px] font-medium mb-8 line-clamp-3 uppercase leading-relaxed italic">
+                    {event.description}
+                  </p>
+                  
+                  <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
+                      {isEnded ? (
+                          <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-zinc-300" />
+                              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">Auction Closed</span>
+                          </div>
+                      ) : (
+                          <div className="flex items-center gap-2">
+                              <div className={cn(
+                                "h-2 w-2 rounded-full animate-pulse",
+                                isUpcoming ? "bg-blue-500" : "bg-emerald-500"
+                              )} />
+                              <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest italic">
+                                  {isUpcoming ? 'Opening Soon' : 'Open for Bidding'}
+                              </span>
+                          </div>
+                      )}
+                      <div className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white">
+                          <ArrowRight size={20} />
+                      </div>
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
         </div>
 
         {totalEventPages > 1 && (
@@ -408,7 +471,18 @@ export default async function AuctionsPage({
                 currentPage={currentPage} 
                 totalPages={totalEventPages} 
                 baseUrl="/auctions" 
+                queryParams={{ filter }}
             />
+        )}
+
+        {(!events || events.length === 0) && (
+            <div className="py-32 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic px-10">
+                <Package size={48} className="mx-auto text-zinc-100 mb-6" />
+                <p className="text-zinc-300 font-bold uppercase text-2xl tracking-tighter max-w-sm mx-auto">No events found matching this protocol window.</p>
+                <Link href="/auctions?filter=live" className="mt-8 inline-flex items-center gap-2 bg-secondary text-white px-8 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary transition-all">
+                    Reset Protocol <ArrowRight size={14} />
+                </Link>
+            </div>
         )}
       </div>
     </div>
@@ -446,7 +520,6 @@ function Pagination({
             >
                 Prev
             </Link>
-            
             <div className="flex items-center gap-2">
                 {Array.from({ length: totalPages }).map((_, i) => (
                     <Link 
@@ -463,12 +536,11 @@ function Pagination({
                     </Link>
                 ))}
             </div>
-
             <Link 
                 href={currentPage < totalPages ? buildUrl(currentPage + 1) : '#'}
                 className={cn(
                     "px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all",
-                    currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95"
+                    currentPage === totalPages ? "opacity-30 soul-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95"
                 )}
             >
                 Next
