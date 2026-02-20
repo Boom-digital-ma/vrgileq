@@ -94,11 +94,11 @@ export default function SignUpPage() {
   }
 
   const labelClasses = "block text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4 mb-2"
-  const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-3.5 sm:py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none"
+  const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-3.5 sm:py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all outline-none"
 
   return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4 sm:p-6 font-sans text-secondary">
-      <div className="w-full max-w-2xl bg-white rounded-[32px] sm:rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-6 sm:p-10 relative overflow-hidden italic">
+      <div className="w-full max-w-2xl bg-white rounded-[32px] sm:rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-6 sm:p-10 relative overflow-hidden">
         
         {/* Modern Progress Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-end gap-6 mb-8 relative z-10">
@@ -303,8 +303,8 @@ export default function SignUpPage() {
           </div>
         )}
 
-        <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
-            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-300 italic">Virginia Liquidation • Industrial Governance active</p>
+        <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10 font-sans">
+            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-300">Virginia Liquidation • Industrial Governance active</p>
         </div>
 
         {/* Decorative background element */}

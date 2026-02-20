@@ -56,7 +56,7 @@ export default function CardValidation({
 
   if (success) {
     return (
-      <div className="bg-emerald-50 border border-emerald-100 p-6 sm:p-8 rounded-[32px] flex flex-col items-center text-center italic animate-in zoom-in-95 duration-500">
+      <div className="bg-emerald-50 border border-emerald-100 p-6 sm:p-8 rounded-[32px] flex flex-col items-center text-center animate-in zoom-in-95 duration-500">
         <div className="bg-white p-3 rounded-full shadow-sm mb-4 sm:mb-6">
             <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-500" />
         </div>
@@ -68,7 +68,7 @@ export default function CardValidation({
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className={cn("space-y-6 sm:space-y-8", !hideHeader && "bg-white p-4 sm:p-8 rounded-[32px] italic")}>
+      <div className={cn("space-y-6 sm:space-y-8", !hideHeader && "bg-white p-4 sm:p-8 rounded-[32px]")}>
         {!hideHeader && (
             <div className="flex items-center gap-4">
                 <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
@@ -81,7 +81,7 @@ export default function CardValidation({
             </div>
         )}
 
-        <div className="p-5 sm:p-6 bg-white border-2 border-zinc-100 rounded-2xl shadow-sm transition-all focus-within:border-primary/20">
+        <div className="p-5 bg-white border-2 border-zinc-100 rounded-2xl transition-all focus-within:border-primary/20">
             <CardElement options={{
             style: {
                 base: {
