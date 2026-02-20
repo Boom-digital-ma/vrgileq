@@ -21,7 +21,7 @@ const US_STATES = [
 ]
 
 export default function SignUpPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(3)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
