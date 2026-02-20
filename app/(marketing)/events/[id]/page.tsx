@@ -100,9 +100,20 @@ export default async function EventPage({
             <div className="max-w-3xl">
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-1 w-8 bg-primary rounded-full" />
-                <span className="bg-primary/5 text-primary px-3 py-1 rounded-full font-bold uppercase text-[10px] tracking-widest border border-primary/10 italic">
-                    {event.status} Event
-                </span>
+                {(() => {
+                  const isEnded = new Date(event.ends_at) <= new Date();
+                  const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
+                  return (
+                    <span className={cn(
+                      "px-3 py-1 rounded-full font-bold uppercase text-[10px] tracking-widest border italic transition-all",
+                      displayStatus === 'live' ? "bg-primary/5 text-primary border-primary/10" : 
+                      displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900" :
+                      "bg-zinc-50 text-zinc-400 border-zinc-100"
+                    )}>
+                        {displayStatus} Event
+                    </span>
+                  );
+                })()}
               </div>
               
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[0.9] italic font-display uppercase">

@@ -62,26 +62,39 @@ export default async function HomePage() {
                     </div>
                 )}
                 <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
-                  {event.status === 'live' ? (
-                    <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                        </span>
-                        Live
-                    </div>
-                  ) : (
-                    <div className="bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border border-white/20 shadow-sm">
-                      {event.status}
-                    </div>
-                  )}
+                  {(() => {
+                    const isEnded = new Date(event.ends_at) <= new Date();
+                    const status = isEnded ? 'closed' : event.status;
+
+                    if (status === 'live') {
+                      return (
+                        <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                            </span>
+                            Live
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className={cn(
+                        "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm transition-all",
+                        status === 'closed' ? "bg-zinc-900 text-white border-zinc-900" : "bg-white/90 backdrop-blur-md text-secondary border-white/20"
+                      )}>
+                        {status}
+                      </div>
+                    );
+                  })()}
                 </div>
               </Link>
               
               <div className="p-8 flex flex-col flex-1">
                 <div className="flex items-center gap-2 mb-4 text-zinc-400">
                   <Calendar size={14} className="text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Ends {new Date(event.ends_at).toLocaleDateString()}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                    {new Date(event.ends_at) <= new Date() ? 'Event Ended' : `Ends ${new Date(event.ends_at).toLocaleDateString()}`}
+                  </span>
                 </div>
                 
                 <h3 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors italic font-display uppercase leading-tight line-clamp-2 h-14">
@@ -93,10 +106,17 @@ export default async function HomePage() {
                 </p>
                 
                 <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest italic">Open for Bidding</span>
-                    </div>
+                    {new Date(event.ends_at) <= new Date() ? (
+                        <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-zinc-300" />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">Auction Closed</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest italic">Open for Bidding</span>
+                        </div>
+                    )}
                     <Link 
                         href={`/events/${event.id}`} 
                         className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white"
