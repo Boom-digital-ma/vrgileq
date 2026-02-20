@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Calendar, Gavel, MapPin, ArrowRight, Package, LayoutGrid, SlidersHorizontal, ChevronRight, Globe2, BarChart3 } from 'lucide-react'
+import { Calendar, Gavel, MapPin, ArrowRight, Package, LayoutGrid, SlidersHorizontal, ChevronRight, Globe2, BarChart3, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import SearchBar from '@/components/layout/SearchBar'
 import AuctionCard from '@/components/auction/AuctionCard'
