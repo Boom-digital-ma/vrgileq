@@ -52,6 +52,26 @@ export default async function AuctionsPage({
         .order('created_at', { ascending: false })
         .range(from, to)
 
+    // 1b. Fetch Archives (Sold/Ended) for the same query
+    let archiveQuery = supabase
+        .from('auctions')
+        .select(`
+            *,
+            lot_number,
+            categories(name),
+            auction_images(url),
+            auction_events(id, location, ends_at),
+            bids(count)
+        `)
+        .in('status', ['sold', 'ended'])
+
+    if (q) archiveQuery = archiveQuery.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
+    if (category) archiveQuery = archiveQuery.eq('category_id', category)
+
+    const { data: archives } = await archiveQuery
+        .order('ends_at', { ascending: false })
+        .limit(6)
+
     const totalPages = Math.ceil((count || 0) / PAGE_SIZE_LOTS)
 
     return (
@@ -118,61 +138,100 @@ export default async function AuctionsPage({
                     </aside>
 
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-10 border-b border-zinc-100 pb-6">
-                            <LayoutGrid size={20} className="text-primary" />
-                            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">Displaying {lots?.length || 0} Industrial Assets</span>
-                        </div>
+                        {lots && lots.length > 0 ? (
+                            <>
+                                <div className="flex items-center gap-3 mb-10 border-b border-zinc-100 pb-6">
+                                    <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                                    <span className="text-[11px] font-bold text-zinc-900 uppercase tracking-widest">Active Bidding • {count} results</span>
+                                </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
-                            {lots?.map((lot) => (
-                                <AuctionCard 
-                                    key={lot.id} 
-                                    user={user}
-                                    product={{
-                                        id: lot.id,
-                                        event_id: lot.auction_events?.id,
-                                        lotNumber: lot.lot_number,
-                                        title: lot.title,
-                                        supplier: lot.categories?.name || 'General Industrial',
-                                        price: Number(lot.current_price),
-                                        endsAt: lot.ends_at || lot.auction_events?.ends_at,
-                                        image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
-                                        images: [
-                                            ...(lot.image_url ? [lot.image_url] : []),
-                                            ...(lot.auction_images?.map((i: any) => i.url) || [])
-                                        ].filter((v, i, a) => a.indexOf(v) === i),
-                                        bidCount: lot.bids?.[0]?.count || 0,
-                                        pickupLocation: lot.auction_events?.location,
-                                        description: lot.description,
-                                        minIncrement: Number(lot.min_increment)
-                                    }} 
-                                />
-                            ))}
-                        </div>
-
-                        {(!lots || lots.length === 0) && (
-                            <div className="py-32 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic mb-16">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
+                                    {lots?.map((lot) => (
+                                        <AuctionCard 
+                                            key={lot.id} 
+                                            user={user}
+                                            product={{
+                                                id: lot.id,
+                                                event_id: lot.auction_events?.id,
+                                                lotNumber: lot.lot_number,
+                                                title: lot.title,
+                                                supplier: lot.categories?.name || 'General Industrial',
+                                                price: Number(lot.current_price),
+                                                endsAt: lot.ends_at || lot.auction_events?.ends_at,
+                                                image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
+                                                images: [
+                                                    ...(lot.image_url ? [lot.image_url] : []),
+                                                    ...(lot.auction_images?.map((i: any) => i.url) || [])
+                                                ].filter((v, i, a) => a.indexOf(v) === i),
+                                                bidCount: lot.bids?.[0]?.count || 0,
+                                                pickupLocation: lot.auction_events?.location,
+                                                description: lot.description,
+                                                minIncrement: Number(lot.min_increment)
+                                            }} 
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-24 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic mb-16 px-10">
                                 <Package size={48} className="mx-auto text-zinc-100 mb-6" />
-                                <p className="text-zinc-300 font-bold uppercase text-2xl tracking-tighter">No assets matching your protocol</p>
-                                <Link href="/auctions" className="mt-8 inline-flex items-center gap-2 bg-secondary text-white px-8 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary transition-all">
-                                    Clear Search & Filters <ArrowRight size={14} />
-                                </Link>
+                                <p className="text-zinc-300 font-bold uppercase text-xl tracking-tighter max-w-sm mx-auto">No active assets matching your protocol in the current live inventory.</p>
+                            </div>
+                        )}
+
+                        {/* ARCHIVE SECTION */}
+                        {archives && archives.length > 0 && (
+                            <div className="mt-20">
+                                <div className="flex items-center gap-3 mb-10 border-b border-zinc-100 pb-6">
+                                    <History size={18} className="text-zinc-300" />
+                                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest italic">Sold / Ended Archives</span>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 opacity-60 grayscale-[0.5] hover:grayscale-0 transition-all">
+                                    {archives.map((lot) => (
+                                        <AuctionCard 
+                                            key={lot.id} 
+                                            user={user}
+                                            product={{
+                                                id: lot.id,
+                                                event_id: lot.auction_events?.id,
+                                                lotNumber: lot.lot_number,
+                                                title: lot.title,
+                                                supplier: lot.categories?.name || 'General Industrial',
+                                                price: Number(lot.current_price),
+                                                endsAt: lot.ends_at || lot.auction_events?.ends_at,
+                                                image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
+                                                images: [
+                                                    ...(lot.image_url ? [lot.image_url] : []),
+                                                    ...(lot.auction_images?.map((i: any) => i.url) || [])
+                                                ].filter((v, i, a) => a.indexOf(v) === i),
+                                                bidCount: lot.bids?.[0]?.count || 0,
+                                                pickupLocation: lot.auction_events?.location,
+                                                description: lot.description,
+                                                minIncrement: Number(lot.min_increment)
+                                            }} 
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         )}
 
                         {totalPages > 1 && (
-                            <Pagination 
-                                currentPage={currentPage} 
-                                totalPages={totalPages} 
-                                baseUrl="/auctions" 
-                                queryParams={{ q, category }} 
-                            />
+                            <div className="mt-16">
+                                <Pagination 
+                                    currentPage={currentPage} 
+                                    totalPages={totalPages} 
+                                    baseUrl="/auctions" 
+                                    queryParams={{ q, category }} 
+                                />
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
         </div>
     )
+
   }
 
   // 2. DEFAULT VIEW: Show Events Grid
