@@ -64,13 +64,14 @@ export default async function HomePage() {
                           fill
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
                           sizes="(max-width: 768px) 100vw, 400px"
+                          suppressHydrationWarning
                       />
                   ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-200 text-[10px] font-bold uppercase italic p-12 text-center">
+                      <div className="w-full h-full flex items-center justify-center text-zinc-200 text-[10px] font-bold uppercase italic p-12 text-center" suppressHydrationWarning>
                           Image Pending
                       </div>
                   )}
-                  <div className="absolute top-6 left-6 flex flex-col gap-2 items-start z-10">
+                  <div className="absolute top-6 left-6 flex flex-col gap-2 items-start z-10" suppressHydrationWarning>
                     <EventStatusBadge 
                         eventId={event.id}
                         initialStatus={event.status}
@@ -80,9 +81,9 @@ export default async function HomePage() {
                   </div>
                 </Link>
                 
-                <div className="p-8 flex flex-col flex-1">
-                  <div className="flex items-center gap-2 mb-4 text-zinc-400">
-                    <Calendar size={14} className="text-primary" />
+                <div className="p-8 flex flex-col flex-1" suppressHydrationWarning>
+                  <div className="flex items-center gap-2 mb-4 text-zinc-400" suppressHydrationWarning>
+                    <Calendar size={14} className="text-primary" suppressHydrationWarning />
                     <span className="text-[10px] font-bold uppercase tracking-widest">
                         {isUpcoming 
                           ? `Starts ${formatEventDate(event.start_at)}` 

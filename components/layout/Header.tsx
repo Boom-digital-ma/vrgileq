@@ -87,12 +87,15 @@ export default function Header() {
         )}
 
         {/* Main Navigation - Integrated with Backdrop Blur */}
-        <header className={cn(
-            "w-full transition-all duration-300 ease-in-out border-b",
-            scrolled 
-                ? "bg-white/90 backdrop-blur-md border-zinc-200 py-3 shadow-sm" 
-                : "bg-white border-zinc-100 py-5"
-        )}>
+        <header 
+            suppressHydrationWarning
+            className={cn(
+                "w-full transition-all duration-300 ease-in-out border-b",
+                scrolled 
+                    ? "bg-white/90 backdrop-blur-md border-zinc-200 py-3 shadow-sm" 
+                    : "bg-white border-zinc-100 py-5"
+            )}
+        >
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
                 {/* Logo */}
                 <Link href="/" className="relative h-8 w-32 md:h-10 md:w-48 transition-opacity hover:opacity-80 shrink-0">
@@ -102,6 +105,7 @@ export default function Header() {
                         fill
                         className="object-contain object-left"
                         priority
+                        suppressHydrationWarning
                     />
                 </Link>
 
@@ -135,11 +139,11 @@ export default function Header() {
                                                                     })}                                            </nav>                {/* Actions */}
                 <div className="flex items-center gap-4">
                     {loading ? (
-                        <div className="h-8 w-24 bg-zinc-50 animate-pulse rounded-lg" />
+                        <div className="h-8 w-24 bg-zinc-50 animate-pulse rounded-lg" suppressHydrationWarning />
                     ) : user ? (
-                        <div className="flex items-center gap-3">
-                            <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-50 border border-zinc-100 hover:border-primary/20 transition-all group">
-                                <User size={14} className="text-zinc-400 group-hover:text-primary" />
+                        <div className="flex items-center gap-3" suppressHydrationWarning>
+                            <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-50 border border-zinc-100 hover:border-primary/20 transition-all group" suppressHydrationWarning>
+                                <User size={14} className="text-zinc-400 group-hover:text-primary" suppressHydrationWarning />
                                 <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tight italic">
                                     {user.user_metadata?.full_name?.split(' ')[0] || 'Account'}
                                 </span>
@@ -148,8 +152,9 @@ export default function Header() {
                                 onClick={handleLogout} 
                                 aria-label="Logout"
                                 className="text-zinc-300 hover:text-rose-500 transition-colors"
+                                suppressHydrationWarning
                             >
-                                <LogOut size={16} />
+                                <LogOut size={16} suppressHydrationWarning />
                             </button>
                         </div>
                     ) : (
@@ -171,8 +176,9 @@ export default function Header() {
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         aria-label="Toggle Menu"
                         className="lg:hidden p-2 text-zinc-600 hover:bg-zinc-50 rounded-lg transition-all"
+                        suppressHydrationWarning
                     >
-                        {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                        {isMobileMenuOpen ? <X size={20} suppressHydrationWarning /> : <Menu size={20} suppressHydrationWarning />}
                     </button>
                 </div>
             </div>
@@ -180,10 +186,13 @@ export default function Header() {
       </div>
 
       {/* Mobile Menu - Drawer */}
-      <div className={cn(
+      <div 
+        className={cn(
             "fixed inset-0 z-[100] lg:hidden transition-all duration-500",
             isMobileMenuOpen ? "visible" : "invisible pointer-events-none"
-        )}>
+        )}
+        suppressHydrationWarning
+      >
           <div className={cn("absolute inset-0 bg-secondary/20 backdrop-blur-sm transition-opacity duration-500", isMobileMenuOpen ? "opacity-100" : "opacity-0")} onClick={() => setIsMobileMenuOpen(false)} />
           
           <div className={cn(
@@ -192,9 +201,9 @@ export default function Header() {
           )}>
             <div className="flex justify-between items-center mb-12">
               <div className="relative h-8 w-32">
-                <Image src="/images/logo-virginia-transparent.png" alt="Logo" fill className="object-contain object-left" />
+                <Image src="/images/logo-virginia-transparent.png" alt="Logo" fill className="object-contain object-left" suppressHydrationWarning />
               </div>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-zinc-400"><X size={24} /></button>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-zinc-400" suppressHydrationWarning><X size={24} suppressHydrationWarning /></button>
             </div>
 
             <nav className="flex flex-col gap-1 mb-auto">

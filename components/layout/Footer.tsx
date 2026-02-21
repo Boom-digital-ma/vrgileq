@@ -9,8 +9,8 @@ export default function Footer() {
       <div className="bg-secondary text-white overflow-hidden relative">
         <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
-                    <ShieldCheck size={32} className="text-primary" />
+                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20" suppressHydrationWarning>
+                    <ShieldCheck size={32} className="text-primary" suppressHydrationWarning />
                 </div>
                 <div>
                     <h3 className="text-xl md:text-2xl font-bold font-display uppercase italic leading-tight tracking-tight">
@@ -21,8 +21,9 @@ export default function Footer() {
             <Link 
                 href="/about" 
                 className="group bg-white text-secondary px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center gap-3 shadow-xl shadow-black/20"
+                suppressHydrationWarning
             >
-                Our Legacy <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                Our Legacy <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" suppressHydrationWarning />
             </Link>
         </div>
         {/* Background Decoration */}
@@ -42,6 +43,7 @@ export default function Footer() {
                             alt="Virginia Liquidation"
                             fill
                             className="object-contain object-left opacity-90"
+                            suppressHydrationWarning
                         />
                     </div>
                     <p className="text-sm font-medium leading-relaxed text-zinc-400 italic max-w-xs">
@@ -49,8 +51,8 @@ export default function Footer() {
                     </p>
                     <div className="flex gap-3">
                         {[Instagram, Facebook, Twitter, Linkedin].map((Icon, i) => (
-                            <a key={i} href="#" className="p-2.5 bg-zinc-50 rounded-xl text-zinc-400 hover:text-primary hover:bg-primary/10 transition-all border border-zinc-100">
-                                <Icon size={18} />
+                            <a key={i} href="#" className="p-2.5 bg-zinc-50 rounded-xl text-zinc-400 hover:text-primary hover:bg-primary/10 transition-all border border-zinc-100" suppressHydrationWarning>
+                                <Icon size={18} suppressHydrationWarning />
                             </a>
                         ))}
                     </div>

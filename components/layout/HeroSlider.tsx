@@ -41,12 +41,13 @@ export default function HeroSlider() {
               fill
               className="object-cover opacity-50"
               priority={index === 0}
+              suppressHydrationWarning
             />
             <div className="absolute inset-0 bg-gradient-to-b from-secondary/40 via-secondary/60 to-secondary" />
           </div>
           
           {/* Content */}
-          <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-6 z-10">
+          <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-6 z-10" suppressHydrationWarning>
             <div className={cn(
                 "max-w-4xl transition-all duration-1000 delay-300",
                 index === current ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
@@ -72,8 +73,9 @@ export default function HeroSlider() {
                 <Link 
                   href={slide.link} 
                   className="bg-primary text-white px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-white hover:text-secondary shadow-2xl shadow-primary/20 flex items-center gap-3 group"
+                  suppressHydrationWarning
                 >
-                  {slide.cta} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  {slide.cta} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" suppressHydrationWarning />
                 </Link>
                 <Link 
                   href="/contact" 
@@ -88,18 +90,20 @@ export default function HeroSlider() {
       ))}
 
       {/* Navigation Controls - Minimalist SaaS */}
-      <div className="absolute bottom-12 right-6 z-20 flex gap-2 md:right-12">
+      <div className="absolute bottom-12 right-6 z-20 flex gap-2 md:right-12" suppressHydrationWarning>
         <button 
           onClick={prevSlide}
           className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-white/40 transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
+          suppressHydrationWarning
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5" suppressHydrationWarning />
         </button>
         <button 
           onClick={nextSlide}
           className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-white/40 transition-all hover:border-primary hover:text-primary hover:bg-primary/5"
+          suppressHydrationWarning
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-5 w-5" suppressHydrationWarning />
         </button>
       </div>
 
