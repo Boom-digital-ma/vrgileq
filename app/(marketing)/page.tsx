@@ -3,6 +3,8 @@ import Image from "next/image";
 import { Building2, ArrowRight, Package, MapPin, TrendingUp, Calendar, Gavel, ShieldCheck, Zap, ChevronRight, BarChart3, Globe2 } from "lucide-react";
 import HeroSlider from "@/components/layout/HeroSlider";
 import SearchBar from "@/components/layout/SearchBar";
+import EventStatusBadge from "@/components/auction/EventStatusBadge";
+import EventCardStatus from "@/components/auction/EventCardStatus";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { Metadata } from "next";
@@ -68,24 +70,13 @@ export default async function HomePage() {
                           Image Pending
                       </div>
                   )}
-                  <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
-                    {displayStatus === 'live' ? (
-                      <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
-                          <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                          </span>
-                          Live
-                      </div>
-                    ) : (
-                      <div className={cn(
-                        "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm transition-all",
-                        displayStatus === 'upcoming' ? "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in duration-500" :
-                        "bg-white/90 backdrop-blur-md text-secondary border-white/20"
-                      )}>
-                        {displayStatus}
-                      </div>
-                    )}
+                  <div className="absolute top-6 left-6 flex flex-col gap-2 items-start z-10">
+                    <EventStatusBadge 
+                        eventId={event.id}
+                        initialStatus={event.status}
+                        startAt={event.start_at}
+                        endsAt={event.ends_at}
+                    />
                   </div>
                 </Link>
                 
@@ -109,15 +100,7 @@ export default async function HomePage() {
                   </p>
                   
                   <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                          <div className={cn(
-                            "h-2 w-2 rounded-full animate-pulse",
-                            isUpcoming ? "bg-blue-500" : "bg-emerald-500"
-                          )} />
-                          <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest italic">
-                              {isUpcoming ? 'Opening Soon' : 'Open for Bidding'}
-                          </span>
-                      </div>
+                      <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} />
                       <Link 
                           href={`/events/${event.id}`} 
                           className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white"

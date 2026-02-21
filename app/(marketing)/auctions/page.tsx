@@ -4,6 +4,8 @@ import { Calendar, Gavel, MapPin, ArrowRight, Package, LayoutGrid, SlidersHorizo
 import { cn } from '@/lib/utils'
 import SearchBar from '@/components/layout/SearchBar'
 import AuctionCard from '@/components/auction/AuctionCard'
+import EventStatusBadge from '@/components/auction/EventStatusBadge'
+import EventCardStatus from '@/components/auction/EventCardStatus'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -271,6 +273,7 @@ export default async function AuctionsPage({
     .range(from, to)
 
   const totalEventPages = Math.ceil((eventCount || 0) / PAGE_SIZE_EVENTS)
+  const serverTimeIso = new Date().toISOString()
 
   const tabs = [
     { id: 'live', label: 'Live Now', available: !!liveCount },
@@ -401,25 +404,13 @@ export default async function AuctionsPage({
                       {event.title}
                     </div>
                   )}
-                  <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
-                    {displayStatus === 'live' ? (
-                      <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
-                          <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                          </span>
-                          Live
-                      </div>
-                    ) : (
-                      <div className={cn(
-                        "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm transition-all",
-                        displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900" : 
-                        displayStatus === 'upcoming' ? "bg-blue-500 text-white border-blue-500" :
-                        "bg-white/90 backdrop-blur-md text-secondary border-white/20"
-                      )}>
-                        {displayStatus}
-                      </div>
-                    )}
+                  <div className="absolute top-6 left-6 flex flex-col gap-2 items-start z-10">
+                    <EventStatusBadge 
+                        eventId={event.id}
+                        initialStatus={event.status}
+                        startAt={event.start_at}
+                        endsAt={event.ends_at}
+                    />
                   </div>
                 </div>
 
@@ -445,22 +436,7 @@ export default async function AuctionsPage({
                   </p>
                   
                   <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
-                      {isEnded ? (
-                          <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 rounded-full bg-zinc-300" />
-                              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">Auction Closed</span>
-                          </div>
-                      ) : (
-                          <div className="flex items-center gap-2">
-                              <div className={cn(
-                                "h-2 w-2 rounded-full animate-pulse",
-                                isUpcoming ? "bg-blue-500" : "bg-emerald-500"
-                              )} />
-                              <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest italic">
-                                  {isUpcoming ? 'Opening Soon' : 'Open for Bidding'}
-                              </span>
-                          </div>
-                      )}
+                      <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} />
                       <div className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white">
                           <ArrowRight size={20} />
                       </div>
