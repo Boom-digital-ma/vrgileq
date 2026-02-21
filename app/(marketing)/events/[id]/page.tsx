@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import AuctionCard from '@/components/auction/AuctionCard'
 import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, ChevronRight, SlidersHorizontal, MapPin, Package, Clock, Lock } from 'lucide-react'
 import RegistrationButton from '@/components/auction/RegistrationButton'
+import EventStatusBadge from '@/components/auction/EventStatusBadge'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -117,20 +118,12 @@ export default async function EventPage({
                         <div className="flex-1 space-y-4">
                             <div className="flex items-center gap-3">
                                 <div className="h-1 w-6 bg-primary rounded-full" />
-                                {(() => {
-                                    const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
-                                    const isLive = displayStatus === 'live' && !isUpcoming;
-                                    return (
-                                        <span className={cn(
-                                            "px-3 py-1 rounded-full font-bold uppercase text-[9px] tracking-widest border transition-all",
-                                            isLive ? "bg-rose-50 text-rose-600 border-rose-100 animate-pulse" : 
-                                            isEnded ? "bg-zinc-900 text-white border-zinc-900" :
-                                            "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20"
-                                        )}>
-                                            {isUpcoming ? 'upcoming' : displayStatus} Event
-                                        </span>
-                                    );
-                                })()}
+                                <EventStatusBadge 
+                                    eventId={event.id}
+                                    initialStatus={event.status}
+                                    startAt={event.start_at}
+                                    endsAt={event.ends_at}
+                                />
                             </div>
                             <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-secondary leading-tight font-display uppercase">
                                 {event.title}

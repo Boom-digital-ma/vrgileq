@@ -36,12 +36,11 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [isWatched, setIsWatched] = useState(false);
   const [loadingWatch, setLoadingWatch] = useState(false);
   const [settings, setSettings] = useState<any>(null);
+  const [isStarted, setIsStarted] = useState(!startAt || startAt <= new Date());
+  const [isEnded, setIsEnded] = useState(realtimeEndsAt <= new Date());
   const router = useRouter();
   
   const supabase = createClient();
-
-  const isStarted = !startAt || startAt <= new Date();
-  const isEnded = realtimeEndsAt <= new Date();
 
   useEffect(() => {
     let isMounted = true;
@@ -101,37 +100,41 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
       const startTime = startAt ? new Date(startAt).getTime() : 0;
       const endTime = realtimeEndsAt.getTime();
       
-      const isUpcoming = startTime > now;
+      const started = !startAt || startTime <= now;
+      const ended = endTime <= now;
 
-      if (isUpcoming) {
+      // Update states if they changed
+      if (isMounted) {
+        setIsStarted(started);
+        setIsEnded(ended);
+      }
+
+      if (started && !ended) {
+        const distance = endTime - now;
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        let timerText = "";
+        if (days > 0) timerText += `${days}d `;
+        timerText += `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+        if (isMounted) {
+            setTimeLeft(timerText);
+            setIsUrgent(distance < 24 * 60 * 60 * 1000);
+        }
+      } else if (!started) {
         if (isMounted) {
             setTimeLeft(`Starts ${new Date(startTime).toLocaleDateString()}`);
             setIsUrgent(false);
         }
-        return;
-      }
-
-      const targetTime = endTime;
-      const distance = targetTime - now;
-
-      if (distance < 0) {
+      } else {
         clearInterval(timer);
-        if (isMounted) setTimeLeft("AUCTION ENDED");
-        return;
-      }
-
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      let timerText = "";
-      if (days > 0) timerText += `${days}d `;
-      timerText += `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-
-      if (isMounted) {
-        setTimeLeft(timerText);
-        setIsUrgent(distance < 24 * 60 * 60 * 1000);
+        if (isMounted) {
+            setTimeLeft("AUCTION ENDED");
+            setIsUrgent(false);
+        }
       }
     }, 1000);
 

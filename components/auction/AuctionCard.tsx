@@ -46,13 +46,12 @@ export default function AuctionCard({ product, user }: { product: Product, user:
   const [realtimePrice, setRealtimePrice] = useState(product.price);
   const [realtimeBidCount, setRealtimeBidCount] = useState(product.bidCount);
   const [realtimeEndsAt, setRealtimeEndsAt] = useState(product.endsAt);
+  const [isStarted, setIsStarted] = useState(!product.startAt || new Date(product.startAt) <= new Date());
+  const [isEnded, setIsEnded] = useState(new Date(product.endsAt) <= new Date());
   const router = useRouter();
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const supabase = createClient();
-
-  const isStarted = !product.startAt || new Date(product.startAt) <= new Date();
-  const isEnded = new Date(realtimeEndsAt) <= new Date();
 
   useEffect(() => {
     let isMounted = true;
@@ -61,15 +60,26 @@ export default function AuctionCard({ product, user }: { product: Product, user:
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
+      const startTime = product.startAt ? new Date(product.startAt).getTime() : 0;
+      const endTime = new Date(realtimeEndsAt).getTime();
       
+      const started = !product.startAt || startTime <= now;
+      const ended = endTime <= now;
+
+      // Update states if they changed
+      if (isMounted) {
+        setIsStarted(started);
+        setIsEnded(ended);
+      }
+
       // Handle upcoming state
-      if (!isStarted && product.startAt) {
+      if (!started && product.startAt) {
         return `Starts ${new Date(product.startAt).toLocaleDateString()}`;
       }
 
-      const target = new Date(realtimeEndsAt).getTime();
-      const diff = target - now;
-      if (diff <= 0) return "Auction Ended";
+      if (ended) return "Auction Ended";
+      
+      const diff = endTime - now;
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
