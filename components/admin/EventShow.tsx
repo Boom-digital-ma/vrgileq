@@ -12,6 +12,7 @@ import { adminUpsertLot } from "@/app/actions/lots"
 import { generateEventPickupSlots, deleteEventPickupSlots } from "@/app/actions/events"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import { formatEventDate } from "@/lib/utils"
 
 export const EventShow = () => {
   const params = useParams()

@@ -11,7 +11,7 @@ import {
   Truck,
   FileText
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatEventDateShort } from "@/lib/utils"
 
 export const Dashboard = () => {
   // Fetching all necessary resources with pagination disabled for accurate totals
@@ -136,7 +136,7 @@ export const Dashboard = () => {
                                     )}>{sale.status}</span>
                                 </td>
                                 <td className="px-6 py-4 text-right text-zinc-400 text-[11px] tabular-nums font-mono">
-                                    {new Date(sale.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                    {formatEventDateShort(sale.created_at)}
                                 </td>
                             </tr>
                         ))}

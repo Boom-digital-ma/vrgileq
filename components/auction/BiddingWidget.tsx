@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 interface BiddingWidgetProps {
   auctionId: string;
@@ -126,7 +126,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         }
       } else if (!started) {
         if (isMounted) {
-            setTimeLeft(`Starts ${new Date(startTime).toLocaleDateString()} @ ${new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+            setTimeLeft(`Starts ${formatEventDate(startTime)}`);
             setIsUrgent(false);
         }
       } else {

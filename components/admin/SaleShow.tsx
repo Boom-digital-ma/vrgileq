@@ -2,9 +2,8 @@
 
 import { useShow, useNavigation } from "@refinedev/core"
 import { ArrowLeft, User, Package, Calendar, Clock, CreditCard, CheckCircle2, XCircle, Printer, Truck, Loader2 } from "lucide-react"
-import { format } from "date-fns"
 import { useParams } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { cn, formatEventDate } from "@/lib/utils"
 import { updateSaleStatus, refundSale } from "@/app/actions/sales"
 import { toast } from "sonner"
 import { useState } from "react"
@@ -87,7 +86,7 @@ export const SaleShow = () => {
                     </span>
                 </h1>
                 <p className="text-xs font-medium text-zinc-500 uppercase tracking-widest italic">
-                    Finalized on {format(new Date(sale.created_at), 'MMMM dd, yyyy')}
+                    Finalized on {formatEventDate(sale.created_at)}
                 </p>
             </div>
         </div>

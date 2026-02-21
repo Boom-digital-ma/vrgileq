@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Timer, ShieldCheck, Lock } from "lucide-react";
 import RegistrationButton from "./RegistrationButton";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
 interface ProtocolCardsProps {
@@ -58,8 +58,8 @@ export default function ProtocolCards({ event }: ProtocolCardsProps) {
                 </p>
                 <p className="text-xs font-bold text-secondary uppercase leading-none">
                     {isUpcoming 
-                        ? `${new Date(event.start_at).toLocaleDateString()} @ ${new Date(event.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                        : `${new Date(event.ends_at).toLocaleDateString()} @ ${new Date(event.ends_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                        ? `${formatEventDate(event.start_at)}`
+                        : `${formatEventDate(event.ends_at)}`
                     }
                 </p>
             </div>

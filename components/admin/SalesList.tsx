@@ -1,7 +1,7 @@
 'use client'
 
 import { useTable } from "@refinedev/core"
-import { cn } from "@/lib/utils"
+import { cn, formatEventDateShort } from "@/lib/utils"
 import { Loader2, FileText, Eye, Package } from "lucide-react"
 import Link from "next/link"
 
@@ -82,7 +82,7 @@ export const SalesList = () => {
                   <div className="flex flex-col">
                     <span className="font-bold text-zinc-900">{sale.invoice_number}</span>
                     <span className="text-[10px] text-zinc-400 font-mono italic">
-                      {new Date(sale.created_at).toLocaleDateString()}
+                      {formatEventDateShort(sale.created_at)}
                     </span>
                   </div>
                 </td>

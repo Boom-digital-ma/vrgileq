@@ -2,7 +2,7 @@
 
 import { useTable, useNavigation, useDelete, useForm, useList } from "@refinedev/core"
 import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save, Gavel } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatEventDate } from "@/lib/utils"
 import { useState } from "react"
 import { Modal, ConfirmModal } from "./Modal"
 import { ImageUpload } from "./ImageUpload"
@@ -154,7 +154,7 @@ export const EventList = () => {
                 <div className="space-y-3 border-t border-zinc-50 pt-6">
                     <div className="flex items-center gap-3 text-xs font-medium text-zinc-400 font-sans">
                         <Calendar size={14} />
-                        <span>Closes: {new Date(event.ends_at).toLocaleDateString()}</span>
+                        <span>Closes: {formatEventDate(event.ends_at)}</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs font-medium text-zinc-400 font-sans">
                         <DollarSign size={14} />

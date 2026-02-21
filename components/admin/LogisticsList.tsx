@@ -1,13 +1,13 @@
 'use client'
 
 import { useTable } from "@refinedev/core"
-import { cn } from "@/lib/utils"
 import { Loader2, Truck, Calendar, Clock, CheckCircle2, Search, ExternalLink } from "lucide-react"
-import { format, isToday, isTomorrow } from "date-fns"
+import { isToday, isTomorrow } from "date-fns"
 import { useState } from "react"
 import { markAsCollected } from "@/app/actions/sales"
 import { toast } from "sonner"
 import Link from "next/link"
+import { cn, formatEventDate } from "@/lib/utils"
 
 export const LogisticsList = () => {
   const [processingId, setProcessingId] = useState<string | null>(null)
@@ -115,10 +115,10 @@ export const LogisticsList = () => {
                                 "text-sm font-black italic",
                                 isToday(slotDate) ? "text-primary" : "text-zinc-900"
                             )}>
-                                {format(slotDate, 'hh:mm a')}
+                                {formatEventDate(slotDate).split('@')[1] || formatEventDate(slotDate)}
                             </span>
                             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                                {format(slotDate, 'MMM dd, yyyy')}
+                                {formatEventDate(slotDate).split('@')[0]}
                             </span>
                         </div>
                     ) : (

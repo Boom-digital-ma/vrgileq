@@ -6,7 +6,7 @@ import SearchBar from "@/components/layout/SearchBar";
 import EventStatusBadge from "@/components/auction/EventStatusBadge";
 import EventCardStatus from "@/components/auction/EventCardStatus";
 import { createClient } from "@/lib/supabase/server";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -85,8 +85,8 @@ export default async function HomePage() {
                     <Calendar size={14} className="text-primary" />
                     <span className="text-[10px] font-bold uppercase tracking-widest">
                         {isUpcoming 
-                          ? `Starts ${new Date(event.start_at).toLocaleDateString()} @ ${new Date(event.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
-                          : `Ends ${new Date(event.ends_at).toLocaleDateString()} @ ${new Date(event.ends_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                          ? `Starts ${formatEventDate(event.start_at)}` 
+                          : `Ends ${formatEventDate(event.ends_at)}`
                         }
                     </span>
                   </div>

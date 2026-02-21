@@ -1,7 +1,7 @@
 'use client'
 
 import { useTable } from "@refinedev/core"
-import { cn } from "@/lib/utils"
+import { cn, formatEventDate } from "@/lib/utils"
 import { Search, Loader2 } from "lucide-react"
 
 export const BidList = () => {
@@ -80,7 +80,7 @@ export const BidList = () => {
                     )}>{bid.status}</span>
                 </td>
                 <td className="px-6 py-4 text-right text-zinc-400 text-[11px] tabular-nums font-mono italic">
-                    {new Date(bid.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                    {formatEventDate(bid.created_at)}
                 </td>
               </tr>
             ))}

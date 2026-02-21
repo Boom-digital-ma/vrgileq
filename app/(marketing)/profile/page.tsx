@@ -11,7 +11,7 @@ import CardValidation from '@/components/auth/CardValidation'
 import { getPaymentMethods, deletePaymentMethod, setDefaultPaymentMethod } from '@/app/actions/payment'
 import { changeEmail } from '@/app/actions/auth'
 import { updateProfile, deleteAccount } from '@/app/actions/users'
-import { cn, getOptimizedImageUrl } from '@/lib/utils'
+import { cn, getOptimizedImageUrl, formatEventDate } from '@/lib/utils'
 import { toast } from 'sonner'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -487,7 +487,7 @@ function AuctionRow({ auction, bidAmount, status, isWon, saleId }: { auction: an
         <h3 className="text-xl font-bold text-secondary uppercase truncate group-hover:text-primary transition-colors font-display leading-tight">{auction.title}</h3>
         <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-3">
             <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-zinc-400">
-                <Clock size={12} className="text-primary" /> Ends {new Date(auction.ends_at).toLocaleDateString()}
+                <Clock size={12} className="text-primary" /> Ends {formatEventDate(auction.ends_at)}
             </div>
             {isWon && (
                 <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">

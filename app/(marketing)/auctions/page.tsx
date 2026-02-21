@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Calendar, Gavel, MapPin, ArrowRight, Package, LayoutGrid, SlidersHorizontal, ChevronRight, Globe2, BarChart3, History } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, formatEventDate } from '@/lib/utils'
 import SearchBar from '@/components/layout/SearchBar'
 import AuctionCard from '@/components/auction/AuctionCard'
 import EventStatusBadge from '@/components/auction/EventStatusBadge'
@@ -414,19 +414,18 @@ export default async function AuctionsPage({
                   </div>
                 </div>
 
-                <div className="p-8 flex flex-col flex-1">
-                  <div className="flex items-center gap-2 mb-4 text-zinc-400">
-                      <Calendar size={14} className="text-primary" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">
-                          {isEnded 
-                            ? 'Event Ended' 
-                            : (isUpcoming 
-                                ? `Starts ${new Date(event.start_at).toLocaleDateString()} @ ${new Date(event.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
-                                : `Ends ${new Date(event.ends_at).toLocaleDateString()} @ ${new Date(event.ends_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`)
-                          }
-                      </span>
-                  </div>
-
+                                  <div className="p-8 flex flex-col flex-1">
+                                  <div className="flex items-center gap-2 mb-4 text-zinc-400">
+                                      <Calendar size={14} className="text-primary" />
+                                      <span className="text-[10px] font-bold uppercase tracking-widest">
+                                          {isEnded 
+                                            ? 'Event Ended' 
+                                            : (isUpcoming 
+                                                ? `Starts ${formatEventDate(event.start_at)}` 
+                                                : `Ends ${formatEventDate(event.ends_at)}`)
+                                          }
+                                      </span>
+                                  </div>
                   <h2 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors italic font-display uppercase leading-tight h-14 line-clamp-2">
                     {event.title}
                   </h2>

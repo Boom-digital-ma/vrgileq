@@ -2,9 +2,8 @@
 
 import { useShow, useList, useNavigation } from "@refinedev/core"
 import { ArrowLeft, User, Mail, Shield, Calendar, BadgeCheck, ShieldAlert, History, Gavel, MapPin, Phone, DollarSign, Truck, FileText, Eye } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatEventDate } from "@/lib/utils"
 import Link from "next/link"
-import { format } from "date-fns"
 
 export const UserShow = () => {
   const { show } = useNavigation()
@@ -179,7 +178,7 @@ export const UserShow = () => {
                                         {sale.pickup_slot ? (
                                             <div className="flex items-center gap-3 text-emerald-600 font-bold">
                                                 <Calendar size={14} />
-                                                <span className="text-[11px] uppercase tracking-tight">{format(new Date(sale.pickup_slot.start_at), 'MMM dd')} @ {format(new Date(sale.pickup_slot.start_at), 'hh:mm a')}</span>
+                                                <span className="text-[11px] uppercase tracking-tight">{formatEventDate(sale.pickup_slot.start_at)}</span>
                                             </div>
                                         ) : (
                                             <span className="text-[10px] text-zinc-300 uppercase font-black italic">No Appointment Set</span>
@@ -228,7 +227,7 @@ export const UserShow = () => {
                                     <td className="px-10 py-5">
                                         <div className="flex flex-col">
                                             <span className="font-bold text-zinc-900 text-[11px] leading-none mb-1 uppercase">{bid.auctions?.title}</span>
-                                            <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">{format(new Date(bid.created_at), 'MMM dd, hh:mm:ss a')}</span>
+                                            <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">{formatEventDate(bid.created_at)}</span>
                                         </div>
                                     </td>
                                     <td className="px-10 py-5 text-right font-sans">

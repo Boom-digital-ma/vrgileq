@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { format } from 'date-fns'
+import { cn, formatEventDate } from '@/lib/utils'
 import PrintInvoiceButton from '@/components/auction/PrintInvoiceButton'
 import PickupScheduler from '@/components/auction/PickupScheduler'
 import { Truck } from 'lucide-react'
@@ -111,7 +111,7 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
                 <p className="opacity-60 uppercase text-xs tracking-widest">Number</p>
                 <p className="text-xl">{sale.invoice_number}</p>
                 <p className="opacity-60 uppercase text-xs tracking-widest mt-4">Date</p>
-                <p>{format(new Date(sale.created_at), 'MMMM dd, yyyy')}</p>
+                <p>{formatEventDate(sale.created_at)}</p>
               </div>
             </div>
           </div>

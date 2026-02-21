@@ -11,7 +11,7 @@ import { checkRegistration } from "@/app/actions/registrations";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { cn, getOptimizedImageUrl } from "@/lib/utils";
+import { cn, getOptimizedImageUrl, formatEventDate } from "@/lib/utils";
 
 interface Product {
   id: string;
@@ -74,7 +74,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
 
       // Handle upcoming state
       if (!started && product.startAt) {
-        return `Starts ${new Date(product.startAt).toLocaleDateString()} @ ${new Date(product.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        return `Starts ${formatEventDate(product.startAt)}`;
       }
 
       if (ended) return "Auction Ended";

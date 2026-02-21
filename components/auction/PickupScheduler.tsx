@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { format } from 'date-fns'
 import { Calendar, Clock, CheckCircle2, Loader2, AlertCircle, MapPin, ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, formatEventDate, formatEventTime, formatEventDateShort } from '@/lib/utils'
 import { bookPickupSlot } from '@/app/actions/sales'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -70,10 +69,10 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
                         </div>
                         <div>
                             <p className="text-xl font-bold text-zinc-900 font-display uppercase tracking-tight">
-                                {format(new Date(currentSlot.start_at), 'EEEE, MMMM dd')}
+                                {new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'long', day: '2-digit' }).format(new Date(currentSlot.start_at))}
                             </p>
                             <p className="text-sm font-medium text-emerald-600 flex items-center gap-2">
-                                {format(new Date(currentSlot.start_at), 'hh:mm a')} - {format(new Date(currentSlot.end_at), 'hh:mm a')}
+                                {formatEventTime(currentSlot.start_at)} - {formatEventTime(currentSlot.end_at)}
                             </p>
                         </div>
                     </div>
@@ -148,9 +147,9 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
                                 )}
                             >
                                 <span className="text-[9px] font-black uppercase tracking-widest opacity-40">
-                                    {isValid ? format(slotDate, 'MMM dd') : '---'}
+                                    {isValid ? formatEventDateShort(slotDate) : '---'}
                                 </span>
-                                <span className="font-bold text-sm italic">{isValid ? format(slotDate, 'hh:mm a') : '--:--'}</span>
+                                <span className="font-bold text-sm italic">{isValid ? formatEventTime(slotDate) : '--:--'}</span>
                                 <span className={cn(
                                     "text-[8px] font-black uppercase mt-1",
                                     isSelected ? "text-emerald-600" : "text-zinc-300 group-hover:text-primary"

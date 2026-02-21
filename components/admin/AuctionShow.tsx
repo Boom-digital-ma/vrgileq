@@ -3,7 +3,7 @@
 import React from "react"
 import { useShow, useList, useNavigation } from "@refinedev/core"
 import { ArrowLeft, Gavel, User, Clock, Package, BadgeCheck, ShieldAlert, DollarSign, History, Loader2, Info, LayoutGrid, Cpu, Factory } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatEventDate } from "@/lib/utils"
 import Link from "next/link"
 
 export const AuctionShow = () => {
@@ -134,7 +134,7 @@ export const AuctionShow = () => {
                                         )}>{bid.status}</span>
                                     </td>
                                     <td className="py-4 text-right text-zinc-400 text-[11px] tabular-nums font-mono italic">
-                                        {new Date(bid.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                        {formatEventDate(bid.created_at)}
                                     </td>
                                 </tr>
                             ))}
@@ -210,11 +210,11 @@ export const AuctionShow = () => {
                     </div>
                     <div className="flex justify-between border-b border-zinc-50 pb-4">
                         <span className="text-[10px] font-bold text-zinc-400 uppercase">Registered Date</span>
-                        <span className="text-[10px] font-bold text-zinc-900 uppercase italic">{new Date(lot?.created_at).toLocaleDateString()}</span>
+                        <span className="text-[10px] font-bold text-zinc-900 uppercase italic">{formatEventDate(lot?.created_at)}</span>
                     </div>
                     <div className="flex justify-between pb-4">
                         <span className="text-[10px] font-bold text-zinc-400 uppercase">End Date</span>
-                        <span className="text-[10px] font-bold text-zinc-900 uppercase italic">{new Date(lot?.ends_at).toLocaleDateString()}</span>
+                        <span className="text-[10px] font-bold text-zinc-900 uppercase italic">{formatEventDate(lot?.ends_at)}</span>
                     </div>
                 </div>
             </div>
