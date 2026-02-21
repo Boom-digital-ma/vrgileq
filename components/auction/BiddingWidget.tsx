@@ -126,7 +126,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         }
       } else if (!started) {
         if (isMounted) {
-            setTimeLeft(`Starts ${new Date(startTime).toLocaleDateString()}`);
+            setTimeLeft(`Starts ${new Date(startTime).toLocaleDateString()} @ ${new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
             setIsUrgent(false);
         }
       } else {

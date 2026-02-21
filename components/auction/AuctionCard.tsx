@@ -74,7 +74,7 @@ export default function AuctionCard({ product, user }: { product: Product, user:
 
       // Handle upcoming state
       if (!started && product.startAt) {
-        return `Starts ${new Date(product.startAt).toLocaleDateString()}`;
+        return `Starts ${new Date(product.startAt).toLocaleDateString()} @ ${new Date(product.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       }
 
       if (ended) return "Auction Ended";

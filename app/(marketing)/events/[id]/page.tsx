@@ -230,8 +230,15 @@ export default async function EventPage({
                             <div className="flex items-center gap-4">
                                 <div className="p-2.5 bg-white/10 rounded-xl text-primary"><Timer size={20} /></div>
                                 <div>
-                                    <p className="text-[8px] font-black uppercase text-white/40 tracking-widest mb-0.5">Ending On</p>
-                                    <p className="font-bold text-white uppercase text-xs">{new Date(event.ends_at).toLocaleDateString()} @ {new Date(event.ends_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                    <p className="text-[8px] font-black uppercase text-white/40 tracking-widest mb-0.5">
+                                        {isUpcoming ? 'Starts On' : 'Ending On'}
+                                    </p>
+                                    <p className="font-bold text-white uppercase text-xs">
+                                        {isUpcoming 
+                                            ? `${new Date(event.start_at).toLocaleDateString()} @ ${new Date(event.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                                            : `${new Date(event.ends_at).toLocaleDateString()} @ ${new Date(event.ends_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                                        }
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">

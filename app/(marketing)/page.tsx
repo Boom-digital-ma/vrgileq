@@ -93,7 +93,10 @@ export default async function HomePage() {
                   <div className="flex items-center gap-2 mb-4 text-zinc-400">
                     <Calendar size={14} className="text-primary" />
                     <span className="text-[10px] font-bold uppercase tracking-widest">
-                        {isUpcoming ? `Starts ${new Date(event.start_at).toLocaleDateString()}` : `Ends ${new Date(event.ends_at).toLocaleDateString()}`}
+                        {isUpcoming 
+                          ? `Starts ${new Date(event.start_at).toLocaleDateString()} @ ${new Date(event.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` 
+                          : `Ends ${new Date(event.ends_at).toLocaleDateString()} @ ${new Date(event.ends_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                        }
                     </span>
                   </div>
                   
