@@ -6,11 +6,65 @@ const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 )
 
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")
+const SITE_URL = Deno.env.get("SITE_URL") || "https://virginialiquidation.com"
+
 serve(async (req) => {
   try {
-    // 1. Get auctions closing in the next 1 hour that haven't been notified yet
-    // We look for auctions where ends_at is between NOW and NOW + 1 hour
-    const { data: watchlistItems, error: fetchError } = await supabaseAdmin
+    const results = {
+      live_notifications: 0,
+      closing_notifications: 0,
+      errors: [] as string[]
+    }
+
+    // --- 1. NOTIFICATIONS FOR AUCTIONS GOING LIVE ---
+    const { data: liveItems, error: liveError } = await supabaseAdmin
+      .from("watchlist")
+      .select(`
+        id,
+        user_id,
+        auction_id,
+        auctions!inner(
+          title, 
+          current_price, 
+          status, 
+          auction_events!inner(start_at)
+        ),
+        profiles!inner(full_name, email)
+      `)
+      .eq("notified_live", false)
+      .eq("auctions.status", "live")
+      .lte("auctions.auction_events.start_at", new Date().toISOString())
+
+    if (liveError) throw liveError
+
+    for (const item of (liveItems || [])) {
+      const { profiles: user, auctions: auction } = item as any
+      if (!user.email) continue
+
+      try {
+        const res = await sendEmail({
+          to: user.email,
+          subject: `NOW LIVE: ${auction.title}`,
+          title: "Bidding is Now Open!",
+          message: `The industrial asset you are watching is now officially open for bidding. Don't miss your chance to secure this lot.`,
+          auctionTitle: auction.title,
+          currentPrice: auction.current_price,
+          buttonText: "Go to Bidding Room",
+          auctionUrl: `${SITE_URL}/auctions/${item.auction_id}`
+        })
+
+        if (res.ok) {
+          await supabaseAdmin.from("watchlist").update({ notified_live: true }).eq("id", item.id)
+          results.live_notifications++
+        }
+      } catch (e: any) {
+        results.errors.push(`Live email error for ${item.id}: ${e.message}`)
+      }
+    }
+
+    // --- 2. NOTIFICATIONS FOR AUCTIONS CLOSING SOON (1 HOUR) ---
+    const { data: closingItems, error: closingError } = await supabaseAdmin
       .from("watchlist")
       .select(`
         id,
@@ -24,74 +78,38 @@ serve(async (req) => {
       .lt("auctions.ends_at", new Date(Date.now() + 60 * 60 * 1000).toISOString())
       .gt("auctions.ends_at", new Date().toISOString())
 
-    if (fetchError) throw fetchError
+    if (closingError) throw closingError
 
-    console.log(`Found ${watchlistItems?.length || 0} items to notify.`)
-
-    const results = []
-
-    for (const item of (watchlistItems || [])) {
+    for (const item of (closingItems || [])) {
       const { profiles: user, auctions: auction } = item as any
-      
       if (!user.email) continue
 
-      // Calculate time left for display
-      const diffMs = new Date(auction.ends_at).getTime() - Date.now()
-      const diffMins = Math.round(diffMs / (1000 * 60))
-      const timeLeft = `${diffMins} minutes`
+      try {
+        const diffMs = new Date(auction.ends_at).getTime() - Date.now()
+        const diffMins = Math.round(diffMs / (1000 * 60))
 
-      // 2. Send Email via Resend
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
-        },
-        body: JSON.stringify({
-          from: "Virginia Liquidation <notifications@virginialiquidation.com>",
+        const res = await sendEmail({
           to: user.email,
-          subject: `Closing Soon: ${auction.title}`,
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-top: 4px solid #049A9E;">
-              <h1 style="color: #0B2B53; text-transform: uppercase; letter-spacing: -0.05em; font-style: italic;">Auction Closing Soon!</h1>
-              <p>Hello ${user.full_name || 'Bidder'},</p>
-              <p>An item in your watchlist is about to close. Don't miss your chance to place a final bid!</p>
-              
-              <div style="background-color: #f9f9f9; padding: 20px; border: 1px solid #eee; margin: 20px 0;">
-                <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #049A9E;">${auction.title}</h2>
-                <p style="margin: 0; font-size: 14px;"><strong>Current Price:</strong> $${Number(auction.current_price).toLocaleString()}</p>
-                <p style="margin: 5px 0 0 0; font-size: 14px; color: #ff4d4f;"><strong>Time Left:</strong> ${timeLeft}</p>
-              </div>
+          subject: `CLOSING SOON: ${auction.title}`,
+          title: "Final Authorization Alert",
+          message: `An item in your watchlist is approaching its final minutes. Current protocol closing in approximately ${diffMins} minutes.`,
+          auctionTitle: auction.title,
+          currentPrice: auction.current_price,
+          buttonText: "Place Final Bid",
+          auctionUrl: `${SITE_URL}/auctions/${item.auction_id}`,
+          isUrgent: true
+        })
 
-              <div style="margin: 30px 0; text-align: center;">
-                <a href="${Deno.env.get("SITE_URL") || 'http://localhost:3000'}/auctions/${item.auction_id}" style="background-color: #049A9E; color: white; padding: 15px 30px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px; box-shadow: 4px 4px 0px 0px #0B2B53;">View Auction Now</a>
-              </div>
-
-              <p style="color: #666; font-size: 12px; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
-                Virginia Liquidation • Industrial Auctions<br/>
-                You are receiving this email because this item is in your watchlist.
-              </p>
-            </div>
-          `,
-        }),
-      })
-
-      if (res.ok) {
-        // 3. Mark as notified
-        await supabaseAdmin
-          .from("watchlist")
-          .update({ notified_closing_soon: true })
-          .eq("id", item.id)
-        
-        results.push({ id: item.id, status: 'sent' })
-      } else {
-        const err = await res.text()
-        console.error(`Failed to send email for item ${item.id}:`, err)
-        results.push({ id: item.id, status: 'failed', error: err })
+        if (res.ok) {
+          await supabaseAdmin.from("watchlist").update({ notified_closing_soon: true }).eq("id", item.id)
+          results.closing_notifications++
+        }
+      } catch (e: any) {
+        results.errors.push(`Closing email error for ${item.id}: ${e.message}`)
       }
     }
 
-    return new Response(JSON.stringify({ success: true, results }), {
+    return new Response(JSON.stringify({ success: true, ...results }), {
       headers: { "Content-Type": "application/json" },
     })
 
@@ -102,3 +120,69 @@ serve(async (req) => {
     })
   }
 })
+
+async function sendEmail(params: {
+  to: string,
+  subject: string,
+  title: string,
+  message: string,
+  auctionTitle: string,
+  currentPrice: number,
+  buttonText: string,
+  auctionUrl: string,
+  isUrgent?: boolean
+}) {
+  return fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify({
+      from: "Virginia Liquidation <notifications@virginialiquidation.com>",
+      to: params.to,
+      subject: params.subject,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: sans-serif; margin: 0; padding: 0; background-color: #F9FAFB; color: #464646; }
+            .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #E5E7EB; }
+            .header { background-color: #0B2B53; padding: 40px; text-align: center; }
+            .content { padding: 40px; }
+            .h1 { color: ${params.isUrgent ? '#E11D48' : '#0B2B53'}; font-size: 24px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; font-style: italic; }
+            .info-box { background-color: #f9f9f9; padding: 24px; border: 1px solid #eee; border-radius: 16px; margin: 24px 0; }
+            .button { display: inline-block; background-color: #049A9E; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px; box-shadow: 4px 4px 0px 0px #0B2B53; }
+            .footer { padding: 30px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #F3F4F6; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/public_assets/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
+            </div>
+            <div class="content">
+              <h1 class="h1">${params.title}</h1>
+              <p>${params.message}</p>
+              
+              <div class="info-box">
+                <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #049A9E; text-transform: uppercase;">${params.auctionTitle}</h2>
+                <p style="margin: 0; font-size: 14px;"><strong>Current Price:</strong> $${params.currentPrice.toLocaleString()}</p>
+              </div>
+
+              <div style="margin: 32px 0; text-align: center;">
+                <a href="${params.auctionUrl}" class="button">${params.buttonText}</a>
+              </div>
+            </div>
+            <div className="footer">
+              <p>© 2026 Virginia Liquidation. All rights reserved.</p>
+              <p>Industrial B2B Auction Solutions • Richmond, VA</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    }),
+  })
+}

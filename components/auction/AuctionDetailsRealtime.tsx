@@ -29,6 +29,19 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
     checkExpiry();
     const expiryTimer = setInterval(checkExpiry, 1000);
 
+    // Watch for start time
+    const checkStart = () => {
+        if (lot.auction_events?.start_at && new Date(lot.auction_events.start_at) <= new Date()) {
+            setIsStarted(true);
+        } else if (!lot.auction_events?.start_at) {
+            setIsStarted(true);
+        } else {
+            setIsStarted(false);
+        }
+    };
+    checkStart();
+    const startTimer = setInterval(checkStart, 1000);
+
     const channel = supabase
       .channel(`auction-details-${lot.id}`)
       .on('postgres_changes', { 
@@ -46,9 +59,10 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
     return () => {
       isMounted = false;
       clearInterval(expiryTimer);
+      clearInterval(startTimer);
       supabase.removeChannel(channel);
     };
-  }, [lot.id, lot.ends_at, supabase]);
+  }, [lot.id, lot.ends_at, lot.auction_events?.start_at, supabase]);
 
   const secondaryImages = lot.auction_images?.map((img: any) => img.url) || [];
   const finalGallery = [
@@ -56,7 +70,9 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
     ...secondaryImages
   ].filter((url, index, self) => url && self.indexOf(url) === index);
 
-  const isLive = lot.status === 'live' && !isAuctionEnded;
+  const [isStarted, setIsStarted] = useState(!lot.auction_events?.start_at || new Date(lot.auction_events.start_at) <= new Date());
+  const isLive = lot.status === 'live' && isStarted && !isAuctionEnded;
+  const isUpcoming = !isStarted && !isAuctionEnded;
 
   return (
     <div className="container mx-auto px-6 py-12">
@@ -73,6 +89,10 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                         </span>
                         Live Bidding
+                    </div>
+                  ) : isUpcoming ? (
+                    <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in">
+                        Upcoming
                     </div>
                   ) : (
                     <div className="bg-zinc-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-zinc-500/20">
