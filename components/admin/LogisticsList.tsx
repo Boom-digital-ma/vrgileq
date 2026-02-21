@@ -1,7 +1,7 @@
 'use client'
 
 import { useTable } from "@refinedev/core"
-import { Loader2, Truck, Calendar, Clock, CheckCircle2, Search, ExternalLink } from "lucide-react"
+import { Loader2, Truck, Calendar, Clock, CheckCircle2, Search, ExternalLink, ArrowLeft } from "lucide-react"
 import { isToday, isTomorrow } from "date-fns"
 import { useState } from "react"
 import { markAsCollected } from "@/app/actions/sales"
@@ -25,8 +25,20 @@ export const LogisticsList = () => {
     sorters: {
         initial: [{ field: "created_at", order: "desc" }]
     },
-    pagination: { pageSize: 50 }
+    pagination: { pageSize: 10 }
   })
+
+  const { 
+    current,
+    setCurrent,
+    currentPage,
+    setCurrentPage,
+    pageCount
+  } = result as any
+
+  // Safety aliasing for Refine v5 inconsistencies
+  const activePage = currentPage || current;
+  const goToPage = setCurrentPage || setCurrent;
 
   const tableQuery = (result as any).tableQuery;
   const sales = tableQuery?.data?.data || []
@@ -174,6 +186,32 @@ export const LogisticsList = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between bg-white px-8 py-4 rounded-[24px] border border-zinc-200 shadow-sm mt-6">
+            <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Registry Page</span>
+                <span className="text-xs font-black italic">{activePage} / {pageCount}</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <button 
+                    disabled={activePage === 1}
+                    onClick={() => goToPage(activePage - 1)}
+                    className="p-2.5 border border-zinc-100 rounded-xl hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400"
+                >
+                    <ArrowLeft size={18} />
+                </button>
+                <button 
+                    disabled={activePage === pageCount}
+                    onClick={() => goToPage(activePage + 1)}
+                    className="p-2.5 border border-zinc-100 rounded-xl hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400 rotate-180"
+                >
+                    <ArrowLeft size={18} />
+                </button>
+            </div>
+        </div>
+      )}
     </div>
   )
 }

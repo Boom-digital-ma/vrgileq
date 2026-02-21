@@ -2,7 +2,7 @@
 
 import { useTable } from "@refinedev/core"
 import { cn, formatEventDateShort } from "@/lib/utils"
-import { Loader2, FileText, Eye, Package } from "lucide-react"
+import { Loader2, FileText, Eye, Package, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export const SalesList = () => {
@@ -11,7 +11,7 @@ export const SalesList = () => {
     meta: { 
       select: "*, auction:auctions(title, image_url), winner:profiles(full_name), event:auction_events(title)" 
     },
-    pagination: { pageSize: 20 },
+    pagination: { pageSize: 10 },
     sorters: {
       initial: [{ field: "created_at", order: "desc" }]
     }
@@ -21,7 +21,19 @@ export const SalesList = () => {
   const sales = tableQuery?.data?.data || []
   const isLoading = tableQuery?.isLoading
 
-  const { setFilters, filters } = result
+  const { 
+    setFilters, 
+    filters,
+    current,
+    setCurrent,
+    currentPage,
+    setCurrentPage,
+    pageCount
+  } = result as any
+
+  // Safety aliasing for Refine v5 inconsistencies
+  const activePage = currentPage || current;
+  const goToPage = setCurrentPage || setCurrent;
 
   const handleStatusFilter = (status: string) => {
     setFilters([
@@ -147,6 +159,32 @@ export const SalesList = () => {
       {sales.length === 0 && (
         <div className="py-20 text-center border-2 border-dashed border-zinc-100 rounded-3xl bg-zinc-50/30">
           <p className="text-zinc-400 font-medium italic">No sales found in the registry.</p>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between bg-white px-8 py-4 rounded-[24px] border border-zinc-200 shadow-sm mt-6">
+            <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Registry Page</span>
+                <span className="text-xs font-black italic">{activePage} / {pageCount}</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <button 
+                    disabled={activePage === 1}
+                    onClick={() => goToPage(activePage - 1)}
+                    className="p-2.5 border border-zinc-100 rounded-xl hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400"
+                >
+                    <ArrowLeft size={18} />
+                </button>
+                <button 
+                    disabled={activePage === pageCount}
+                    onClick={() => goToPage(activePage + 1)}
+                    className="p-2.5 border border-zinc-100 rounded-xl hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400 rotate-180"
+                >
+                    <ArrowLeft size={18} />
+                </button>
+            </div>
         </div>
       )}
     </div>

@@ -10,7 +10,7 @@ import { adminCreateUser } from "@/app/actions/users"
 export const UserList = () => {
   const result = useTable({
     resource: "profiles",
-    pagination: { pageSize: 20 }
+    pagination: { pageSize: 10 }
   })
 
   const tableQuery = (result as any).tableQuery;
@@ -20,9 +20,16 @@ export const UserList = () => {
   const { 
     current,
     setCurrent,
+    currentPage,
+    setCurrentPage,
     pageCount,
     setFilters 
   } = result as any
+
+  // Safety aliasing for Refine v5 inconsistencies
+  const activePage = currentPage || current;
+  const goToPage = setCurrentPage || setCurrent;
+
   const { show } = useNavigation()
   const { mutate: deleteRecord } = useDelete()
 
@@ -53,8 +60,48 @@ export const UserList = () => {
     setCreateLoading(false)
   }
 
+  const [searchQuery, setSearchQuery] = useState("")
+  const [roleFilter, setRoleFilter] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+
+  const applyFilters = (query: string, role: string, status: string) => {
+    const filters = []
+    
+    if (query) {
+      filters.push({
+        operator: "or" as const,
+        value: [
+          { field: "full_name", operator: "contains", value: query },
+          { field: "email", operator: "contains", value: query },
+          { field: "id", operator: "contains", value: query },
+        ]
+      })
+    }
+
+    if (role) {
+      filters.push({ field: "role", operator: "eq", value: role })
+    }
+
+    if (status) {
+      filters.push({ field: "is_verified", operator: "eq", value: status === "verified" })
+    }
+
+    setFilters(filters)
+  }
+
   const handleSearch = (val: string) => {
-    setFilters([{ field: "full_name", operator: "contains", value: val || undefined }], "replace")
+    setSearchQuery(val)
+    applyFilters(val, roleFilter, statusFilter)
+  }
+
+  const handleRoleChange = (val: string) => {
+    setRoleFilter(val)
+    applyFilters(searchQuery, val, statusFilter)
+  }
+
+  const handleStatusChange = (val: string) => {
+    setStatusFilter(val)
+    applyFilters(searchQuery, roleFilter, val)
   }
 
   const inputClasses = "w-full h-11 bg-zinc-50 border border-zinc-200 rounded-xl px-4 text-sm outline-none focus:bg-white focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all font-medium text-zinc-900"
@@ -79,9 +126,54 @@ export const UserList = () => {
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex items-center gap-3">
-        <Search className="text-zinc-400" size={18} />
-        <input type="text" placeholder="Search identity registry..." onChange={(e) => handleSearch(e.target.value)} className="flex-1 outline-none text-sm bg-transparent font-sans" />
+      <div className="bg-white p-4 rounded-3xl border border-zinc-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
+        <div className="flex-1 flex items-center gap-3 bg-zinc-50 border border-zinc-100 rounded-2xl px-4 h-12 w-full">
+            <Search className="text-zinc-400 shrink-0" size={18} />
+            <input 
+                type="text" 
+                placeholder="Search by Identity, Email or ID..." 
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)} 
+                className="flex-1 outline-none text-sm bg-transparent font-sans placeholder:text-zinc-400" 
+            />
+        </div>
+        
+        <div className="flex items-center gap-2 w-full md:w-auto">
+            <select 
+                value={roleFilter}
+                onChange={(e) => handleRoleChange(e.target.value)}
+                className="h-12 bg-white border border-zinc-200 rounded-2xl px-4 text-[10px] font-black uppercase tracking-widest text-zinc-900 outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all w-full md:w-40 italic"
+            >
+                <option value="">All Roles</option>
+                <option value="admin">Administrator</option>
+                <option value="moderator">Moderator</option>
+                <option value="client">Client</option>
+            </select>
+
+            <select 
+                value={statusFilter}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="h-12 bg-white border border-zinc-200 rounded-2xl px-4 text-[10px] font-black uppercase tracking-widest text-zinc-900 outline-none focus:ring-4 focus:ring-zinc-900/5 transition-all w-full md:w-40 italic"
+            >
+                <option value="">All Verification</option>
+                <option value="verified">Verified</option>
+                <option value="pending">Pending</option>
+            </select>
+
+            {(searchQuery || roleFilter || statusFilter) && (
+                <button 
+                    onClick={() => {
+                        setSearchQuery("");
+                        setRoleFilter("");
+                        setStatusFilter("");
+                        setFilters([]);
+                    }}
+                    className="h-12 w-12 flex items-center justify-center bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-all shrink-0"
+                >
+                    <Trash2 size={18} />
+                </button>
+            )}
+        </div>
       </div>
 
       <div className="bg-white border border-zinc-200 rounded-3xl shadow-sm overflow-hidden text-sm font-sans">
@@ -89,6 +181,7 @@ export const UserList = () => {
           <thead>
             <tr className="text-zinc-400 font-bold border-b border-zinc-100 bg-zinc-50/50 text-[10px] uppercase tracking-widest font-sans italic">
               <th className="px-8 py-5">Identity Protocol</th>
+              <th className="px-8 py-5">Contact Node</th>
               <th className="px-8 py-5 text-center">Authorization</th>
               <th className="px-8 py-5 text-right">Verification</th>
               <th className="px-8 py-5 text-right">Actions</th>
@@ -106,6 +199,12 @@ export const UserList = () => {
                             <span className="font-bold text-zinc-900 uppercase tracking-tight text-sm leading-none mb-1.5">{profile.full_name || 'Anonymous'}</span>
                             <span className="text-[10px] text-zinc-400 font-mono italic">UID: {profile.id.slice(0,8)}</span>
                         </div>
+                    </div>
+                </td>
+                <td className="px-8 py-6">
+                    <div className="flex items-center gap-2 text-zinc-600 font-medium">
+                        <Mail size={14} className="text-zinc-300" />
+                        <span className="text-xs italic">{profile.email || 'N/A'}</span>
                     </div>
                 </td>
                 <td className="px-8 py-6 text-center">
@@ -148,19 +247,19 @@ export const UserList = () => {
         <div className="flex items-center justify-between bg-white px-8 py-4 rounded-2xl border border-zinc-200 shadow-sm">
             <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Directory Page</span>
-                <span className="text-xs font-black italic">{current} / {pageCount}</span>
+                <span className="text-xs font-black italic">{activePage} / {pageCount}</span>
             </div>
             <div className="flex items-center gap-2">
                 <button 
-                    disabled={current === 1}
-                    onClick={() => setCurrent(current - 1)}
+                    disabled={activePage === 1}
+                    onClick={() => goToPage(activePage - 1)}
                     className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400"
                 >
                     <ArrowLeft size={16} />
                 </button>
                 <button 
-                    disabled={current === pageCount}
-                    onClick={() => setCurrent(current + 1)}
+                    disabled={activePage === pageCount}
+                    onClick={() => goToPage(activePage + 1)}
                     className="p-2 border border-zinc-100 rounded-lg hover:bg-zinc-50 disabled:opacity-20 transition-all text-zinc-400 rotate-180"
                 >
                     <ArrowLeft size={16} />

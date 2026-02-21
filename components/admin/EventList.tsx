@@ -1,7 +1,7 @@
 'use client'
 
 import { useTable, useNavigation, useDelete, useForm, useList } from "@refinedev/core"
-import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save, Gavel } from "lucide-react"
+import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save, Gavel, ArrowLeft } from "lucide-react"
 import { cn, formatEventDate } from "@/lib/utils"
 import { useState } from "react"
 import { Modal, ConfirmModal } from "./Modal"

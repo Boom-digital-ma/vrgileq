@@ -42,11 +42,16 @@ export async function proxy(request: NextRequest) {
     // 2. Check Maintenance Mode status
     const { data: settings } = await supabase
       .from('site_settings')
-      .select('maintenance_mode')
+      .select('maintenance_mode, maintenance_details, announcement_link, support_email')
       .eq('id', 'global')
       .single()
 
     if (settings?.maintenance_mode) {
+      // 2.5 Dynamic Exclusion: Allow the announcement_link if it's internal
+      if (settings.announcement_link && settings.announcement_link.startsWith('/') && pathname === settings.announcement_link) {
+        return NextResponse.next()
+      }
+
       // 3. If maintenance is ON, check if user is an ADMIN
       const { data: { user } } = await supabase.auth.getUser()
       
@@ -150,7 +155,27 @@ export async function proxy(request: NextRequest) {
                     System Protocol Active
                 </div>
                 <h1>Catalogue <span style="color: var(--primary)">Sync</span> in Progress.</h1>
-                <p>We are currently synchronizing our industrial inventory. Our bidding gateway will resume operations shortly.</p>
+                <p>${settings?.maintenance_details || 'We are currently synchronizing our industrial inventory. Our bidding gateway will resume operations shortly.'}</p>
+                
+                ${settings?.announcement_link ? `
+                    <a href="${settings.announcement_link}" style="
+                        display: inline-block;
+                        margin-bottom: 40px;
+                        background: var(--primary);
+                        color: white;
+                        text-decoration: none;
+                        padding: 12px 24px;
+                        border-radius: 12px;
+                        font-size: 11px;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        letter-spacing: 0.1em;
+                        transition: opacity 0.2s;
+                    " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        View Update Details
+                    </a>
+                ` : ''}
+
                 <div class="footer">Virginia Liquidation • Industrial Governance</div>
             </div>
 

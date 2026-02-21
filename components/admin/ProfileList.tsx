@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 export const ProfileList = () => {
   const result = useTable({
     resource: "profiles",
-    pagination: { pageSize: 20 }
+    pagination: { pageSize: 10 }
   })
 
   const tableQuery = (result as any).tableQuery;

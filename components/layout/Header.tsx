@@ -15,6 +15,9 @@ export default function Header() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [announcement, setAnnouncement] = useState<string | null>(null);
+  const [announcementPopupText, setAnnouncementPopupText] = useState<string | null>(null);
+  const [announcementLink, setAnnouncementLink] = useState<string | null>(null);
+  const [isAnnouncementPopupOpen, setIsAnnouncementPopupOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   
   const supabase = useMemo(() => createClient(), []);
@@ -41,10 +44,12 @@ export default function Header() {
     const fetchSettings = async () => {
       const { data: settings } = await supabase
         .from('site_settings')
-        .select('global_announcement')
+        .select('global_announcement, announcement_text, announcement_link')
         .eq('id', 'global')
         .maybeSingle();
       if (settings?.global_announcement) setAnnouncement(settings.global_announcement);
+      if (settings?.announcement_text) setAnnouncementPopupText(settings.announcement_text);
+      if (settings?.announcement_link) setAnnouncementLink(settings.announcement_link);
     };
     fetchSettings();
 
@@ -79,9 +84,28 @@ export default function Header() {
                         <span className="h-1 w-1 bg-primary rounded-full animate-pulse" />
                         {announcement}
                     </p>
-                    <Link href="/auctions" className="text-[8px] md:text-[9px] font-black uppercase text-primary hover:text-white transition-colors border-b border-primary/30">
-                        Details
-                    </Link>
+                    {announcementPopupText ? (
+                        <button 
+                            onClick={() => setIsAnnouncementPopupOpen(true)}
+                            className="text-[8px] md:text-[9px] font-black uppercase text-primary hover:text-white transition-colors border-b border-primary/30 cursor-pointer"
+                        >
+                            Details
+                        </button>
+                    ) : announcementLink ? (
+                        <Link 
+                            href={announcementLink} 
+                            className="text-[8px] md:text-[9px] font-black uppercase text-primary hover:text-white transition-colors border-b border-primary/30"
+                        >
+                            Details
+                        </Link>
+                    ) : (
+                        <Link 
+                            href="/auctions" 
+                            className="text-[8px] md:text-[9px] font-black uppercase text-primary hover:text-white transition-colors border-b border-primary/30"
+                        >
+                            Details
+                        </Link>
+                    )}
                 </div>
             </div>
         )}
@@ -240,8 +264,57 @@ export default function Header() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-    </>
-  );
-}
+                                  </div>
+                              </div>
+                      
+                              {/* Announcement Popup Modal */}
+                              <AnnouncementModal 
+                                  isOpen={isAnnouncementPopupOpen} 
+                                  onClose={() => setIsAnnouncementPopupOpen(false)} 
+                                  title={announcement || "System Protocol Update"}
+                                  text={announcementPopupText || "No details provided for this announcement."}
+                              />
+                          </>
+                        );
+                      }          
+          function AnnouncementModal({ isOpen, onClose, title, text }: { isOpen: boolean, onClose: () => void, title: string, text: string }) {
+              if (!isOpen) return null;
+          
+              return (
+                  <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
+                      <div className="absolute inset-0 bg-secondary/40 backdrop-blur-md" onClick={onClose} />
+                      <div className="relative w-full max-w-lg bg-white rounded-[40px] shadow-2xl border border-zinc-100 p-10 animate-in fade-in zoom-in duration-300">
+                          <button 
+                              onClick={onClose}
+                              className="absolute top-8 right-8 text-zinc-400 hover:text-zinc-900 transition-colors"
+                          >
+                              <X size={20} />
+                          </button>
+                          
+                          <div className="flex items-center gap-3 mb-6">
+                              <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
+                              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary italic">System Protocol</h2>
+                          </div>
+          
+                          <h3 className="text-2xl font-black text-secondary uppercase tracking-tight italic mb-6 leading-none">
+                              {title}
+                          </h3>
+          
+                          <div className="prose prose-zinc prose-sm">
+                              <p className="text-zinc-500 font-medium leading-relaxed italic whitespace-pre-wrap">
+                                  {text}
+                              </p>
+                          </div>
+          
+                          <div className="mt-10">
+                              <button 
+                                  onClick={onClose}
+                                  className="w-full bg-secondary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-primary transition-all shadow-lg shadow-secondary/10 italic"
+                              >
+                                  Acknowledge Protocol
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+              );
+          }
