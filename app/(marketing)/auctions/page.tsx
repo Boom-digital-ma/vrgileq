@@ -6,6 +6,7 @@ import SearchBar from '@/components/layout/SearchBar'
 import AuctionCard from '@/components/auction/AuctionCard'
 import EventStatusBadge from '@/components/auction/EventStatusBadge'
 import EventCardStatus from '@/components/auction/EventCardStatus'
+import EventReminderButton from '@/components/auction/EventReminderButton'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -430,6 +431,11 @@ export default async function AuctionsPage({
                         startAt={event.start_at}
                         endsAt={event.ends_at}
                     />
+                    {isUpcoming && (
+                        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                            <EventReminderButton eventId={event.id} startAt={event.start_at} isUpcoming={isUpcoming} />
+                        </div>
+                    )}
                   </div>
                 </div>
 

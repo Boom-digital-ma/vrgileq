@@ -4,6 +4,7 @@ import AuctionGrid from '@/components/auction/AuctionGrid'
 import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, ChevronRight, SlidersHorizontal, MapPin, Package, Clock, Lock } from 'lucide-react'
 import RegistrationButton from '@/components/auction/RegistrationButton'
 import EventStatusBadge from '@/components/auction/EventStatusBadge'
+import EventReminderButton from '@/components/auction/EventReminderButton'
 import ProtocolCards from '@/components/auction/ProtocolCards'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -140,6 +141,9 @@ export default async function EventPage({
                             startAt={event.start_at}
                             endsAt={event.ends_at}
                         />
+                        {isUpcoming && (
+                            <EventReminderButton eventId={event.id} startAt={event.start_at} isUpcoming={isUpcoming} variant="page" />
+                        )}
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-secondary leading-tight font-display uppercase">
                         {event.title}
