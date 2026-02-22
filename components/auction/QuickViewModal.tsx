@@ -233,17 +233,34 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
             </div>
 
             <div className="space-y-2.5 max-h-80 overflow-y-auto pr-2 mb-10">
-                {realtimeBids.map((bid, i) => (
-                    <div key={i} className="flex justify-between items-center p-4 rounded-2xl bg-zinc-50/50 border border-zinc-100 hover:border-primary/20 transition-all group italic">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-secondary uppercase tracking-tight">Bidder #{bid.user_id?.slice(0,4) || 'UNK'}</span>
-                            <span className="text-[8px] font-medium text-zinc-300 uppercase tracking-widest">{new Date(bid.created_at).toLocaleTimeString()}</span>
+                {realtimeBids.map((bid, i) => {
+                    const isTopBid = i === 0;
+                    return (
+                        <div key={i} className={cn(
+                            "flex justify-between items-center p-4 rounded-2xl border transition-all group italic",
+                            isTopBid ? "bg-emerald-50/50 border-emerald-200" : "bg-zinc-50/50 border-zinc-100"
+                        )}>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-secondary uppercase tracking-tight">Bidder #{bid.user_id?.slice(0,4) || 'UNK'}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={cn(
+                                        "text-[9px] font-black uppercase tracking-widest",
+                                        isTopBid ? "text-emerald-600" : "text-zinc-400"
+                                    )}>
+                                        {isTopBid ? "Winning!" : "Not high enough."}
+                                    </span>
+                                    <span className="text-[8px] font-medium text-zinc-300 uppercase tracking-widest">• {new Date(bid.created_at).toLocaleTimeString()}</span>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <span className={cn(
+                                    "text-lg font-bold font-display transition-colors tracking-tight",
+                                    isTopBid ? "text-emerald-700" : "text-secondary group-hover:text-primary"
+                                )}>${bid.amount.toLocaleString()}</span>
+                            </div>
                         </div>
-                        <div className="text-right">
-                            <span className="text-lg font-bold text-secondary font-display group-hover:text-primary transition-colors tracking-tight">${bid.amount.toLocaleString()}</span>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
                 {realtimeBids.length === 0 && (
                     <div className="py-16 text-center border-2 border-dashed border-zinc-100 rounded-[32px]">
                         <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest italic">No activity recorded yet</p>

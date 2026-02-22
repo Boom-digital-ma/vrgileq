@@ -377,34 +377,36 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           <History className="h-3.5 w-3.5" /> <span>Real-time Activity</span>
         </div>
         <div className="space-y-3">
-          {sortedBids.slice(0, 5).map((bid, i) => (
-            <div key={i} className={cn(
-                "flex justify-between items-center p-4 rounded-2xl border transition-all group",
-                i === 0 
-                    ? "bg-rose-50/50 border-rose-200 shadow-sm" 
-                    : "bg-zinc-50/30 border-zinc-50 hover:bg-white hover:border-zinc-100"
-            )}>
-              <div className="flex flex-col">
-                <span className={cn(
-                    "text-[10px] font-bold uppercase tracking-tighter flex items-center gap-2",
-                    i === 0 ? "text-rose-500" : "text-zinc-400"
-                )}>
-                    {i === 0 && <span className="text-[8px] bg-rose-500 text-white px-1.5 py-0.5 rounded-full">LATEST</span>}
-                    {bid.is_auto_bid && <span className="text-[8px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full">AUTO</span>}
-                    <span>Bidder #{bid.user_id?.slice(0,4) || 'UNK'}</span>
-                </span>
-                <span className="text-[8px] font-medium text-zinc-300 uppercase">
-                    {mounted ? new Date(bid.created_at).toLocaleTimeString() : <span className="opacity-0">--:--:--</span>}
-                </span>
+          {sortedBids.slice(0, 5).map((bid, i) => {
+            const isTopBid = i === 0;
+            return (
+              <div key={i} className={cn(
+                  "flex justify-between items-center p-4 rounded-2xl border transition-all group",
+                  isTopBid 
+                      ? "bg-emerald-50/50 border-emerald-200 shadow-sm" 
+                      : "bg-zinc-50/30 border-zinc-50 hover:bg-white hover:border-zinc-100"
+              )}>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-tight">Bidder #{bid.user_id?.slice(0,4) || 'UNK'}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                        "text-[9px] font-black uppercase tracking-widest",
+                        isTopBid ? "text-emerald-600" : "text-zinc-400"
+                    )}>
+                        {isTopBid ? "Winning!" : "Not high enough."}
+                    </span>
+                    <span className="text-[8px] font-medium text-zinc-300 uppercase tracking-widest italic">• {mounted ? new Date(bid.created_at).toLocaleTimeString() : "--:--:--"}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className={cn(
+                      "text-lg font-bold font-display italic tracking-tight transition-colors",
+                      isTopBid ? "text-emerald-700" : "text-secondary group-hover:text-primary"
+                  )}>${bid.amount.toLocaleString()}</div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className={cn(
-                    "text-lg font-bold font-display italic tracking-tight transition-colors",
-                    i === 0 ? "text-rose-600" : "text-secondary group-hover:text-primary"
-                )}>${bid.amount.toLocaleString()}</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {sortedBids.length === 0 && (
             <div className="text-center py-8 border-2 border-dashed border-zinc-100 rounded-2xl">
                 <p className="text-[10px] font-bold text-zinc-300 uppercase italic">Waiting for first bid...</p>
