@@ -195,6 +195,7 @@ export default async function AuctionsPage({
                                     searchQuery={q}
                                     categoryId={category}
                                     initialTotalCount={count || 0}
+                                    status="live"
                                 />
                             </>
                         ) : (

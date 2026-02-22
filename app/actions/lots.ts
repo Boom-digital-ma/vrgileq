@@ -151,7 +151,7 @@ export async function fetchLots({
     searchQuery?: string, 
     page?: number, 
     pageSize?: number,
-    status?: string | string[]
+    status?: string | string[] | null
 }) {
     try {
         const supabase = await createClient()
@@ -171,8 +171,10 @@ export async function fetchLots({
         if (categoryId) query = query.eq('category_id', categoryId)
         if (searchQuery) query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
         
-        if (Array.isArray(status)) query = query.in('status', status)
-        else query = query.eq('status', status)
+        if (status) {
+            if (Array.isArray(status)) query = query.in('status', status)
+            else query = query.eq('status', status)
+        }
 
         const from = (page - 1) * pageSize
         const to = from + pageSize - 1

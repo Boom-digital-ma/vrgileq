@@ -13,7 +13,7 @@ interface AuctionGridProps {
   categoryId?: string;
   searchQuery?: string;
   initialTotalCount?: number;
-  status?: string | string[];
+  status?: string | string[] | null;
 }
 
 export default function AuctionGrid({ 
@@ -23,7 +23,7 @@ export default function AuctionGrid({
     categoryId, 
     searchQuery,
     initialTotalCount = 0,
-    status = 'live'
+    status = null // Default to null (all statuses)
 }: AuctionGridProps) {
   const [items, setItems] = useState<Product[]>(products);
   const [page, setPage] = useState(1);
@@ -33,13 +33,13 @@ export default function AuctionGrid({
   const supabase = createClient();
 
   // Sync with initial props if filters change (Reset state)
-  // We use a JSON string check to avoid unnecessary resets on every render
-  const productsKey = JSON.stringify(products.map(p => p.id));
+  // We use a key based on unique identifiers to detect real filter changes
+  const resetKey = `${eventId}-${categoryId}-${searchQuery}-${JSON.stringify(status)}`;
   useEffect(() => {
     setItems(products);
     setPage(1);
     setHasMore(initialTotalCount > products.length);
-  }, [productsKey, initialTotalCount]);
+  }, [resetKey, initialTotalCount]);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
