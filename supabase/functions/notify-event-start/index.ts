@@ -33,69 +33,68 @@ Deno.serve(async (req) => {
       })
     }
 
-    let notificationsSent = 0
+    let totalNotifications = 0
+    const batchEmails = []
+    const reminderIds = []
 
-    // 2. For each event, find reminders that haven't been sent yet
+    // 2. Collect all reminders that need to be sent
     for (const event of upcomingEvents) {
-      const { data: reminders, error: reminderError } = await supabaseClient
+      const { data: reminders } = await supabaseClient
         .from('event_reminders')
-        .select('id, user_id, user:profiles(full_name, email)')
+        .select('id, user:profiles(full_name, email)')
         .eq('event_id', event.id)
         .eq('notified', false)
 
-      if (reminderError) {
-        console.error(`Error fetching reminders for event ${event.id}:`, reminderError)
-        continue
-      }
-
-      if (!reminders || reminders.length === 0) continue
-
-      // 3. Send emails
-      for (const reminder of reminders) {
-        const userEmail = reminder.user?.email
-        const userName = reminder.user?.full_name || 'Valued Member'
-
-        if (!userEmail) continue
-
-        // Send Email via Resend API (Direct Fetch)
-        try {
-            const res = await fetch('https://api.resend.com/emails', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${RESEND_API_KEY}`,
-                },
-                body: JSON.stringify({
-                    from: FROM_EMAIL,
-                    to: userEmail,
-                    subject: `Starting Soon: ${event.title}`,
-                    html: eventStartingTemplate(
-                        userName, 
-                        event.title, 
-                        `https://virginialiquidation.com/events/${event.id}`, 
-                        event.start_at
-                    ),
-                }),
+      if (reminders && reminders.length > 0) {
+        for (const r of reminders) {
+          if (r.user?.email) {
+            batchEmails.push({
+              from: FROM_EMAIL,
+              to: r.user.email,
+              subject: `Starting Soon: ${event.title}`,
+              html: eventStartingTemplate(
+                r.user.full_name || 'Valued Member',
+                event.title,
+                `https://virginialiquidation.com/events/${event.id}`,
+                event.start_at
+              )
             })
-
-            if (res.ok) {
-                // 4. Mark as notified
-                await supabaseClient
-                    .from('event_reminders')
-                    .update({ notified: true })
-                    .eq('id', reminder.id)
-                
-                notificationsSent++
-            } else {
-                console.error(`Resend API Error for ${userEmail}:`, await res.text())
-            }
-        } catch (emailErr) {
-            console.error(`Failed to send email to ${userEmail}:`, emailErr)
+            reminderIds.push(r.id)
+          }
         }
       }
     }
 
-    return new Response(JSON.stringify({ message: `Sent ${notificationsSent} notifications.` }), {
+    if (batchEmails.length > 0) {
+      // 3. Send in batches of 100 (Resend limit)
+      for (let i = 0; i < batchEmails.length; i += 100) {
+        const chunk = batchEmails.slice(i, i + 100)
+        const idsChunk = reminderIds.slice(i, i + 100)
+
+        const res = await fetch('https://api.resend.com/emails/batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify(chunk),
+        })
+
+        if (res.ok) {
+          // 4. Mark these specific reminders as notified
+          await supabaseClient
+            .from('event_reminders')
+            .update({ notified: true })
+            .in('id', idsChunk)
+          
+          totalNotifications += chunk.length
+        } else {
+          console.error(`Resend Batch Error:`, await res.text())
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ message: `Processed ${totalNotifications} notifications.` }), {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (error) {

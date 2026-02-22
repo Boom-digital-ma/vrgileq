@@ -43,6 +43,48 @@ async function sendResendEmail({
   }
 }
 
+// Helper to wait between requests if needed
+export const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export async function sendBatchEmails(emails: { to: string; subject: string; html: string }[]) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey || emails.length === 0) return;
+
+  // Resend Batch API limit is 100 per request
+  const chunks = [];
+  for (let i = 0; i < emails.length; i += 100) {
+    chunks.push(emails.slice(i, i + 100));
+  }
+
+  for (const chunk of chunks) {
+    try {
+      const response = await fetch('https://api.resend.com/emails/batch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(chunk.map(email => ({
+          from: FROM_EMAIL,
+          to: email.to,
+          subject: email.subject,
+          html: email.html,
+        }))),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Resend Batch Error:', error);
+      }
+      
+      // Wait 500ms between chunks to stay safe (2 req/s limit)
+      if (chunks.length > 1) await wait(500);
+    } catch (error) {
+      console.error('Failed to send batch via Resend:', error);
+    }
+  }
+}
+
 export async function sendOutbidEmail({
   to,
   bidderName,
