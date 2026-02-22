@@ -88,9 +88,9 @@ export default async function AuctionsPage({
     if (q) archiveQuery = archiveQuery.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
     if (category) archiveQuery = archiveQuery.eq('category_id', category)
 
-    const { data: archives } = await archiveQuery
+    const { data: archives, count: archiveCount } = await archiveQuery
         .order('ends_at', { ascending: false })
-        .limit(6)
+        .range(0, 11) // First 12
 
     const totalPages = Math.ceil((count || 0) / PAGE_SIZE_LOTS)
 
@@ -239,7 +239,7 @@ export default async function AuctionsPage({
                                         searchQuery={q}
                                         categoryId={category}
                                         status={['sold', 'ended']}
-                                        initialTotalCount={archives.length} // Note: simplified for archives
+                                        initialTotalCount={archiveCount || 0}
                                     />
                                 </div>
                             </div>

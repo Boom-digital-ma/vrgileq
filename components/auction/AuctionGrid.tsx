@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import AuctionCard, { Product } from "./AuctionCard";
 import { createClient } from "@/lib/supabase/client";
 import { fetchLots } from "@/app/actions/lots";
-import { Loader2, Plus, ArrowDown } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface AuctionGridProps {
   products: Product[];
@@ -29,40 +29,89 @@ export default function AuctionGrid({
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalCount > products.length);
+  const observerTarget = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
-  // Sync with initial props if filters change
+  // Sync with initial props if filters change (Reset state)
+  // We use a JSON string check to avoid unnecessary resets on every render
+  const productsKey = JSON.stringify(products.map(p => p.id));
   useEffect(() => {
     setItems(products);
     setPage(1);
     setHasMore(initialTotalCount > products.length);
-  }, [products, initialTotalCount]);
+  }, [productsKey, initialTotalCount]);
 
-  const handleLoadMore = async () => {
+  const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
     
     setLoading(true);
     const nextPage = page + 1;
     
-    const result = await fetchLots({
+    console.log(`[INFINITE_SCROLL] Fetching page ${nextPage}`, {
         eventId,
         categoryId,
         searchQuery,
-        page: nextPage,
-        pageSize: 12,
-        status
+        status,
+        currentItems: items.length,
+        totalExpected: initialTotalCount
     });
 
-    if (result.lots) {
-        setItems(prev => [...prev, ...result.lots]);
-        setPage(nextPage);
-        setHasMore(result.hasMore);
+    try {
+        const result = await fetchLots({
+            eventId,
+            categoryId,
+            searchQuery,
+            page: nextPage,
+            pageSize: 12,
+            status
+        });
+
+        if (result.lots && result.lots.length > 0) {
+            console.log(`[INFINITE_SCROLL] Received ${result.lots.length} items. hasMore: ${result.hasMore}`);
+            setItems(prev => {
+                const existingIds = new Set(prev.map(i => i.id));
+                const newItems = result.lots.filter(i => !existingIds.has(i.id));
+                return [...prev, ...newItems];
+            });
+            setPage(nextPage);
+            setHasMore(result.hasMore);
+        } else {
+            console.log(`[INFINITE_SCROLL] No more items received.`);
+            setHasMore(false);
+        }
+    } catch (err) {
+        console.error("[INFINITE_SCROLL] Error loading more:", err);
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [page, loading, hasMore, eventId, categoryId, searchQuery, status, items.length, initialTotalCount]);
+
+  // Intersection Observer for Automatic Loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          console.log("[INFINITE_SCROLL] Sentinel visible, triggering loadMore...");
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '200px' } // Increased margin for smoother experience
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [loadMore, hasMore, loading]);
 
   useEffect(() => {
-    // Shared channel for the entire grid
+    // Realtime channel
     const channel = supabase.channel(`event-grid-${eventId || 'global'}`)
       .on('postgres_changes', {
         event: 'UPDATE',
@@ -110,33 +159,27 @@ export default function AuctionGrid({
   }, [eventId, supabase, user]);
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="flex flex-col gap-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {items.map((product) => (
                 <AuctionCard key={product.id} product={product} user={user} disableRealtime={true} />
             ))}
         </div>
 
-        {hasMore && (
-            <div className="flex justify-center pb-10">
-                <button
-                    onClick={handleLoadMore}
-                    disabled={loading}
-                    className="group relative flex items-center justify-center gap-3 bg-white border-2 border-zinc-100 hover:border-primary/20 px-10 py-5 rounded-[24px] transition-all hover:shadow-2xl hover:shadow-primary/5 active:scale-95 disabled:opacity-50"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[22px]" />
-                    {loading ? (
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    ) : (
-                        <Plus className="h-5 w-5 text-primary group-hover:rotate-90 transition-transform duration-500" />
-                    )}
-                    <span className="text-sm font-bold uppercase tracking-widest text-secondary group-hover:text-primary transition-colors">
-                        {loading ? "Loading Assets..." : "Load More Lots"}
-                    </span>
-                    <ArrowDown className="h-4 w-4 text-zinc-300 group-hover:translate-y-1 transition-transform" />
-                </button>
-            </div>
-        )}
+        {/* Sentinel element for intersection observer */}
+        <div ref={observerTarget} className="w-full h-20 flex items-center justify-center">
+            {loading && (
+                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-zinc-100 shadow-sm">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Loading Assets...</span>
+                </div>
+            )}
+            {!hasMore && items.length > 0 && (
+                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 italic">
+                    End of Catalog — {items.length} items loaded
+                </div>
+            )}
+        </div>
     </div>
   );
 }
