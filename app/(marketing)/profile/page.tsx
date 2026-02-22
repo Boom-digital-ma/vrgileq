@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Gavel, Star, Trophy, Clock, Package, ArrowRight, CreditCard, ShieldCheck, Plus, Trash2, ShieldAlert, Loader2, History, User, Settings, Lock, ChevronRight, FileText, Truck } from 'lucide-react'
+import { Gavel, Star, Trophy, Clock, Package, ArrowRight, CreditCard, ShieldCheck, Plus, Trash2, ShieldAlert, Loader2, History, User, Settings, Lock, ChevronRight, FileText, Truck, Zap } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Elements } from '@stripe/react-stripe-js'
@@ -49,7 +49,7 @@ export default function ProfilePage() {
       .order('created_at', { ascending: false })
 
     const uniqueBidsMap = new Map()
-    bids?.forEach(bid => {
+    bids?.forEach((bid: any) => {
       if (!uniqueBidsMap.has(bid.auction_id) && bid.auctions.status === 'live') {
           uniqueBidsMap.set(bid.auction_id, bid)
       }
@@ -68,7 +68,7 @@ export default function ProfilePage() {
     setData({
       bids: Array.from(uniqueBidsMap.values()),
       won: won || [],
-      watchlist: watch?.map(w => w.auctions) || [],
+      watchlist: watch?.map((w: any) => w.auctions) || [],
       profile: profileRes.data,
       cards: cardsRes
     })
@@ -352,7 +352,7 @@ export default function ProfilePage() {
                         <EmptyState message="No active participations detected" link="/auctions" linkText="Explore Catalog" />
                       ) : (
                         data.bids.map((bid) => (
-                          <AuctionRow key={bid.id} auction={bid.auctions} bidAmount={bid.amount} status={bid.status} />
+                          <AuctionRow key={bid.id} auction={bid.auctions} bidAmount={bid.amount} maxBid={bid.max_amount} status={bid.status} />
                         ))
                       )}
                     </div>
@@ -464,7 +464,7 @@ export default function ProfilePage() {
   )
 }
 
-function AuctionRow({ auction, bidAmount, status, isWon, saleId }: { auction: any, bidAmount: number, status?: string, isWon?: boolean, saleId?: string }) {
+function AuctionRow({ auction, bidAmount, maxBid, status, isWon, saleId }: { auction: any, bidAmount: number, maxBid?: number, status?: string, isWon?: boolean, saleId?: string }) {
   const isWinning = status === 'active';
   const imgUrl = auction.auction_images?.[0]?.url || auction.image_url || "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad";
 
@@ -500,6 +500,14 @@ function AuctionRow({ auction, bidAmount, status, isWon, saleId }: { auction: an
       <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
         <p className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">Valuation</p>
         <div className="text-2xl font-bold text-secondary font-display tabular-nums italic leading-none">${bidAmount?.toLocaleString()}</div>
+        
+        {/* Proxy Bid Indicator */}
+        {isWinning && maxBid && maxBid > bidAmount && (
+            <div className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 uppercase tracking-widest">
+                <Zap size={10} className="fill-current" /> Max: ${maxBid.toLocaleString()}
+            </div>
+        )}
+
         {!isWon ? (
             <div className={cn(
                 "text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border mt-2",

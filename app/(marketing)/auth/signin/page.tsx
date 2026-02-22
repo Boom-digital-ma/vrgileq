@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { login } from '@/app/actions/auth'
 import Link from 'next/link'
-import { Gavel, Loader2, AlertCircle, User, ArrowRight } from 'lucide-react'
+import { Gavel, Loader2, AlertCircle, User, ArrowRight, Terminal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import { useRouter } from 'next/navigation'
@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
   const router = useRouter()
 
   async function handleSubmit(formData: FormData) {
@@ -28,6 +29,19 @@ export default function SignInPage() {
       } else {
         window.location.href = '/auctions'
       }
+    }
+  }
+
+  const handleQuickLogin = (email: string) => {
+    if (formRef.current) {
+        const emailInput = formRef.current.querySelector('input[name="email"]') as HTMLInputElement
+        const passwordInput = formRef.current.querySelector('input[name="password"]') as HTMLInputElement
+        
+        if (emailInput && passwordInput) {
+            emailInput.value = email
+            passwordInput.value = "Pass'121"
+            formRef.current.requestSubmit()
+        }
     }
   }
 
@@ -53,7 +67,7 @@ export default function SignInPage() {
           </div>
         )}
 
-        <form action={handleSubmit} className="space-y-8 relative z-10">
+        <form ref={formRef} action={handleSubmit} className="space-y-8 relative z-10">
           <div className="space-y-2">
             <label className={labelClasses}>Digital Mail</label>
             <input 
@@ -87,6 +101,26 @@ export default function SignInPage() {
             Enter Auction Room
           </button>
         </form>
+
+        {process.env.NODE_ENV !== 'production' && (
+            <div className="mt-8 pt-6 border-t border-zinc-50 relative z-10">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-300 mb-3 flex items-center gap-2">
+                    <Terminal size={12} /> Dev Quick Access
+                </p>
+                <div className="space-y-2">
+                    {['doigrouyokixe-9365@yopmail.com', 'jegramuyatru-1717@yopmail.com', 'mijahoiwowi-2691@yopmail.com'].map(email => (
+                        <button 
+                            key={email}
+                            onClick={() => handleQuickLogin(email)}
+                            disabled={loading}
+                            className="w-full text-left px-4 py-2 rounded-xl bg-zinc-50 hover:bg-zinc-100 text-[10px] font-bold uppercase text-zinc-500 hover:text-secondary transition-all truncate border border-transparent hover:border-zinc-200"
+                        >
+                            {email}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        )}
 
         <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 mb-4">New to the platform?</p>

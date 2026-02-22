@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn } from "lucide-react";
+import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap } from "lucide-react";
 import QuickViewModal from "./QuickViewModal";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { placeBid } from "@/app/actions/bids";
@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn, getOptimizedImageUrl, formatEventDate } from "@/lib/utils";
 
-interface Product {
+export interface Product {
   id: string;
   event_id: string;
   lotNumber?: string | number;
@@ -31,9 +31,11 @@ interface Product {
   model?: string;
   description?: string;
   minIncrement?: number;
+  userMaxBid?: number;
+  userCurrentBid?: number;
 }
 
-export default function AuctionCard({ product, user }: { product: Product, user: any }) {
+export default function AuctionCard({ product, user, disableRealtime = false }: { product: Product, user: any, disableRealtime?: boolean }) {
   const [bidAmount, setBidAmount] = useState<number>(product.price + (product.minIncrement || 100));
   const [mounted, setMounted] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
@@ -53,10 +55,17 @@ export default function AuctionCard({ product, user }: { product: Product, user:
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const supabase = createClient();
 
+  // Sync state with props (for when parent updates data)
   useEffect(() => {
-    let isMounted = true;
+    setRealtimePrice(product.price);
+    setRealtimeBidCount(product.bidCount);
+    setRealtimeEndsAt(product.endsAt);
+  }, [product.price, product.bidCount, product.endsAt]);
+
+  // 1. Timer Effect
+  useEffect(() => {
     setMounted(true);
-    setBidAmount(realtimePrice + (product.minIncrement || 100));
+    let isTimerMounted = true;
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
@@ -66,13 +75,11 @@ export default function AuctionCard({ product, user }: { product: Product, user:
       const started = !product.startAt || startTime <= now;
       const ended = endTime <= now;
 
-      // Update states if they changed
-      if (isMounted) {
+      if (isTimerMounted) {
         setIsStarted(started);
         setIsEnded(ended);
       }
 
-      // Handle upcoming state
       if (!started && product.startAt) {
         return `Starts ${formatEventDate(product.startAt)}`;
       }
@@ -92,12 +99,24 @@ export default function AuctionCard({ product, user }: { product: Product, user:
       return parts.join(" ");
     };
 
-    setTimeLeft(calculateTimeLeft());
+    if (isTimerMounted) setTimeLeft(calculateTimeLeft());
+    
     const timer = setInterval(() => {
-        if (isMounted) setTimeLeft(calculateTimeLeft());
+        if (isTimerMounted) setTimeLeft(calculateTimeLeft());
     }, 1000);
 
-    // REALTIME SUBSCRIPTION
+    return () => {
+        isTimerMounted = false;
+        clearInterval(timer);
+    };
+  }, [product.startAt, realtimeEndsAt]);
+
+  // 2. Realtime Subscription Effect
+  useEffect(() => {
+    if (disableRealtime) return;
+
+    let isSubscriptionMounted = true;
+
     const channel = supabase
       .channel(`auction-card-${product.id}`)
       .on('postgres_changes', { 
@@ -105,8 +124,8 @@ export default function AuctionCard({ product, user }: { product: Product, user:
         schema: 'public', 
         table: 'auctions',
         filter: `id=eq.${product.id}`
-      }, (payload) => {
-        if (isMounted) {
+      }, (payload: any) => {
+        if (isSubscriptionMounted) {
           setRealtimePrice(Number(payload.new.current_price));
           if (payload.new.ends_at) {
             setRealtimeEndsAt(payload.new.ends_at);
@@ -118,28 +137,32 @@ export default function AuctionCard({ product, user }: { product: Product, user:
         schema: 'public',
         table: 'bids',
         filter: `auction_id=eq.${product.id}`
-      }, () => {
-        if (isMounted) {
+      }, (payload: any) => {
+        if (isSubscriptionMounted) {
           setRealtimeBidCount(prev => prev + 1);
+          setRealtimePrice(prev => Math.max(prev, Number(payload.new.amount)));
         }
       })
       .subscribe();
 
     // Only fetch watchlist status if user is present
     async function checkWatchlist() {
-        if (user && isMounted) {
+        if (user && isSubscriptionMounted) {
             const { data } = await supabase.from('watchlist').select('id').eq('user_id', user.id).eq('auction_id', product.id).maybeSingle();
-            if (isMounted) setIsWatched(!!data);
+            if (isSubscriptionMounted) setIsWatched(!!data);
         }
     }
     checkWatchlist();
 
     return () => {
-        isMounted = false;
-        clearInterval(timer);
+        isSubscriptionMounted = false;
         supabase.removeChannel(channel);
     };
-  }, [product.id, realtimeEndsAt, product.minIncrement, supabase, user]);
+  }, [product.id, supabase, user, disableRealtime]);
+
+  useEffect(() => {
+    setBidAmount(realtimePrice + (product.minIncrement || 100));
+  }, [realtimePrice, product.minIncrement]);
 
   useEffect(() => {
     setBidAmount(realtimePrice + (product.minIncrement || 100));
@@ -301,6 +324,12 @@ export default function AuctionCard({ product, user }: { product: Product, user:
               <div className="text-2xl font-bold text-secondary tabular-nums font-display leading-none">
                 ${mounted ? realtimePrice.toLocaleString() : realtimePrice.toString()}
               </div>
+              {product.userMaxBid && product.userMaxBid > realtimePrice && (
+                  <div className="flex items-center gap-1 mt-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest animate-pulse">
+                      <Zap size={10} className="fill-current" /> 
+                      Proxy Active: ${product.userMaxBid.toLocaleString()}
+                  </div>
+              )}
             </div>
             <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsHistoryModalOpen(true); }}

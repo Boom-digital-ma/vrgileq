@@ -9,15 +9,23 @@ import { cn } from "@/lib/utils";
 
 export default function AuctionDetailsRealtime({ initialLot, initialBids }: { initialLot: any, initialBids: any[] }) {
   const [lot, setLot] = useState(initialLot);
+  const [bids, setBids] = useState(initialBids);
   const [mounted, setMounted] = useState(false);
   const [isAuctionEnded, setIsAuctionEnded] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
-    setMounted(true);
-    let isMounted = true;
+    setLot(initialLot);
+  }, [initialLot]);
 
-    // Timer to check for expiration
+  useEffect(() => {
+    setBids(initialBids);
+  }, [initialBids]);
+
+  useEffect(() => {
+    setMounted(true);
+    let isTimerMounted = true;
+
     const checkExpiry = () => {
         if (new Date(lot.ends_at) <= new Date()) {
             setIsAuctionEnded(true);
@@ -26,10 +34,6 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
         }
     };
 
-    checkExpiry();
-    const expiryTimer = setInterval(checkExpiry, 1000);
-
-    // Watch for start time
     const checkStart = () => {
         if (lot.auction_events?.start_at && new Date(lot.auction_events.start_at) <= new Date()) {
             setIsStarted(true);
@@ -39,30 +43,70 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
             setIsStarted(false);
         }
     };
+
+    checkExpiry();
     checkStart();
+    
+    const expiryTimer = setInterval(checkExpiry, 1000);
     const startTimer = setInterval(checkStart, 1000);
 
+    return () => {
+      isTimerMounted = false;
+      clearInterval(expiryTimer);
+      clearInterval(startTimer);
+    };
+  }, [lot.ends_at, lot.auction_events?.start_at]);
+
+  useEffect(() => {
+    let isSubscriptionMounted = true;
+    
     const channel = supabase
-      .channel(`auction-details-${lot.id}`)
+      .channel(`auction-room-${lot.id}`)
       .on('postgres_changes', { 
         event: 'UPDATE', 
         schema: 'public', 
         table: 'auctions',
         filter: `id=eq.${lot.id}`
-      }, (payload) => {
-        if (isMounted) {
+      }, (payload: any) => {
+        if (isSubscriptionMounted) {
           setLot((prev: any) => ({ ...prev, ...payload.new }));
         }
       })
-      .subscribe();
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'bids',
+        filter: `auction_id=eq.${lot.id}`
+      }, (payload: any) => {
+        console.log(`[AuctionDetail] INSERT Bid:`, payload.new);
+        if (isSubscriptionMounted) {
+          setBids(prev => [payload.new, ...prev]);
+          // Optimistically update price
+          setLot((prev: any) => ({
+             ...prev,
+             current_price: Math.max(Number(prev.current_price), Number(payload.new.amount))
+          }));
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'bids',
+        filter: `auction_id=eq.${lot.id}`
+      }, (payload: any) => {
+        if (isSubscriptionMounted) {
+          setBids(prev => prev.map(b => b.id === payload.new.id ? payload.new : b));
+        }
+      })
+      .subscribe((status: any) => {
+        console.log(`[AuctionDetail] Status:`, status);
+      });
 
     return () => {
-      isMounted = false;
-      clearInterval(expiryTimer);
-      clearInterval(startTimer);
+      isSubscriptionMounted = false;
       supabase.removeChannel(channel);
     };
-  }, [lot.id, lot.ends_at, lot.auction_events?.start_at, supabase]);
+  }, [lot.id, supabase]);
 
   const secondaryImages = lot.auction_images?.map((img: any) => img.url) || [];
   const finalGallery = [
@@ -155,7 +199,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
             initialPrice={Number(lot.current_price)}
             endsAt={new Date(lot.ends_at)}
             startAt={lot.auction_events?.start_at ? new Date(lot.auction_events.start_at) : undefined}
-            bids={initialBids}
+            bids={bids}
             minIncrement={Number(lot.min_increment)}
           />
           

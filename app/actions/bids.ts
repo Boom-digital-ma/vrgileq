@@ -28,7 +28,7 @@ export async function placeBid({
 
   const { data: auction } = await supabase
     .from('auctions')
-    .select('title, winner_id, event_id, ends_at, auction_events(start_at)')
+    .select('title, winner_id, event_id, ends_at, current_price, min_increment, auction_events(start_at)')
     .eq('id', auctionId)
     .single()
 
@@ -45,6 +45,17 @@ export async function placeBid({
 
   if (now > endsAt) {
     throw new Error('This auction has already ended.')
+  }
+
+  // RULE 2: Auto-Proxy Logic
+  // If user enters more than the minimum required bid, treat the excess as a proxy bid
+  let finalAmount = amount;
+  let finalMaxBid = maxBidAmount;
+  const minRequiredBid = Number(auction.current_price) + Number(auction.min_increment);
+
+  if (amount > minRequiredBid) {
+    finalAmount = minRequiredBid;
+    finalMaxBid = amount; // The high amount becomes the ceiling
   }
 
   let previousWinnerProfile = null
@@ -101,9 +112,9 @@ export async function placeBid({
   const bpRate = settings?.buyers_premium || 15
   const taxRate = settings?.tax_rate || 0
 
-  const bpAmount = amount * (bpRate / 100)
-  const taxAmount = (amount + bpAmount) * (taxRate / 100)
-  const totalAuthAmount = amount + bpAmount + taxAmount
+  const bpAmount = finalAmount * (bpRate / 100)
+  const taxAmount = (finalAmount + bpAmount) * (taxRate / 100)
+  const totalAuthAmount = finalAmount + bpAmount + taxAmount
 
   try {
     // 4. Create Stripe PaymentIntent with Manual Capture (Full Amount)
@@ -119,20 +130,20 @@ export async function placeBid({
       metadata: { 
         auction_id: auctionId, 
         user_id: user.id,
-        hammer_price: amount.toString(),
+        hammer_price: finalAmount.toString(),
         total_auth: totalAuthAmount.toString()
       },
     }, {
-      idempotencyKey: `bid_${user.id}_${auctionId}_${amount}_${Date.now()}`,
+      idempotencyKey: `bid_${user.id}_${auctionId}_${finalAmount}_${Date.now()}`,
     })
 
     // 5. Call Supabase RPC with Max Bid support
     const { error: rpcError } = await supabase.rpc('place_bid_secure', {
       p_auction_id: auctionId,
       p_user_id: user.id,
-      p_amount: amount,
+      p_amount: finalAmount,
       p_stripe_pi_id: paymentIntent.id,
-      p_max_amount: maxBidAmount || null
+      p_max_amount: finalMaxBid || null
     })
 
     if (rpcError) {
@@ -146,7 +157,7 @@ export async function placeBid({
             to: previousWinnerProfile.email,
             bidderName: previousWinnerProfile.full_name || 'Bidder',
             auctionTitle: auction?.title || 'Industrial Item',
-            newAmount: amount,
+            newAmount: finalAmount,
             auctionUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auctions/${auctionId}`
         })
     }

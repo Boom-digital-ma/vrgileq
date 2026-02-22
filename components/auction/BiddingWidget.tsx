@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star, Clock } from "lucide-react";
+import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star, Clock, Trophy, Zap } from "lucide-react";
 import { placeBid } from "@/app/actions/bids";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { checkRegistration } from "@/app/actions/registrations";
@@ -38,11 +38,13 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [settings, setSettings] = useState<any>(null);
   const [isStarted, setIsStarted] = useState(!startAt || startAt <= new Date());
   const [isEnded, setIsEnded] = useState(realtimeEndsAt <= new Date());
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   
   const supabase = createClient();
 
   useEffect(() => {
+    setMounted(true);
     let isMounted = true;
     
     async function getInitialData() {
@@ -67,34 +69,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     }
     getInitialData();
 
-    // REALTIME SUBSCRIPTION
-    const channel = supabase
-      .channel(`bidding-widget-${auctionId}`)
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'auctions',
-        filter: `id=eq.${auctionId}`
-      }, (payload) => {
-        if (isMounted) {
-          setRealtimePrice(Number(payload.new.current_price));
-          if (payload.new.ends_at) {
-            setRealtimeEndsAt(new Date(payload.new.ends_at));
-          }
-        }
-      })
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'bids',
-        filter: `auction_id=eq.${auctionId}`
-      }, (payload) => {
-        if (isMounted) {
-          setRealtimeBids(prev => [payload.new, ...prev]);
-        }
-      })
-      .subscribe();
-
+    // Watch for start time
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const startTime = startAt ? new Date(startAt).getTime() : 0;
@@ -141,11 +116,10 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     return () => {
         isMounted = false;
         clearInterval(timer);
-        supabase.removeChannel(channel);
     };
-  }, [realtimeEndsAt, supabase, eventId, auctionId]);
+  }, [realtimeEndsAt, eventId, auctionId]);
 
-  // Sync with props if parent updates
+  // Sync with props if parent updates (The REAL reactive way)
   useEffect(() => {
     setRealtimePrice(initialPrice);
   }, [initialPrice]);
@@ -159,8 +133,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   }, [endsAt]);
 
   useEffect(() => {
-    setBidAmount(realtimePrice + minIncrement);
-  }, [realtimePrice, minIncrement]);
+    setBidAmount(initialPrice + minIncrement);
+  }, [initialPrice, minIncrement]);
 
   const handleToggleWatch = async () => {
     if (!userProfile) {
@@ -223,6 +197,16 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const hasCard = !!userProfile?.default_payment_method_id;
   const sortedBids = [...realtimeBids].sort((a, b) => b.amount - a.amount);
   
+  // Logic to identify user's winning status and proxy
+  const userWinningBid = userProfile ? sortedBids.find(b => b.user_id === userProfile.id && b.status === 'active') : null;
+  
+  // A user is winning if the TOP bid is theirs
+  const isWinning = sortedBids.length > 0 && userProfile && sortedBids[0].user_id === userProfile.id;
+  
+  // Proxy is active if they are winning AND have a max_amount set higher than current price
+  const userProxyAmount = userWinningBid?.max_amount;
+  const isProxyActive = isWinning && userProxyAmount && userProxyAmount > realtimePrice;
+
   const premiumPercent = settings?.buyers_premium || 15;
   const taxRate = settings?.tax_rate || 0;
   
@@ -251,7 +235,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           <div className={cn(
             "text-4xl font-bold tabular-nums font-display tracking-tight italic",
             isUrgent ? "text-rose-600 animate-in fade-in duration-300" : "text-secondary"
-          )}>{timeLeft || "00:00:00"}</div>
+          )}>{mounted ? timeLeft : <span className="opacity-0">--:--:--</span>}</div>
         </div>
         
         <div className={cn(
@@ -274,6 +258,31 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
       </div>
 
       <form onSubmit={handleBid} className="flex flex-col gap-5 mb-8">
+        
+        {/* User Status / Proxy Indicator */}
+        {isWinning && (
+            <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl animate-in fade-in slide-in-from-top-2 shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="bg-emerald-100 p-2.5 rounded-full text-emerald-600">
+                        <Trophy size={20} />
+                    </div>
+                    <div>
+                        <p className="text-emerald-800 font-bold text-sm uppercase tracking-tight leading-none mb-1">You are Winning!</p>
+                        {isProxyActive ? (
+                            <p className="text-emerald-600/80 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
+                                <Zap size={12} className="fill-current" />
+                                Proxy Active up to ${userProxyAmount?.toLocaleString()}
+                            </p>
+                        ) : (
+                            <p className="text-emerald-600/80 text-[10px] uppercase font-bold tracking-widest">
+                                You hold the highest bid
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
+
         {settings?.proxy_bidding_enabled && (
             <div className="flex items-center justify-between bg-zinc-50/80 border border-zinc-100 rounded-2xl p-4 transition-all hover:bg-zinc-50">
                 <div className="flex items-center gap-3">
@@ -403,13 +412,30 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         </div>
         <div className="space-y-3">
           {sortedBids.slice(0, 5).map((bid, i) => (
-            <div key={i} className="flex justify-between items-center p-4 rounded-2xl border border-zinc-50 bg-zinc-50/30 hover:bg-white hover:border-zinc-100 transition-all group">
+            <div key={i} className={cn(
+                "flex justify-between items-center p-4 rounded-2xl border transition-all group",
+                i === 0 
+                    ? "bg-rose-50/50 border-rose-200 shadow-sm" 
+                    : "bg-zinc-50/30 border-zinc-50 hover:bg-white hover:border-zinc-100"
+            )}>
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">Bidder #{bid.id.slice(0,4)}</span>
-                <span className="text-[8px] font-medium text-zinc-300 uppercase">{new Date(bid.created_at).toLocaleTimeString()}</span>
+                <span className={cn(
+                    "text-[10px] font-bold uppercase tracking-tighter flex items-center gap-2",
+                    i === 0 ? "text-rose-500" : "text-zinc-400"
+                )}>
+                    {i === 0 && <span className="text-[8px] bg-rose-500 text-white px-1.5 py-0.5 rounded-full">LATEST</span>}
+                    {bid.is_auto_bid && <span className="text-[8px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full">AUTO</span>}
+                    <span>Bidder #{bid.user_id?.slice(0,4) || 'UNK'}</span>
+                </span>
+                <span className="text-[8px] font-medium text-zinc-300 uppercase">
+                    {mounted ? new Date(bid.created_at).toLocaleTimeString() : <span className="opacity-0">--:--:--</span>}
+                </span>
               </div>
               <div className="text-right">
-                <div className="text-lg font-bold text-secondary font-display italic tracking-tight group-hover:text-primary transition-colors">${bid.amount.toLocaleString()}</div>
+                <div className={cn(
+                    "text-lg font-bold font-display italic tracking-tight transition-colors",
+                    i === 0 ? "text-rose-600" : "text-secondary group-hover:text-primary"
+                )}>${bid.amount.toLocaleString()}</div>
               </div>
             </div>
           ))}

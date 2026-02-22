@@ -76,10 +76,10 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
         if (isMounted) setTimeLeft(calculateTimeLeft());
       }, 1000);
       
-      supabase.auth.getUser().then(({ data }) => {
+      supabase.auth.getUser().then(({ data }: any) => {
           if (data.user && isMounted) {
               supabase.from('profiles').select('*').eq('id', data.user.id).single()
-                .then(({ data: profile }) => {
+                .then(({ data: profile }: any) => {
                   if (isMounted) setUserProfile(profile);
                 });
           }
@@ -90,7 +90,7 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
         .eq('auction_id', product.id)
         .order('amount', { ascending: false })
         .limit(10)
-        .then(({ data }) => {
+        .then(({ data }: any) => {
           if (isMounted) setRealtimeBids(data || []);
         });
 
@@ -102,7 +102,7 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
           schema: 'public', 
           table: 'auctions',
           filter: `id=eq.${product.id}`
-        }, (payload) => {
+        }, (payload: any) => {
           if (isMounted) {
             setRealtimePrice(Number(payload.new.current_price));
           }
@@ -112,13 +112,17 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
           schema: 'public',
           table: 'bids',
           filter: `auction_id=eq.${product.id}`
-        }, (payload) => {
+        }, (payload: any) => {
+          console.log(`[QuickView] INSERT Bid:`, payload.new);
           if (isMounted) {
             setRealtimeBids(prev => [payload.new, ...prev].sort((a, b) => b.amount - a.amount).slice(0, 10));
             setRealtimeBidCount(prev => prev + 1);
+            setRealtimePrice(prev => Math.max(prev, Number(payload.new.amount)));
           }
         })
-        .subscribe();
+        .subscribe((status: any) => {
+            console.log(`[QuickView] Status:`, status);
+        });
 
       return () => {
         isMounted = false;
@@ -128,6 +132,11 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
       };
     }
   }, [isOpen, initialBid, supabase, product.id, product.endsAt, onlyHistory]);
+
+  useEffect(() => {
+    setRealtimePrice(product.price);
+    setRealtimeBidCount(product.bidCount);
+  }, [product.price, product.bidCount]);
 
   useEffect(() => {
     setBidAmount(realtimePrice + (product.minIncrement || 100));

@@ -98,7 +98,7 @@ export const AdvancedInventoryLoader = () => {
 
             if (!folderCache[folderPath]) {
                 const { data: existingFiles } = await supabase.storage.from('auction-images').list(folderPath)
-                folderCache[folderPath] = existingFiles?.map(f => f.name) || []
+                folderCache[folderPath] = existingFiles?.map((f: any) => f.name) || []
             }
 
             const exists = folderCache[folderPath].includes(file.name)

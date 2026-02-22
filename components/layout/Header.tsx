@@ -24,13 +24,13 @@ export default function Header() {
 
   useEffect(() => {
     // 1. Initial Session Check
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: any) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     // 2. Listen for Auth Changes (Login/Logout)
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
       setUser(session?.user ?? null);
       setLoading(false);
       

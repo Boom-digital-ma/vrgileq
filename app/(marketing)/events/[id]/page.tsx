@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import AuctionCard from '@/components/auction/AuctionCard'
+import AuctionGrid from '@/components/auction/AuctionGrid'
 import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, ChevronRight, SlidersHorizontal, MapPin, Package, Clock, Lock } from 'lucide-react'
 import RegistrationButton from '@/components/auction/RegistrationButton'
 import EventStatusBadge from '@/components/auction/EventStatusBadge'
@@ -75,25 +75,44 @@ export default async function EventPage({
 
   const totalPages = Math.ceil((count || 0) / PAGE_SIZE)
 
-  const mappedLots = lots?.map(lot => ({
-    id: lot.id,
-    event_id: lot.event_id,
-    lotNumber: lot.lot_number,
-    title: lot.title,
-    supplier: lot.categories?.name || "Industrial Liquidation",
-    price: Number(lot.current_price),
-    endsAt: lot.ends_at,
-    startAt: (lot.auction_events as any)?.start_at,
-    image: lot.image_url || "/images/placeholder.jpg",
-    images: [
-        ...(lot.image_url ? [lot.image_url] : []),
-        ...(lot.auction_images?.map((i: any) => i.url) || [])
-    ].filter((v, i, a) => a.indexOf(v) === i),
-    bidCount: lot.bids?.[0]?.count || 0,
-    pickupLocation: (lot.auction_events as any)?.location,
-    description: lot.description,
-    minIncrement: Number(lot.min_increment)
-  })) || []
+  // 4. Fetch User Bids for these lots (for Proxy Indicators)
+  let userBidsMap = new Map();
+  if (user && lots && lots.length > 0) {
+      const lotIds = lots.map(l => l.id);
+      const { data: userBids } = await supabase
+        .from('bids')
+        .select('auction_id, max_amount, amount')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .in('auction_id', lotIds);
+      
+      userBids?.forEach((b: any) => userBidsMap.set(b.auction_id, b));
+  }
+
+  const mappedLots = lots?.map(lot => {
+    const userBid = userBidsMap.get(lot.id);
+    return {
+        id: lot.id,
+        event_id: lot.event_id,
+        lotNumber: lot.lot_number,
+        title: lot.title,
+        supplier: lot.categories?.name || "Industrial Liquidation",
+        price: Number(lot.current_price),
+        endsAt: lot.ends_at,
+        startAt: (lot.auction_events as any)?.start_at,
+        image: lot.image_url || "/images/placeholder.jpg",
+        images: [
+            ...(lot.image_url ? [lot.image_url] : []),
+            ...(lot.auction_images?.map((i: any) => i.url) || [])
+        ].filter((v, i, a) => a.indexOf(v) === i),
+        bidCount: lot.bids?.[0]?.count || 0,
+        pickupLocation: (lot.auction_events as any)?.location,
+        description: lot.description,
+        minIncrement: Number(lot.min_increment),
+        userMaxBid: userBid?.max_amount,
+        userCurrentBid: userBid?.amount
+    };
+  }) || []
 
   const isUpcoming = new Date(event.start_at) > new Date();
   const isEnded = new Date(event.ends_at) <= new Date();
@@ -179,11 +198,7 @@ export default async function EventPage({
                 </nav>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                {mappedLots.map((product) => (
-                    <AuctionCard key={product.id} product={product} user={user} />
-                ))}
-            </div>
+            <AuctionGrid products={mappedLots} user={user} eventId={id} />
 
             {totalPages > 1 && (
                 <div className="pt-12 border-t border-zinc-100">

@@ -26,7 +26,7 @@ export default function EventStatusBadge({ initialStatus, startAt, endsAt, event
         schema: 'public', 
         table: 'auction_events',
         filter: `id=eq.${eventId}`
-      }, (payload) => {
+      }, (payload: any) => {
         setStatus(payload.new.status);
       })
       .subscribe();

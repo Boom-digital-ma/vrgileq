@@ -31,7 +31,7 @@ export default function ProtocolCards({ event }: ProtocolCardsProps) {
         schema: 'public', 
         table: 'auction_events',
         filter: `id=eq.${event.id}`
-      }, (payload) => {
+      }, (payload: any) => {
         setStatus(payload.new.status);
       })
       .subscribe();
