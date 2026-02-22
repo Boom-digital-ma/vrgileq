@@ -40,38 +40,90 @@ Deno.serve(async (req) => {
 
     const winningBid = auction.bids && auction.bids.length > 0 ? auction.bids[0] : null
 
-    if (winningBid) {
-      console.log(`Winning bid found: ${winningBid.amount} by ${winningBid.user_id}`)
-      
-      // 2. Capture Stripe Payment
-      let isPaid = false
-      if (winningBid.stripe_payment_intent_id) {
-        try {
-          const intent = await stripe.paymentIntents.capture(winningBid.stripe_payment_intent_id)
-          if (intent.status === 'succeeded') {
-            isPaid = true
-            console.log(`Stripe payment captured: ${winningBid.stripe_payment_intent_id}`)
+      // 3. Calculate Total (Hammer + Premium + Tax)
+      const bpRate = settings?.buyers_premium || 15
+      const taxRate = settings?.tax_rate || 0
+      const hammer = Number(winningBid.amount)
+      const bpAmount = hammer * (bpRate / 100)
+      const taxAmount = (hammer + bpAmount) * (taxRate / 100)
+      let totalToChargeCents = Math.round((hammer + bpAmount + taxAmount) * 100)
+
+      // 4. CHECK AND DEDUCT REGISTRATION DEPOSIT (Caution)
+      const { data: registration } = await supabaseAdmin
+        .from('event_registrations')
+        .select('id, stripe_payment_intent_id, deposit_captured')
+        .eq('event_id', auction.event_id)
+        .eq('user_id', winningBid.user_id)
+        .single()
+
+      let amountDeductedCents = 0
+      if (registration?.stripe_payment_intent_id && !registration.deposit_captured) {
+          try {
+              // Capture the deposit first
+              const depositIntent = await stripe.paymentIntents.capture(registration.stripe_payment_intent_id)
+              if (depositIntent.status === 'succeeded') {
+                  amountDeductedCents = depositIntent.amount_received
+                  totalToChargeCents -= amountDeductedCents
+                  
+                  // Mark deposit as used so it's not deducted from next winning lot in same event
+                  await supabaseAdmin
+                    .from('event_registrations')
+                    .update({ deposit_captured: true })
+                    .eq('id', registration.id)
+                  
+                  console.log(`Deposit of ${amountDeductedCents/100}$ captured and deducted.`)
+              }
+          } catch (captureErr) {
+              console.warn("Could not capture deposit (already captured or expired):", captureErr.message)
           }
-        } catch (stripeErr) {
-          console.error("Stripe Capture Error:", stripeErr.message)
-        }
       }
 
-      // 3. Update Auction status (This triggers the creation of the Sale record)
+      // 5. Create and Capture Payment for the REMAINING balance (if any)
+      let isPaid = false
+      let finalChargeId = null
+      
+      if (totalToChargeCents > 0) {
+          try {
+              const paymentIntent = await stripe.paymentIntents.create({
+                  amount: totalToChargeCents,
+                  currency: 'usd',
+                  customer: winnerProfile.stripe_customer_id,
+                  payment_method: winnerProfile.default_payment_method_id,
+                  off_session: true,
+                  confirm: true,
+                  description: `Final balance for Auction: ${auction.title} (Deposit of ${amountDeductedCents/100}$ deducted)`,
+                  metadata: { auction_id, user_id: winningBid.user_id }
+              })
+              
+              if (paymentIntent.status === 'succeeded') {
+                  isPaid = true
+                  finalChargeId = paymentIntent.id
+                  console.log(`Remaining balance of ${totalToChargeCents/100}$ charged: ${finalChargeId}`)
+              }
+          } catch (stripeErr) {
+              console.error("Balance Debit Error:", stripeErr.message)
+          }
+      } else {
+          // Hammer price was fully covered by the deposit (unlikely but possible)
+          isPaid = true
+          finalChargeId = registration?.stripe_payment_intent_id
+          console.log("Invoice fully covered by registration deposit.")
+      }
+
+      // 6. Update Auction & Bid status
       await supabaseAdmin.from("auctions").update({ status: "sold", winner_id: winningBid.user_id }).eq("id", auction_id)
       await supabaseAdmin.from("bids").update({ status: "won" }).eq("id", winningBid.id)
 
-      // 4. Update Sale record status if payment was successful
+      // 7. Update Sale record
       if (isPaid) {
-        // We wait a tiny bit to ensure the DB trigger has finished creating the sale
-        await new Promise(resolve => setTimeout(resolve, 500))
-        await supabaseAdmin.from("sales").update({ status: 'paid' }).eq("auction_id", auction_id)
+        await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for trigger
+        await supabaseAdmin.from("sales").update({ 
+            status: 'paid', 
+            stripe_payment_intent_id: finalChargeId 
+        }).eq("auction_id", auction_id)
       }
 
-      // 5. Fetch Sale Record for email
-      const { data: sale } = await supabaseAdmin.from("sales").select("id").eq("auction_id", auction_id).maybeSingle()
-
-      // 5. Notify Winner (In-app notification)
+      // 8. In-app notification
       await supabaseAdmin.from("notifications").insert({
         user_id: winningBid.user_id,
         type: 'won',
@@ -80,28 +132,9 @@ Deno.serve(async (req) => {
         message: `You won "${auction.title}" for $${auction.current_price}.`
       })
 
-      // EMAIL NOTIFICATION: Removed from here to prevent 429 errors.
-      // It is now handled in batch by the 'notify-watchlist-closing' function 
-      // which runs every minute and looks for 'winning_notified = false' in the sales table.
-
     } else {
       console.log("No bids found for this auction. Closing as ended.")
       await supabaseAdmin.from("auctions").update({ status: "ended" }).eq("id", auction_id)
-    }
-
-    // 7. Cleanup other holds
-    const { data: otherBids } = await supabaseAdmin.from("bids")
-      .select("stripe_payment_intent_id")
-      .eq("auction_id", auction_id)
-      .eq("status", "outbid")
-      .not("stripe_payment_intent_id", "is", null)
-
-    if (otherBids && otherBids.length > 0) {
-      for (const bid of otherBids) {
-        try {
-          await stripe.paymentIntents.cancel(bid.stripe_payment_intent_id)
-        } catch (e) { /* ignore */ }
-      }
     }
 
     return new Response(JSON.stringify({ success: true }), {

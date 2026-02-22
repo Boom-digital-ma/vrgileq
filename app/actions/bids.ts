@@ -118,60 +118,24 @@ export async function placeBid({
     throw new Error('No payment method found. Please add a card to your profile.')
   }
 
-  const { data: previousBid } = await supabase
-    .from('bids')
-    .select('stripe_payment_intent_id')
-    .eq('auction_id', auctionId)
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .single()
-
-  // 3b. Fetch settings for full authorization amount calculation
-  const { data: settings } = await supabase.from('site_settings').select('buyers_premium, tax_rate').eq('id', 'global').single()
-  const bpRate = settings?.buyers_premium || 15
-  const taxRate = settings?.tax_rate || 0
-
-  const bpAmount = finalAmount * (bpRate / 100)
-  const taxAmount = (finalAmount + bpAmount) * (taxRate / 100)
-  const totalAuthAmount = finalAmount + bpAmount + taxAmount
-
+  // 3. SECURE BIDDING (Database Only)
   try {
-    // 4. Create Stripe PaymentIntent with Manual Capture (Full Amount)
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(totalAuthAmount * 100),
-      currency: 'usd',
-      customer: profile?.stripe_customer_id,
-      payment_method: finalPaymentMethodId,
-      capture_method: 'manual',
-      confirm: true,
-      off_session: true,
-      description: `Bid on auction ${auctionId} (Incl. Premium & Tax)`,
-      metadata: { 
-        auction_id: auctionId, 
-        user_id: user.id,
-        hammer_price: finalAmount.toString(),
-        total_auth: totalAuthAmount.toString()
-      },
-    }, {
-      idempotencyKey: `bid_${user.id}_${auctionId}_${finalAmount}_${Date.now()}`,
-    })
-
-    // 5. Call Supabase RPC with Max Bid support
+    // Call Supabase RPC with Max Bid support
+    // We pass null for p_stripe_pi_id as we no longer hold funds per bid
     const { error: rpcError } = await supabase.rpc('place_bid_secure', {
       p_auction_id: auctionId,
       p_user_id: user.id,
       p_amount: finalAmount,
-      p_stripe_pi_id: paymentIntent.id,
+      p_stripe_pi_id: null,
       p_max_amount: finalMaxBid || null
     })
 
     if (rpcError) {
       console.error("[BID_ERROR] RPC Failed:", rpcError.message);
-      await stripe.paymentIntents.cancel(paymentIntent.id)
       throw new Error(rpcError.message)
     }
 
-    // 6. Check if winner changed to send Outbid Email
+    // 4. Check if winner changed to send Outbid Email
     const { data: updatedAuction } = await supabase
         .from('auctions')
         .select('winner_id, current_price')
@@ -196,25 +160,6 @@ export async function placeBid({
         } catch (emailErr) {
             console.error(`[EMAIL_SERVICE] SMTP/API Error:`, emailErr);
         }
-    } else {
-        if (!previousWinnerProfile) {
-            console.log(`[EMAIL_SERVICE] No outbid email: First bid on this lot (No previous winner).`);
-        } else if (!previousWinnerEmail) {
-            console.log(`[EMAIL_SERVICE] No outbid email: Previous winner profile has no email (Fallback failed).`);
-        } else if (updatedAuction?.winner_id === previousWinnerProfile.id) {
-            console.log(`[EMAIL_SERVICE] No outbid email: Previous winner was NOT displaced (Proxy Bid kept them lead).`);
-        } else {
-            console.log(`[EMAIL_SERVICE] No outbid email: Unknown condition.`);
-        }
-    }
-
-    // 7. If successful, cancel the PREVIOUS hold
-    if (previousBid?.stripe_payment_intent_id) {
-      try {
-        await stripe.paymentIntents.cancel(previousBid.stripe_payment_intent_id)
-      } catch (e) {
-        console.error("Non-critical: Failed to cancel previous hold", e)
-      }
     }
 
     revalidatePath(`/auctions/${auctionId}`)
