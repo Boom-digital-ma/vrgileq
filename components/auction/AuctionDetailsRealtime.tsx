@@ -155,10 +155,10 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
           </div>
 
           <div className="mb-12">
-              <ImageGallery images={finalGallery.length > 0 ? finalGallery : ["/images/placeholder.jpg"]} />
+              <ImageGallery images={finalGallery.length > 0 ? finalGallery : ["/images/placeholder.jpg"]} title={lot.title} />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 py-12 border-t border-zinc-100">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 py-12 border-t border-zinc-100">
               {[
                   { label: "Manufacturer", value: lot.manufacturer || "Certified OEM", icon: Package },
                   { label: "Model Reference", value: lot.model || "Industrial Standard", icon: Info },
@@ -168,14 +168,14 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
                   <div key={i} className="flex items-start gap-4">
                       <div className="p-2 bg-zinc-50 rounded-xl text-zinc-400 border border-zinc-100"><spec.icon size={18} /></div>
                       <div>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.1em] mb-1">{spec.label}</p>
-                          <p className="text-base font-bold text-secondary">{spec.value}</p>
+                          <dt className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.1em] mb-1">{spec.label}</dt>
+                          <dd className="text-base font-bold text-secondary">{spec.value}</dd>
                       </div>
                   </div>
               ))}
-          </div>
+          </dl>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 py-12 border-t border-zinc-100">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 py-12 border-t border-zinc-100">
               {[
                   { label: "Removal Protocol", value: "Pickup at event location. Logistics and extraction partners available upon request.", icon: MapPin },
                   { label: "Asset Origin", value: lot.auction_events?.location || "Alexandria Regional Hub", icon: Clock },
@@ -183,12 +183,12 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
                   <div key={i} className="flex items-start gap-4">
                       <div className="p-2 bg-zinc-50 rounded-xl text-zinc-400 border border-zinc-100"><item.icon size={18} /></div>
                       <div>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.1em] mb-1">{item.label}</p>
-                          <p className="text-base font-bold text-secondary uppercase italic">{item.value}</p>
+                          <dt className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.1em] mb-1">{item.label}</dt>
+                          <dd className="text-base font-bold text-secondary uppercase italic">{item.value}</dd>
                       </div>
                   </div>
               ))}
-          </div>
+          </dl>
         </div>
 
         {/* RIGHT: Action Widget */}

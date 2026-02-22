@@ -7,11 +7,12 @@ import { Loader2 } from "lucide-react";
 
 interface ImageGalleryProps {
   images: string[];
+  title?: string;
 }
 
 const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=1200";
 
-export default function ImageGallery({ images }: ImageGalleryProps) {
+export default function ImageGallery({ images, title = "Auction Lot" }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [zoomStyle, setZoomStyle] = useState({ display: 'none', transformOrigin: '0% 0%', transform: 'scale(1)' });
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -83,7 +84,7 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
       >
         <Image
           src={currentImage}
-          alt="Auction Lot"
+          alt={`${title} - Main Image - Virginia Liquidation`}
           fill
           className={cn(
             "object-cover transition-all duration-300 ease-out",
@@ -140,7 +141,7 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
             >
                 <Image
                     src={image || PLACEHOLDER_IMAGE}
-                    alt={`Thumbnail ${index + 1}`}
+                    alt={`${title} - Thumbnail ${index + 1} - Virginia Liquidation`}
                     fill
                     className="object-cover"
                     sizes="100px"

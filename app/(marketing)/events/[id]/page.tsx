@@ -120,8 +120,41 @@ export default async function EventPage({
   const isUpcoming = new Date(event.start_at) > new Date();
   const isEnded = new Date(event.ends_at) <= new Date();
 
+  // JSON-LD Structured Data for Event
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": event.title,
+    "startDate": event.start_at,
+    "endDate": event.ends_at,
+    "eventStatus": isEnded ? "https://schema.org/EventScheduled" : "https://schema.org/EventMovedOnline",
+    "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+    "location": {
+      "@type": "VirtualLocation",
+      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'}/events/${event.id}`
+    },
+    "image": [event.image_url].filter(Boolean),
+    "description": event.description,
+    "organizer": {
+      "@type": "Organization",
+      "name": "Virginia Liquidation",
+      "url": "https://virginialiquidation.com"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'}/events/${event.id}`,
+      "price": event.deposit_amount || "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 pb-20 font-sans antialiased text-secondary italic">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-7xl mx-auto px-6 py-12 lg:py-20">
         
         {/* REFINED HEADER SECTION */}

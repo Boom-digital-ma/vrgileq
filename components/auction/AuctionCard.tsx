@@ -271,7 +271,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           <Link href={`/auctions/${product.id}`} className="absolute inset-0">
             <Image
               src={getOptimizedImageUrl(allImages[currentImageIndex], { width: 600 })}
-              alt={product.title}
+              alt={`${product.title} ${product.manufacturer ? `by ${product.manufacturer}` : ''} ${product.model ? `(${product.model})` : ''} - Virginia Liquidation`}
               fill
               className={cn(
                 "object-cover transition-all duration-700 group-hover:scale-105",
