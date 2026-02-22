@@ -26,6 +26,6 @@ END $$;
 -- Create the schedule
 SELECT cron.schedule(
   'notify-watchlist-job',
-  '*/10 * * * *',
+  '* * * * *',
   'SELECT public.check_and_notify_watchlist()'
 );

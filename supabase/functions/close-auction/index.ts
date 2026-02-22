@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       // 5. Fetch Sale Record for email
       const { data: sale } = await supabaseAdmin.from("sales").select("id").eq("auction_id", auction_id).maybeSingle()
 
-      // 5. Notify Winner
+      // 5. Notify Winner (In-app notification)
       await supabaseAdmin.from("notifications").insert({
         user_id: winningBid.user_id,
         type: 'won',
@@ -80,27 +80,10 @@ Deno.serve(async (req) => {
         message: `You won "${auction.title}" for $${auction.current_price}.`
       })
 
-      // 6. Send Email via Resend API (Direct Fetch to avoid library issues)
-      if (RESEND_API_KEY && sale) {
-        const { data: winnerProfile } = await supabaseAdmin.from('profiles').select('full_name, email').eq('id', winningBid.user_id).single()
-        const fromEmail = Deno.env.get("RESEND_FROM") || "Virginia Liquidation <onboarding@resend.dev>"
-        
-        if (winnerProfile?.email) {
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${RESEND_API_KEY}`,
-            },
-            body: JSON.stringify({
-              from: fromEmail,
-              to: winnerProfile.email,
-              subject: `CONGRATULATIONS! You won: ${auction.title}`,
-              html: `<h1>You won!</h1><p>Congratulations, you are the winner of <b>${auction.title}</b>.</p><p><a href="${SITE_URL}/invoices/${sale.id}">View Invoice</a></p>`,
-            }),
-          })
-        }
-      }
+      // EMAIL NOTIFICATION: Removed from here to prevent 429 errors.
+      // It is now handled in batch by the 'notify-watchlist-closing' function 
+      // which runs every minute and looks for 'winning_notified = false' in the sales table.
+
     } else {
       console.log("No bids found for this auction. Closing as ended.")
       await supabaseAdmin.from("auctions").update({ status: "ended" }).eq("id", auction_id)

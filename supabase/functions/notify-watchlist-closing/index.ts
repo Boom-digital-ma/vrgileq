@@ -21,7 +21,36 @@ serve(async (req) => {
     const batchEmails: any[] = []
     const updateTasks: any[] = []
 
-    // --- 1. PREPARE LIVE NOTIFICATIONS ---
+    // --- 1. PREPARE WINNING NOTIFICATIONS (NEW) ---
+    const { data: pendingSales } = await supabaseAdmin
+      .from("sales")
+      .select(`
+        id, hammer_price,
+        auction:auctions(title),
+        winner:profiles(full_name, email)
+      `)
+      .eq("winning_notified", false)
+      .limit(50) // Limit to avoid too large payload
+
+    for (const sale of (pendingSales || [])) {
+      const { winner, auction } = sale as any
+      if (winner?.email) {
+        batchEmails.push({
+          from: FROM_EMAIL,
+          to: winner.email,
+          subject: `CONGRATULATIONS! You won: ${auction.title}`,
+          html: generateWinningHtml({
+            userName: winner.full_name || 'Valued Bidder',
+            auctionTitle: auction.title,
+            amount: sale.hammer_price,
+            invoiceUrl: `${SITE_URL}/invoices/${sale.id}`
+          })
+        })
+        updateTasks.push({ id: sale.id, table: 'sales', field: 'winning_notified' })
+      }
+    }
+
+    // --- 2. PREPARE LIVE NOTIFICATIONS ---
     const { data: liveItems } = await supabaseAdmin
       .from("watchlist")
       .select(`
@@ -49,11 +78,11 @@ serve(async (req) => {
             auctionUrl: `${SITE_URL}/auctions/${item.auction_id}`
           })
         })
-        updateTasks.push({ id: item.id, field: 'notified_live' })
+        updateTasks.push({ id: item.id, table: 'watchlist', field: 'notified_live' })
       }
     }
 
-    // --- 2. PREPARE CLOSING NOTIFICATIONS ---
+    // --- 3. PREPARE CLOSING NOTIFICATIONS ---
     const { data: closingItems } = await supabaseAdmin
       .from("watchlist")
       .select(`
@@ -84,11 +113,11 @@ serve(async (req) => {
             isUrgent: true
           })
         })
-        updateTasks.push({ id: item.id, field: 'notified_closing_soon' })
+        updateTasks.push({ id: item.id, table: 'watchlist', field: 'notified_closing_soon' })
       }
     }
 
-    // --- 3. EXECUTE BATCH SENDING ---
+    // --- 4. EXECUTE BATCH SENDING ---
     if (batchEmails.length > 0) {
       for (let i = 0; i < batchEmails.length; i += 100) {
         const chunk = batchEmails.slice(i, i + 100)
@@ -103,8 +132,9 @@ serve(async (req) => {
         if (res.ok) {
           // Update notified flags in DB
           for (const task of taskChunk) {
-            await supabaseAdmin.from("watchlist").update({ [task.field]: true }).eq("id", task.id)
-            if (task.field === 'notified_live') results.live_notifications++
+            await supabaseAdmin.from(task.table).update({ [task.field]: true }).eq("id", task.id)
+            if (task.table === 'sales') results.winning_notifications = (results.winning_notifications || 0) + 1
+            else if (task.field === 'notified_live') results.live_notifications++
             else results.closing_notifications++
           }
         } else {
@@ -124,6 +154,58 @@ serve(async (req) => {
     })
   }
 })
+
+function generateWinningHtml(params: {
+  userName: string,
+  auctionTitle: string,
+  amount: number,
+  invoiceUrl: string
+}) {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #F9FAFB; color: #464646; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #E5E7EB; }
+        .header { background-color: #0B2B53; padding: 40px; text-align: center; }
+        .content { padding: 40px; }
+        .h1 { color: #049A9E; font-size: 28px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; font-style: italic; }
+        .info-box { background-color: #f9f9f9; padding: 24px; border: 1px solid #eee; border-radius: 16px; margin: 24px 0; }
+        .button { display: inline-block; background-color: #049A9E; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px; box-shadow: 4px 4px 0px 0px #0B2B53; }
+        .footer { padding: 30px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #F3F4F6; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/public_assets/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
+        </div>
+        <div class="content">
+          <h1 class="h1">YOU WON!</h1>
+          <p>Hello ${params.userName},</p>
+          <p>Congratulations! You are the official winner of the following industrial asset:</p>
+          
+          <div class="info-box">
+            <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #0B2B53; text-transform: uppercase;">${params.auctionTitle}</h2>
+            <p style="margin: 0; font-size: 16px;"><strong>Final Hammer Price:</strong> $${params.amount.toLocaleString()}</p>
+          </div>
+
+          <p>Please review your invoice and prepare for pickup scheduling.</p>
+
+          <div style="margin: 32px 0; text-align: center;">
+            <a href="${params.invoiceUrl}" class="button">View My Invoice</a>
+          </div>
+        </div>
+        <div className="footer">
+          <p>© 2026 Virginia Liquidation. All rights reserved.</p>
+          <p>Industrial B2B Auction Solutions • Richmond, VA</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
 
 function generateHtml(params: {
   title: string,
