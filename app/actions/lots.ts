@@ -137,3 +137,100 @@ export async function importLots(eventId: string, lots: any[]) {
     return { success: false, error: error.message }
   }
 }
+
+export async function fetchLots({ 
+    eventId, 
+    categoryId, 
+    searchQuery, 
+    page = 1, 
+    pageSize = 12,
+    status = 'live'
+}: { 
+    eventId?: string, 
+    categoryId?: string, 
+    searchQuery?: string, 
+    page?: number, 
+    pageSize?: number,
+    status?: string | string[]
+}) {
+    try {
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        let query = supabase
+            .from('auctions')
+            .select(`
+                *,
+                categories(name),
+                auction_images(url),
+                auction_events(id, location, ends_at, start_at),
+                bids(count)
+            `, { count: 'exact' })
+
+        if (eventId) query = query.eq('event_id', eventId)
+        if (categoryId) query = query.eq('category_id', categoryId)
+        if (searchQuery) query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
+        
+        if (Array.isArray(status)) query = query.in('status', status)
+        else query = query.eq('status', status)
+
+        const from = (page - 1) * pageSize
+        const to = from + pageSize - 1
+
+        const { data: lots, count, error } = await query
+            .order('lot_number', { ascending: true })
+            .range(from, to)
+
+        if (error) throw error
+
+        // Fetch User Bids for these lots
+        let userBidsMap = new Map()
+        if (user && lots && lots.length > 0) {
+            const lotIds = lots.map(l => l.id)
+            const { data: userBids } = await supabase
+                .from('bids')
+                .select('auction_id, max_amount, amount')
+                .eq('user_id', user.id)
+                .eq('status', 'active')
+                .in('auction_id', lotIds)
+            
+            userBids?.forEach((b: any) => userBidsMap.set(b.auction_id, b))
+        }
+
+        const mappedLots = lots?.map(lot => {
+            const userBid = userBidsMap.get(lot.id)
+            return {
+                id: lot.id,
+                event_id: lot.event_id,
+                lotNumber: lot.lot_number,
+                title: lot.title,
+                supplier: lot.categories?.name || 'General Industrial',
+                price: Number(lot.current_price),
+                endsAt: lot.ends_at || lot.auction_events?.ends_at,
+                startAt: lot.auction_events?.start_at,
+                image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
+                images: [
+                    ...(lot.image_url ? [lot.image_url] : []),
+                    ...(lot.auction_images?.map((i: any) => i.url) || [])
+                ].filter((v, i, a) => a.indexOf(v) === i),
+                bidCount: lot.bids?.[0]?.count || 0,
+                pickupLocation: lot.auction_events?.location,
+                description: lot.description,
+                minIncrement: Number(lot.min_increment),
+                userMaxBid: userBid?.max_amount,
+                userCurrentBid: userBid?.amount,
+                manufacturer: lot.manufacturer,
+                model: lot.model
+            }
+        }) || []
+
+        return { 
+            lots: mappedLots, 
+            totalCount: count || 0,
+            hasMore: (count || 0) > (page * pageSize)
+        }
+    } catch (err: any) {
+        console.error("Fetch Lots Error:", err.message)
+        return { lots: [], totalCount: 0, hasMore: false, error: err.message }
+    }
+}

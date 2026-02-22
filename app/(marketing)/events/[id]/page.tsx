@@ -204,36 +204,16 @@ export default async function EventPage({
                 </nav>
             </div>
 
-            <AuctionGrid products={mappedLots} user={user} eventId={id} />
-
-            {totalPages > 1 && (
-                <div className="pt-12 border-t border-zinc-100">
-                    <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl={`/events/${id}`} queryParams={{ category }} />
-                </div>
-            )}
+            <AuctionGrid 
+                products={mappedLots} 
+                user={user} 
+                eventId={id} 
+                categoryId={category}
+                initialTotalCount={count || 0}
+            />
         </div>
 
       </div>
     </div>
   )
-}
-
-function Pagination({ currentPage, totalPages, baseUrl, queryParams = {} }: { currentPage: number, totalPages: number, baseUrl: string, queryParams?: Record<string, any> }) {
-    const buildUrl = (p: number) => {
-        const params = new URLSearchParams()
-        Object.entries(queryParams).forEach(([k, v]) => { if (v) params.set(k, v) })
-        params.set('page', p.toString())
-        return `${baseUrl}?${params.toString()}`
-    }
-    return (
-        <div className="flex justify-center items-center gap-3">
-            <Link href={currentPage > 1 ? buildUrl(currentPage - 1) : '#'} className={cn("px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all", currentPage === 1 ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95")}>Prev</Link>
-            <div className="flex items-center gap-2">
-                {Array.from({ length: totalPages }).map((_, i) => (
-                    <Link key={i} href={buildUrl(i + 1)} className={cn("w-10 h-10 flex items-center justify-center text-[10px] font-bold border rounded-xl transition-all", currentPage === i + 1 ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10 scale-110" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-200")}>{i + 1}</Link>
-                ))}
-            </div>
-            <Link href={currentPage < totalPages ? buildUrl(currentPage + 1) : '#'} className={cn("px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all", currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95")}>Next</Link>
-        </div>
-    )
 }
