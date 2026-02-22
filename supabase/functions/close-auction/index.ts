@@ -40,6 +40,20 @@ Deno.serve(async (req) => {
 
     const winningBid = auction.bids && auction.bids.length > 0 ? auction.bids[0] : null
 
+    if (winningBid) {
+      console.log(`Winning bid found: ${winningBid.amount} by ${winningBid.user_id}`)
+      
+      // 2. Fetch Winner Profile & Settings for payment
+      const { data: winnerProfile } = await supabaseAdmin.from('profiles').select('*').eq('id', winningBid.user_id).single()
+      const { data: settings } = await supabaseAdmin.from('site_settings').select('buyers_premium, tax_rate').eq('id', 'global').single()
+      
+      if (!winnerProfile?.stripe_customer_id || !winnerProfile?.default_payment_method_id) {
+          console.error("Winner has no payment method. Cannot auto-debit.")
+          // Mark as sold but unpaid
+          await supabaseAdmin.from("auctions").update({ status: "sold", winner_id: winningBid.user_id }).eq("id", auction_id)
+          return new Response(JSON.stringify({ error: "Winner missing payment method" }), { status: 200 })
+      }
+
       // 3. Calculate Total (Hammer + Premium + Tax)
       const bpRate = settings?.buyers_premium || 15
       const taxRate = settings?.tax_rate || 0
@@ -73,7 +87,7 @@ Deno.serve(async (req) => {
                   
                   console.log(`Deposit of ${amountDeductedCents/100}$ captured and deducted.`)
               }
-          } catch (captureErr) {
+          } catch (captureErr: any) {
               console.warn("Could not capture deposit (already captured or expired):", captureErr.message)
           }
       }
@@ -100,7 +114,7 @@ Deno.serve(async (req) => {
                   finalChargeId = paymentIntent.id
                   console.log(`Remaining balance of ${totalToChargeCents/100}$ charged: ${finalChargeId}`)
               }
-          } catch (stripeErr) {
+          } catch (stripeErr: any) {
               console.error("Balance Debit Error:", stripeErr.message)
           }
       } else {
