@@ -64,18 +64,22 @@ Le schéma de base de données est conçu pour la performance et la sécurité (
 ### 🔨 Logique d'Enchère Transactionnelle
 - **Sécurité :** Utilisation de fonctions SQL atomiques (`place_bid_secure`) pour éviter les "race conditions".
 - **Validation :** Vérification automatique des incréments minimums et du solde de l'enchère précédente.
-- **Proxy Bidding (Max Bid) :** Système d'enchère automatique jusqu'à un plafond défini par l'utilisateur.
+- **Proxy Bidding Intelligent :** Système d'enchère automatique sans bouton d'activation. Tout montant supérieur à l'enchère minimale requise est automatiquement traité comme une mise maximale (Proxy).
 - **Anti-Sniping :** Extension automatique du temps (ex: +2 mins) si une enchère survient dans les dernières minutes.
 
-### 🤖 Automatisation
-- **Outbid Alerts :** Envoi automatique d'un email via Resend lorsqu'un utilisateur est surenchéri.
+### 🤖 Automatisation & Notifications
+- **Moteur de Notifications Batch :** Utilisation de l'API Batch de Resend pour envoyer jusqu'à 100 emails par seconde, éliminant les erreurs de limite de débit (429).
+- **Outbid Alerts :** Notification immédiate par email avec récupération sécurisée de l'adresse via le client Admin (fallback Auth).
+- **Rappels d'Événements :** Nouveau bouton "Cloche" 🔔 permettant aux utilisateurs de s'abonner aux alertes de début d'événement (email envoyé 30 minutes avant le lancement).
 - **Clôture Automatique :** Utilisation de `pg_cron` et d'Edge Functions pour fermer les lots à l'heure précise.
 - **Facturation Auto :** Génération immédiate d'une facture (table `sales`) dès qu'un lot est marqué "Sold".
 
 ---
 
 ## 6. Post-Auction & Logistique (Nouveau)
-### 🧾 Facturation
+### 🧾 Facturation & Paiements
+- **Paiement Soustractif :** Le système capture automatiquement le dépôt de garantie (caution d'inscription) lors de la victoire et ne débite que le solde restant sur la carte du client.
+- **Transactions Simplifiées :** Suppression des blocages bancaires (holds) pendant la mise pour fluidifier l'expérience utilisateur.
 - **Page Facture :** Route dynamique `/invoices/[id]` pour les gagnants.
 - **Calculs :** Prix Marteau + Buyer's Premium + Taxes = Total.
 - **Statut :** Suivi en temps réel (Pending -> Paid -> Collected).
@@ -106,7 +110,7 @@ Interface professionnelle basée sur Refine v5, réorganisée par pôles métier
 - **Tests :** Suite de tests automatisés Playwright validant les parcours critiques (Inscription, Connexion).
 
 ---
-*Dernière mise à jour : 18 Février 2026*
+*Dernière mise à jour : 22 Février 2026*
 
 ## 📚 Documentations de Flux Détaillés
 Pour plus de détails techniques sur chaque module, consultez les fichiers suivants :

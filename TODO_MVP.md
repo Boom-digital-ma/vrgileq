@@ -69,15 +69,32 @@ This document tracks the current state of the project and remaining tasks to rea
 ### 3. End-to-End Testing
 - [x] **Playwright:** Full automated auth flow (Signup -> Stripe -> Yopmail OTP -> Login).
 
+## 📋 PRIORITY 5: Scalability & Payment Polish (Completed)
+
+### 1. Payment Optimization
+- [x] **Subtractive Logic:** Automatically deduct registration deposits from final purchase totals.
+- [x] **Simplified Flow:** Removed per-bid holds to reduce bank friction and user stress.
+- [x] **Auto-Debit:** Implemented automatic full charge for winners upon auction closing.
+
+### 2. Notification Engine (Scale)
+- [x] **Batch API:** Switched to Resend Batch API for all system notifications (Won, Watchlist, Reminders).
+- [x] **Rate Limiting:** Resolved 429 errors by sending up to 100 emails in a single minute-by-minute execution.
+- [x] **Event Reminders:** Added user-facing "Notify Me" (Bell icon) for upcoming events with automated alerts.
+
+### 3. Reliability & Data
+- [x] **Admin Fallback:** Secured email retrieval via Admin Client for outbid notifications.
+- [x] **Vault Sync:** Updated SQL functions to use correct Supabase Vault column names (`decrypted_secret`).
+- [x] **Real-time Sync:** Implemented real-time profile name synchronization across Header and Dashboard.
+
 ---
 
 ## ✅ Completed Milestones
-- [x] **Full Bidding Engine**: Atomic RPC, Anti-sniping, Proxy bidding.
+- [x] **Full Bidding Engine**: Atomic RPC, Anti-sniping, Intelligent Proxy bidding.
 - [x] **SaaS Premium UI**: Complete visual overhaul of public and admin interfaces.
 - [x] **Post-Auction Workflow**: Automated invoicing, pickup booking, and gate passes.
-- [x] **Warehouse Logistics**: Real-time removal tracking for warehouse staff.
-- [x] **Automated Testing**: Playwright E2E suite for critical paths.
+- [x] **Subtractive Payments**: Deposit deduction and automatic final charging.
+- [x] **Notification Engine**: Batch processing for high-volume email reliability.
 - [x] **Production Build**: 100% TypeScript compliance and optimized assets.
 
 ---
-*Last updated: February 18, 2026*
+*Last updated: February 22, 2026*
