@@ -304,14 +304,16 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
 
           {allImages.length > 1 && (
             <>
-              {/* Pagination Dots */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
+              {/* Pagination Dots - Always visible on mobile, hover on desktop */}
+              <div className="absolute bottom-4 left-1/2 -translate-y-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
                 {allImages.map((_, i) => (
                   <div 
                     key={i} 
                     className={cn(
                       "h-1 rounded-full transition-all duration-300",
-                      i === currentImageIndex ? "w-4 bg-primary" : "w-1 bg-white/50"
+                      i === currentImageIndex 
+                        ? "w-4 bg-primary shadow-sm" 
+                        : "w-1 bg-white/60 shadow-sm"
                     )} 
                   />
                 ))}

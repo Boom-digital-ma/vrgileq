@@ -80,6 +80,21 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
         />
         
+        {/* Pagination Dots for Mobile Swiping */}
+        {validImages.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none md:hidden">
+                {validImages.map((_, i) => (
+                    <div 
+                        key={i} 
+                        className={cn(
+                            "h-1 rounded-full transition-all duration-300",
+                            i === selectedIndex ? "w-4 bg-primary" : "w-1 bg-white/60"
+                        )} 
+                    />
+                ))}
+            </div>
+        )}
+
         {/* Counter Overlay */}
         {validImages.length > 1 && (
             <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-[10px] font-bold text-secondary shadow-sm transition-opacity group-hover:opacity-0">
