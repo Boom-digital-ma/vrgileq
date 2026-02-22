@@ -52,10 +52,16 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
   const [isEnded, setIsEnded] = useState(new Date(product.endsAt) <= new Date());
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
   const router = useRouter();
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const supabase = createClient();
+
+  // Reset image loading state when changing images
+  useEffect(() => {
+    setImageLoading(true);
+  }, [currentImageIndex]);
 
   // Handle Touch Swiping
   const minSwipeDistance = 50;
@@ -267,11 +273,21 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
               src={getOptimizedImageUrl(allImages[currentImageIndex], { width: 600 })}
               alt={product.title}
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className={cn(
+                "object-cover transition-all duration-700 group-hover:scale-105",
+                imageLoading ? "opacity-0 blur-lg" : "opacity-100 blur-0"
+              )}
+              onLoad={() => setImageLoading(false)}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
               priority={false}
             />
           </Link>
+
+          {imageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-zinc-50/50 backdrop-blur-sm">
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            </div>
+          )}
           
           <div className="absolute top-6 left-6 flex gap-2 items-center z-10 pointer-events-none">
             <div className="bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border border-white/20">

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface ImageGalleryProps {
   images: string[];
@@ -15,7 +16,17 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
   const [zoomStyle, setZoomStyle] = useState({ display: 'none', transformOrigin: '0% 0%', transform: 'scale(1)' });
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Reset loading state when changing images
+  useState(() => {
+    setImageLoading(true);
+  });
+
+  useEffect(() => {
+    setImageLoading(true);
+  }, [selectedIndex]);
 
   const validImages = images && images.length > 0 && images[0] !== "" 
     ? images 
@@ -74,11 +85,21 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
           src={currentImage}
           alt="Auction Lot"
           fill
-          className="object-cover transition-transform duration-200 ease-out"
+          className={cn(
+            "object-cover transition-all duration-300 ease-out",
+            imageLoading ? "blur-xl opacity-0 scale-105" : "blur-0 opacity-100 scale-100"
+          )}
+          onLoad={() => setImageLoading(false)}
           style={zoomStyle.display === 'block' ? { transform: zoomStyle.transform, transformOrigin: zoomStyle.transformOrigin } : {}}
           priority
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
         />
+
+        {imageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-50/50 backdrop-blur-sm z-10">
+            <Loader2 className="h-10 w-10 text-primary animate-spin" />
+          </div>
+        )}
         
         {/* Pagination Dots for Mobile Swiping */}
         {validImages.length > 1 && (
