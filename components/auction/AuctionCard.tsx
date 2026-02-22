@@ -365,6 +365,9 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           ) : (
             <form onSubmit={handleBid} className="flex gap-2">
                 <div className="relative flex-1 group/input">
+                    <label className="absolute -top-2 left-3 bg-white px-1.5 text-[8px] font-bold uppercase tracking-widest text-zinc-400 z-10 group-focus-within/input:text-primary transition-colors">
+                        Bid / Max Bid
+                    </label>
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">$</span>
                     <input 
                       type="number" 

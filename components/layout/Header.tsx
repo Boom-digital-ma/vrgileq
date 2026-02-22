@@ -13,6 +13,7 @@ export default function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [announcement, setAnnouncement] = useState<string | null>(null);
   const [announcementPopupText, setAnnouncementPopupText] = useState<string | null>(null);
@@ -22,25 +23,48 @@ export default function Header() {
   
   const supabase = useMemo(() => createClient(), []);
 
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('full_name').eq('id', userId).single();
+    if (data) setProfile(data);
+  };
+
   useEffect(() => {
     // 1. Initial Session Check
     supabase.auth.getSession().then(({ data: { session } }: any) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) fetchProfile(currentUser.id);
       setLoading(false);
     });
 
     // 2. Listen for Auth Changes (Login/Logout)
     const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      // Force refresh on sign in to ensure all data is fresh
-      if (event === 'SIGNED_IN') {
-        // Optionnel : window.location.reload() si vraiment récalcitrant
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) fetchProfile(currentUser.id);
+      else {
+        setProfile(null);
+        setLoading(false);
       }
     });
 
-    // 3. Fetch Site Settings (Announcements)
+    // 3. Listen for Profile Changes (Realtime)
+    let profileChannel: any;
+    if (user?.id) {
+        profileChannel = supabase
+            .channel(`public:profiles:id=eq.${user.id}`)
+            .on('postgres_changes', { 
+                event: 'UPDATE', 
+                schema: 'public', 
+                table: 'profiles', 
+                filter: `id=eq.${user.id}` 
+            }, (payload: any) => {
+                setProfile(payload.new);
+            })
+            .subscribe();
+    }
+
+    // 4. Fetch Site Settings (Announcements)
     const fetchSettings = async () => {
       const { data: settings } = await supabase
         .from('site_settings')
@@ -58,9 +82,10 @@ export default function Header() {
 
     return () => {
       authListener.subscription.unsubscribe();
+      if (profileChannel) supabase.removeChannel(profileChannel);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [supabase]);
+  }, [supabase, user?.id]);
 
   const handleLogout = async () => {
     try {
@@ -169,7 +194,7 @@ export default function Header() {
                             <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-50 border border-zinc-100 hover:border-primary/20 transition-all group" suppressHydrationWarning>
                                 <User size={14} className="text-zinc-400 group-hover:text-primary" suppressHydrationWarning />
                                 <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tight italic">
-                                    {user.user_metadata?.full_name?.split(' ')[0] || 'Account'}
+                                    {profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Account'}
                                 </span>
                             </Link>
                             <button 

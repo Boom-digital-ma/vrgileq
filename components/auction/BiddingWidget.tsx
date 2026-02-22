@@ -29,7 +29,6 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [realtimeBids, setRealtimeBids] = useState(bids);
   const [realtimeEndsAt, setRealtimeEndsAt] = useState(endsAt);
   const [bidAmount, setBidAmount] = useState<number>(initialPrice + minIncrement);
-  const [isProxy, setIsProxy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -177,13 +176,12 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
       const result = await placeBid({
         auctionId,
-        amount: isProxy ? realtimePrice + minIncrement : bidAmount,
-        maxBidAmount: isProxy ? bidAmount : undefined,
+        amount: bidAmount,
       });
 
       if (!result.success) throw new Error(result.error);
 
-      toast.success(isProxy ? "Maximum bid set successfully!" : "Bid placed successfully!");
+      toast.success("Bid placed successfully!");
     } catch (err: any) {
       if (err.name !== 'AbortError') {
         toast.error(err.message);
@@ -210,7 +208,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const premiumPercent = settings?.buyers_premium || 15;
   const taxRate = settings?.tax_rate || 0;
   
-  const currentHammer = isProxy ? realtimePrice + minIncrement : bidAmount;
+  const currentHammer = bidAmount > (realtimePrice + minIncrement) ? (realtimePrice + minIncrement) : bidAmount;
   const premiumAmount = currentHammer * (premiumPercent / 100);
   const taxAmount = (currentHammer + premiumAmount) * (taxRate / 100);
   const totalAuth = currentHammer + premiumAmount + taxAmount;
@@ -283,39 +281,9 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
             </div>
         )}
 
-        {settings?.proxy_bidding_enabled && (
-            <div className="flex items-center justify-between bg-zinc-50/80 border border-zinc-100 rounded-2xl p-4 transition-all hover:bg-zinc-50">
-                <div className="flex items-center gap-3">
-                    <div className={cn(
-                        "p-2 rounded-lg transition-colors",
-                        isProxy ? "bg-primary/10 text-primary" : "bg-zinc-200 text-zinc-400"
-                    )}>
-                        <TrendingUp size={16} />
-                    </div>
-                    <div>
-                        <span className="text-xs font-bold text-zinc-900 block leading-none mb-1">Proxy Bidding</span>
-                        <span className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Auto-proxy active</span>
-                    </div>
-                </div>
-                <button 
-                    type="button"
-                    onClick={() => setIsProxy(!isProxy)}
-                    className={cn(
-                        "relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none",
-                        isProxy ? "bg-primary" : "bg-zinc-200"
-                    )}
-                >
-                    <span className={cn(
-                        "inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm",
-                        isProxy ? "translate-x-6" : "translate-x-1"
-                    )} />
-                </button>
-            </div>
-        )}
-
         <div className="relative group/input">
           <label className="absolute -top-2 left-4 bg-white px-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 z-10 group-focus-within/input:text-primary transition-colors">
-            {isProxy ? "Your Maximum Limit" : "Place Your Bid"}
+            Place Your Bid / Max Bid
           </label>
           <div className="relative">
             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 text-xl font-bold font-display">$</span>
@@ -327,11 +295,9 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
               className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-5 pl-10 pr-6 text-2xl font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all font-display italic outline-none"
             />
           </div>
-          {isProxy && (
-            <p className="text-[9px] font-medium text-zinc-400 mt-3 px-2 leading-relaxed italic">
-                The system will automatically bid the minimum necessary amount up to this limit to keep you in the lead.
-            </p>
-          )}
+          <p className="text-[9px] font-medium text-zinc-400 mt-3 px-2 leading-relaxed italic">
+            Tip: Entering a higher amount will set it as your maximum bid, and the system will automatically bid the minimum necessary up to that limit to keep you winning.
+          </p>
         </div>
 
         {userProfile && (
@@ -392,7 +358,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
             ? "Bidding Closed" 
             : (!isStarted 
                 ? "Bidding Not Started" 
-                : (userProfile ? (isProxy ? `Set Maximum $${bidAmount.toLocaleString()}` : `Place Bid $${bidAmount.toLocaleString()}`) : "Sign In to Bid")
+                : (userProfile ? `Place Bid $${bidAmount.toLocaleString()}` : "Sign In to Bid")
               )
           }
         </button>

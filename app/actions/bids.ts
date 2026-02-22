@@ -59,15 +59,34 @@ export async function placeBid({
   }
 
   let previousWinnerProfile = null
+  let previousWinnerEmail = null
+
+  // FETCH PREVIOUS WINNER INFO (Admin Bypass for RLS)
   if (auction?.winner_id && auction.winner_id !== user.id) {
-    const { data: profile } = await supabase
+    const adminSupabase = createAdminClient()
+    
+    // 1. Try to get profile info (name)
+    const { data: profile } = await adminSupabase
         .from('profiles')
         .select('full_name, email, id')
         .eq('id', auction.winner_id)
         .single()
     
-    if (profile?.email) {
+    if (profile) {
         previousWinnerProfile = profile
+        previousWinnerEmail = profile.email
+    }
+
+    // 2. Fallback to Auth User if profile email is missing
+    if (!previousWinnerEmail) {
+        const { data: { user: authUser }, error: authError } = await adminSupabase.auth.admin.getUserById(auction.winner_id)
+        
+        if (authUser?.email) {
+            previousWinnerEmail = authUser.email
+            console.log(`[BID_PROTOCOL] Recovered email from Auth (Admin): ${previousWinnerEmail}`)
+        } else {
+            console.error(`[BID_PROTOCOL] Failed to recover email from Auth:`, authError)
+        }
     }
   }
 
@@ -147,19 +166,46 @@ export async function placeBid({
     })
 
     if (rpcError) {
+      console.error("[BID_ERROR] RPC Failed:", rpcError.message);
       await stripe.paymentIntents.cancel(paymentIntent.id)
       throw new Error(rpcError.message)
     }
 
-    // 6. Send Outbid Email if applicable
-    if (previousWinnerProfile?.email) {
-        await sendOutbidEmail({
-            to: previousWinnerProfile.email,
-            bidderName: previousWinnerProfile.full_name || 'Bidder',
-            auctionTitle: auction?.title || 'Industrial Item',
-            newAmount: finalAmount,
-            auctionUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auctions/${auctionId}`
-        })
+    // 6. Check if winner changed to send Outbid Email
+    const { data: updatedAuction } = await supabase
+        .from('auctions')
+        .select('winner_id, current_price')
+        .eq('id', auctionId)
+        .single();
+
+    console.log(`[BID_PROTOCOL] Previous Winner ID: ${auction.winner_id}`);
+    console.log(`[BID_PROTOCOL] Updated Winner ID: ${updatedAuction?.winner_id}`);
+    console.log(`[BID_PROTOCOL] Previous Winner Email: ${previousWinnerEmail}`);
+
+    if (previousWinnerEmail && updatedAuction?.winner_id !== previousWinnerProfile?.id) {
+        console.log(`[EMAIL_SERVICE] Winner changed! Sending outbid email to ${previousWinnerEmail}`);
+        try {
+            await sendOutbidEmail({
+                to: previousWinnerEmail,
+                bidderName: previousWinnerProfile?.full_name || 'Bidder',
+                auctionTitle: auction?.title || 'Industrial Item',
+                newAmount: updatedAuction?.current_price || finalAmount,
+                auctionUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auctions/${auctionId}`
+            });
+            console.log(`[EMAIL_SERVICE] Outbid email dispatched to ${previousWinnerEmail}`);
+        } catch (emailErr) {
+            console.error(`[EMAIL_SERVICE] SMTP/API Error:`, emailErr);
+        }
+    } else {
+        if (!previousWinnerProfile) {
+            console.log(`[EMAIL_SERVICE] No outbid email: First bid on this lot (No previous winner).`);
+        } else if (!previousWinnerEmail) {
+            console.log(`[EMAIL_SERVICE] No outbid email: Previous winner profile has no email (Fallback failed).`);
+        } else if (updatedAuction?.winner_id === previousWinnerProfile.id) {
+            console.log(`[EMAIL_SERVICE] No outbid email: Previous winner was NOT displaced (Proxy Bid kept them lead).`);
+        } else {
+            console.log(`[EMAIL_SERVICE] No outbid email: Unknown condition.`);
+        }
     }
 
     // 7. If successful, cancel the PREVIOUS hold

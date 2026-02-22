@@ -50,11 +50,15 @@ export default function AuctionGrid({ products, user, eventId }: { products: Pro
             const item = newItems[targetItemIndex];
             const newPrice = Number(payload.new.amount);
             
+            // If it's the current user's bid, update their proxy status
+            const isMyBid = user && payload.new.user_id === user.id;
+
             // Optimistically update
             newItems[targetItemIndex] = {
                 ...item,
                 bidCount: (item.bidCount || 0) + 1,
-                price: Math.max(item.price, newPrice)
+                price: Math.max(item.price, newPrice),
+                userMaxBid: isMyBid ? Number(payload.new.max_amount) : item.userMaxBid
             };
             return newItems;
         });

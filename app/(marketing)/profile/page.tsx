@@ -160,7 +160,7 @@ export default function ProfilePage() {
                 <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Bidder Dashboard</span>
             </div>
             <h1 className="text-5xl font-bold tracking-tight text-secondary font-display uppercase leading-none">
-              {user?.user_metadata?.full_name?.split(' ')[0] || 'My Account'}.
+              {data.profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'My Account'}.
             </h1>
             <div className="flex items-center gap-3 mt-4">
                 {data.profile?.is_verified && (

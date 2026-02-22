@@ -236,7 +236,7 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
                 {realtimeBids.map((bid, i) => (
                     <div key={i} className="flex justify-between items-center p-4 rounded-2xl bg-zinc-50/50 border border-zinc-100 hover:border-primary/20 transition-all group italic">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-secondary uppercase tracking-tight">Bidder #{bid.id.slice(0,4)}</span>
+                            <span className="text-[10px] font-bold text-secondary uppercase tracking-tight">Bidder #{bid.user_id?.slice(0,4) || 'UNK'}</span>
                             <span className="text-[8px] font-medium text-zinc-300 uppercase tracking-widest">{new Date(bid.created_at).toLocaleTimeString()}</span>
                         </div>
                         <div className="text-right">
