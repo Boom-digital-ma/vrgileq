@@ -13,6 +13,8 @@ const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1537462715879-360ee
 export default function ImageGallery({ images }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [zoomStyle, setZoomStyle] = useState({ display: 'none', transformOrigin: '0% 0%', transform: 'scale(1)' });
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const validImages = images && images.length > 0 && images[0] !== "" 
@@ -20,6 +22,23 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
     : [PLACEHOLDER_IMAGE];
 
   const currentImage = validImages[selectedIndex] || PLACEHOLDER_IMAGE;
+
+  // Handle Swiping
+  const minSwipeDistance = 50;
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (Math.abs(distance) < minSwipeDistance) return;
+    if (distance > 0) setSelectedIndex((prev) => (prev + 1) % validImages.length);
+    else setSelectedIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -46,6 +65,9 @@ export default function ImageGallery({ images }: ImageGalleryProps) {
         ref={containerRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
         className="relative aspect-[4/3] w-full overflow-hidden rounded-[32px] bg-zinc-50 border border-zinc-100 cursor-zoom-in group shadow-xl shadow-black/5"
       >
         <Image

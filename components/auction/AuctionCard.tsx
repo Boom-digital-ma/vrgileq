@@ -50,10 +50,37 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
   const [realtimeEndsAt, setRealtimeEndsAt] = useState(product.endsAt);
   const [isStarted, setIsStarted] = useState(!product.startAt || new Date(product.startAt) <= new Date());
   const [isEnded, setIsEnded] = useState(new Date(product.endsAt) <= new Date());
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const router = useRouter();
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const supabase = createClient();
+
+  // Handle Touch Swiping
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) {
+      setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    } else if (isRightSwipe) {
+      setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+    }
+  };
 
   // Sync state with props (for when parent updates data)
   useEffect(() => {
@@ -164,10 +191,6 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
     setBidAmount(realtimePrice + (product.minIncrement || 100));
   }, [realtimePrice, product.minIncrement]);
 
-  useEffect(() => {
-    setBidAmount(realtimePrice + (product.minIncrement || 100));
-  }, [realtimePrice, product.minIncrement]);
-
   const handleNextImage = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
@@ -233,8 +256,13 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
     <>
       <div className="group flex flex-col bg-white border border-zinc-200/80 rounded-[24px] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(11,43,83,0.1)] hover:border-primary/20 overflow-hidden h-full relative italic">
         {/* Media Container - FIXED: Force full fill */}
-        <Link href={`/auctions/${product.id}`} className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100">
-          <div className="absolute inset-0">
+        <div 
+          className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100 cursor-pointer"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <Link href={`/auctions/${product.id}`} className="absolute inset-0">
             <Image
               src={getOptimizedImageUrl(allImages[currentImageIndex], { width: 600 })}
               alt={product.title}
@@ -243,9 +271,9 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
               priority={false}
             />
-          </div>
+          </Link>
           
-          <div className="absolute top-6 left-6 flex gap-2 items-center z-10">
+          <div className="absolute top-6 left-6 flex gap-2 items-center z-10 pointer-events-none">
             <div className="bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border border-white/20">
               #{product.lotNumber || product.id.slice(0,4)}
             </div>
@@ -270,17 +298,33 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             )}
           </div>
 
-          <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md border border-white/40 px-3 py-1.5 rounded-full flex items-center gap-2 text-[10px] font-bold text-primary shadow-sm">
+          <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md border border-white/40 px-3 py-1.5 rounded-full flex items-center gap-2 text-[10px] font-bold text-primary shadow-sm pointer-events-none">
             {isStarted ? <Timer className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />} {mounted ? timeLeft : "..."}
           </div>
 
           {allImages.length > 1 && (
-            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
-                <button onClick={handlePrevImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowLeft size={14} /></button>
-                <button onClick={handleNextImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowRight size={14} /></button>
-            </div>
+            <>
+              {/* Pagination Dots */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
+                {allImages.map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={cn(
+                      "h-1 rounded-full transition-all duration-300",
+                      i === currentImageIndex ? "w-4 bg-primary" : "w-1 bg-white/50"
+                    )} 
+                  />
+                ))}
+              </div>
+
+              {/* Navigation Arrows - visible on hover or always on touch if we wanted, but let's keep them accessible */}
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 opacity-0 group-hover:opacity-100 lg:group-hover:opacity-100 transition-all duration-300 z-20">
+                  <button onClick={handlePrevImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowLeft size={14} /></button>
+                  <button onClick={handleNextImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowRight size={14} /></button>
+              </div>
+            </>
           )}
-        </Link>
+        </div>
 
         {/* Content Container */}
         <div className="flex flex-1 flex-col p-6 border-t border-zinc-100">
