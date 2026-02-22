@@ -314,6 +314,23 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             </h2>
           </Link>
 
+          {(product.manufacturer || product.model) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+              {product.manufacturer && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight">Mfr:</span>
+                  <span className="text-[10px] font-bold text-secondary uppercase truncate max-w-[100px]">{product.manufacturer}</span>
+                </div>
+              )}
+              {product.model && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight">Model:</span>
+                  <span className="text-[10px] font-bold text-secondary uppercase truncate max-w-[100px]">{product.model}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <p className="text-[11px] font-medium text-zinc-400 leading-relaxed uppercase mb-4 line-clamp-2">
             {product.description || "High-quality industrial asset. Physically verified by our technical assessment team."}
           </p>

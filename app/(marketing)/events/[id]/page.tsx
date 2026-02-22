@@ -111,7 +111,9 @@ export default async function EventPage({
         description: lot.description,
         minIncrement: Number(lot.min_increment),
         userMaxBid: userBid?.max_amount,
-        userCurrentBid: userBid?.amount
+        userCurrentBid: userBid?.amount,
+        manufacturer: lot.manufacturer,
+        model: lot.model
     };
   }) || []
 
