@@ -174,6 +174,9 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           return;
       }
 
+      const minRequiredBid = realtimePrice + minIncrement;
+      const isProxy = bidAmount > minRequiredBid;
+
       const result = await placeBid({
         auctionId,
         amount: bidAmount,
@@ -181,7 +184,13 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
       if (!result.success) throw new Error(result.error);
 
-      toast.success("Bid placed successfully!");
+      if (isProxy) {
+          toast.success("Max Bid Activated!", {
+              description: `System will bid for you up to $${bidAmount.toLocaleString()}.`
+          });
+      } else {
+          toast.success("Bid placed successfully!");
+      }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
         toast.error(err.message);

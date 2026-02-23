@@ -116,7 +116,8 @@ export default function AuctionGrid({
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
-        table: 'auctions'
+        table: 'auctions',
+        filter: eventId ? `event_id=eq.${eventId}` : undefined
       }, (payload: any) => {
         setItems(prevItems => prevItems.map(item => {
           if (item.id === payload.new.id) {
@@ -146,7 +147,9 @@ export default function AuctionGrid({
                 ...item,
                 bidCount: (item.bidCount || 0) + 1,
                 price: Math.max(item.price, Number(payload.new.amount)),
-                userMaxBid: isMyBid ? Number(payload.new.max_amount) : item.userMaxBid
+                // Update userMaxBid if it's MY bid (including proxy bids)
+                userMaxBid: isMyBid ? Number(payload.new.max_amount) : item.userMaxBid,
+                userCurrentBid: isMyBid ? Number(payload.new.amount) : item.userCurrentBid
             };
             return newItems;
         });

@@ -84,10 +84,14 @@ export default async function EventPage({
         .from('bids')
         .select('auction_id, max_amount, amount')
         .eq('user_id', user.id)
-        .eq('status', 'active')
-        .in('auction_id', lotIds);
+        .in('auction_id', lotIds)
+        .order('amount', { ascending: false });
       
-      userBids?.forEach((b: any) => userBidsMap.set(b.auction_id, b));
+      userBids?.forEach((b: any) => {
+        if (!userBidsMap.has(b.auction_id)) {
+            userBidsMap.set(b.auction_id, b);
+        }
+      });
   }
 
   const mappedLots = lots?.map(lot => {

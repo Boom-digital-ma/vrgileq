@@ -248,9 +248,20 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             setLoadingBid(false);
             return;
         }
+
+        const minRequiredBid = realtimePrice + (product.minIncrement || 1);
+        const isProxy = bidAmount > minRequiredBid;
+
         const result = await placeBid({ auctionId: product.id, amount: bidAmount });
         if (!result.success) throw new Error(result.error);
-        toast.success("Bid placed!");
+        
+        if (isProxy) {
+            toast.success("Max Bid Activated!", {
+                description: `System will bid for you up to $${bidAmount.toLocaleString()}.`
+            });
+        } else {
+            toast.success("Bid placed!");
+        }
     } catch (err: any) {
         if (err.name !== 'AbortError') toast.error(err.message);
     } finally {
