@@ -427,9 +427,7 @@ export default async function AuctionsPage({
                         endsAt={event.ends_at}
                     />
                     {isUpcoming && (
-                        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                            <EventReminderButton eventId={event.id} startAt={event.start_at} isUpcoming={isUpcoming} />
-                        </div>
+                        <EventReminderButton eventId={event.id} startAt={event.start_at} isUpcoming={isUpcoming} />
                     )}
                   </div>
                 </div>

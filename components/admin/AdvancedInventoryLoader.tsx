@@ -175,11 +175,11 @@ export const AdvancedInventoryLoader = () => {
         </div>
         {!importLoading && (
             <button 
-                onClick={startSync}
+                /* onClick={startSync} */
                 disabled={!selectedFiles.excel}
                 className="bg-zinc-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:bg-primary transition-all active:scale-95 disabled:opacity-20"
             >
-                Push to Live Server
+                Push to Live Server (Disabled for Debug)
             </button>
         )}
       </div>
