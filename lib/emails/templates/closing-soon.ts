@@ -19,7 +19,7 @@ export const closingSoonTemplate = (bidderName: string, auctionTitle: string, cu
 <body>
   <div class="container">
     <div class="header">
-      <img src="${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'}/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
+      <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/public_assets/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
     </div>
     <div class="content">
       <h1 class="h1">Auction Closing Soon</h1>

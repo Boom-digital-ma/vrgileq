@@ -156,7 +156,7 @@ export async function placeBid({
                 bidderName: previousWinnerProfile?.full_name || 'Bidder',
                 auctionTitle: auction?.title || 'Industrial Item',
                 newAmount: updatedAuction?.current_price || finalAmount,
-                auctionUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auctions/${auctionId}`
+                auctionUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/auctions/${auctionId}`
             });
             console.log(`[EMAIL_SERVICE] Outbid email dispatched to ${previousWinnerEmail}`);
         } catch (emailErr) {

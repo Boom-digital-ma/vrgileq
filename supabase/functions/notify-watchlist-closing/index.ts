@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")
 const SITE_URL = Deno.env.get("SITE_URL") || "https://virginialiquidation.com"
-const FROM_EMAIL = "Virginia Liquidation <no-reply@boom-digital.ma>"
+const FROM_EMAIL = "Virginia Liquidation <concierge@boom-digital.ma>"
 
 serve(async (req) => {
   try {
