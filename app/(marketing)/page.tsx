@@ -18,13 +18,38 @@ export default async function HomePage() {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  const { data: events } = await supabase
+  // Priority 1: Live Events
+  let { data: events } = await supabase
     .from('auction_events')
     .select('*')
-    .neq('status', 'draft')
-    .gt('ends_at', now) // Show only live and upcoming events
-    .order('start_at', { ascending: true })
+    .eq('status', 'live')
+    .lte('start_at', now)
+    .gt('ends_at', now)
+    .order('ends_at', { ascending: true })
     .limit(3);
+
+  // Priority 2: Upcoming Events (if no live)
+  if (!events || events.length === 0) {
+    const { data: upcoming } = await supabase
+        .from('auction_events')
+        .select('*')
+        .or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
+        .order('start_at', { ascending: true })
+        .limit(3);
+    events = upcoming;
+  }
+
+  // Priority 3: Closed Events (if no live and no upcoming)
+  if (!events || events.length === 0) {
+    const { data: past } = await supabase
+        .from('auction_events')
+        .select('*')
+        .or(`status.eq.closed,ends_at.lte.${now}`)
+        .neq('status', 'draft')
+        .order('ends_at', { ascending: false })
+        .limit(3);
+    events = past;
+  }
 
   return (
     <div className="bg-zinc-50 font-sans tracking-tight text-neutral antialiased">
@@ -85,9 +110,11 @@ export default async function HomePage() {
                   <div className="flex items-center gap-2 mb-4 text-zinc-400" suppressHydrationWarning>
                     <Calendar size={14} className="text-primary" suppressHydrationWarning />
                     <span className="text-[10px] font-bold uppercase tracking-widest">
-                        {isUpcoming 
-                          ? `Starts ${formatEventDate(event.start_at)}` 
-                          : `Ends ${formatEventDate(event.ends_at)}`
+                        {isEnded 
+                          ? 'Event Ended' 
+                          : (isUpcoming 
+                              ? `Starts ${formatEventDate(event.start_at)}` 
+                              : `Ends ${formatEventDate(event.ends_at)}`)
                         }
                     </span>
                   </div>

@@ -21,7 +21,7 @@ export const SaleShow = () => {
     resource: "sales",
     id: id as string,
     meta: {
-      select: "*, auction:auctions(*), winner:profiles(*), event:auction_events(*), pickup_slot:pickup_slots(*)"
+      select: "*, sale_items(*, auction:auctions(*)), winner:profiles(*), event:auction_events(*), pickup_slot:pickup_slots(*)"
     }
   })
 
@@ -140,28 +140,34 @@ export const SaleShow = () => {
             <section className="bg-white border border-zinc-200 rounded-[32px] overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-zinc-100 bg-zinc-50/30 flex items-center gap-3">
                     <Package className="text-zinc-400" size={18} />
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Asset Information</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Included Assets</h3>
                 </div>
-                <div className="p-8 flex gap-8 items-start">
-                    <div className="h-24 w-24 rounded-2xl bg-zinc-100 overflow-hidden border border-zinc-200 shrink-0">
-                        {sale.auction.image_url ? (
-                            <img src={sale.auction.image_url} className="h-full w-full object-cover" />
-                        ) : (
-                            <div className="h-full w-full flex items-center justify-center text-zinc-300"><Package size={32} /></div>
-                        )}
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h4 className="text-xl font-bold text-zinc-900">{sale.auction.title}</h4>
-                                <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">Lot #{sale.auction.lot_number || '---'}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-2xl font-black text-zinc-900 italic font-mono">${Number(sale.hammer_price).toLocaleString()}</p>
-                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Hammer Price</p>
-                            </div>
-                        </div>
-                    </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-zinc-100 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                <th className="px-8 py-4">Lot Detail</th>
+                                <th className="px-8 py-4 text-center">Lot #</th>
+                                <th className="px-8 py-4 text-right">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-100">
+                            {sale.sale_items?.map((item: any) => (
+                                <tr key={item.id} className="group hover:bg-zinc-50/50 transition-colors">
+                                    <td className="px-8 py-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-12 w-12 rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200 shrink-0">
+                                                {item.auction?.image_url && <img src={item.auction.image_url} className="h-full w-full object-cover" />}
+                                            </div>
+                                            <p className="font-bold text-secondary uppercase leading-tight">{item.auction?.title}</p>
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-6 text-center font-black text-secondary italic">#{item.auction?.lot_number || '---'}</td>
+                                    <td className="px-8 py-6 text-right font-bold text-secondary tabular-nums italic">${Number(item.hammer_price).toLocaleString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </section>
 

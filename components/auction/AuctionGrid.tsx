@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AuctionCard, { Product } from "./AuctionCard";
 import { createClient } from "@/lib/supabase/client";
 import { fetchLots } from "@/app/actions/lots";
@@ -18,7 +18,7 @@ interface AuctionGridProps {
 
 export default function AuctionGrid({ 
     products, 
-    user, 
+    user: initialUser, 
     eventId, 
     categoryId, 
     searchQuery,
@@ -26,20 +26,32 @@ export default function AuctionGrid({
     status = null // Default to null (all statuses)
 }: AuctionGridProps) {
   const [items, setItems] = useState<Product[]>(products);
+  const [user, setUser] = useState(initialUser);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalCount > products.length);
   const observerTarget = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
+  
+  // Memoize Supabase to prevent recreating listeners unnecessarily
+  const supabase = useMemo(() => createClient(), []);
+
+  // Sync user session once
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+        if (session?.user?.id !== user?.id) {
+            setUser(session?.user ?? null);
+        }
+    });
+    return () => subscription.unsubscribe();
+  }, [supabase, user?.id]);
 
   // Sync with initial props if filters change (Reset state)
-  // We use a key based on unique identifiers to detect real filter changes
   const resetKey = `${eventId}-${categoryId}-${searchQuery}-${JSON.stringify(status)}`;
   useEffect(() => {
     setItems(products);
     setPage(1);
     setHasMore(initialTotalCount > products.length);
-  }, [resetKey, initialTotalCount]);
+  }, [resetKey, initialTotalCount, products]);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -111,20 +123,21 @@ export default function AuctionGrid({
   }, [loadMore, hasMore, loading]);
 
   useEffect(() => {
-    // Realtime channel
-    const channel = supabase.channel(`event-grid-${eventId || 'global'}`)
+    const channelId = `grid-${eventId || 'global'}`;
+    
+    const channel = supabase.channel(channelId)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
-        table: 'auctions',
-        filter: eventId ? `event_id=eq.${eventId}` : undefined
+        table: 'auctions'
       }, (payload: any) => {
         setItems(prevItems => prevItems.map(item => {
           if (item.id === payload.new.id) {
             return {
               ...item,
               price: Number(payload.new.current_price),
-              endsAt: payload.new.ends_at
+              endsAt: payload.new.ends_at,
+              winner_id: payload.new.winner_id
             };
           }
           return item;
@@ -140,32 +153,39 @@ export default function AuctionGrid({
             if (targetItemIndex === -1) return prevItems;
 
             const newItems = [...prevItems];
-            const item = newItems[targetItemIndex];
+            const item = { ...newItems[targetItemIndex] };
             const isMyBid = user && payload.new.user_id === user.id;
             
             newItems[targetItemIndex] = {
                 ...item,
                 bidCount: (item.bidCount || 0) + 1,
                 price: Math.max(item.price, Number(payload.new.amount)),
-                // Update userMaxBid if it's MY bid (including proxy bids)
-                userMaxBid: isMyBid ? Number(payload.new.max_amount) : item.userMaxBid,
+                winner_id: payload.new.status === 'active' ? payload.new.user_id : item.winner_id,
+                userMaxBid: (isMyBid && payload.new.max_amount) ? Number(payload.new.max_amount) : item.userMaxBid,
                 userCurrentBid: isMyBid ? Number(payload.new.amount) : item.userCurrentBid
             };
             return newItems;
         });
       })
-      .subscribe();
+      .subscribe((status: any) => {
+        console.log(`[Realtime] ${channelId} status:`, status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [eventId, supabase, user]);
+  }, [eventId, supabase, user?.id]);
 
   return (
     <div className="flex flex-col gap-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {items.map((product) => (
-                <AuctionCard key={product.id} product={product} user={user} disableRealtime={true} />
+                <AuctionCard 
+                    key={product.id} 
+                    product={product} 
+                    user={user} 
+                    disableRealtime={true} 
+                />
             ))}
         </div>
 

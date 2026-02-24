@@ -80,24 +80,31 @@ export async function importLots(eventId: string, lots: any[]) {
   try {
     const adminSupabase = createAdminClient()
     
-    // Fetch event ends_at to use as default for lots
+    // Fetch event ends_at to use as base for staggered closing
     const { data: event } = await adminSupabase.from('auction_events').select('ends_at').eq('id', eventId).single()
+    const baseEndsAt = event?.ends_at ? new Date(event.ends_at) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    const formattedLots = lots.map(lot => ({
-      event_id: eventId,
-      lot_number: lot.lot_number ? Number(lot.lot_number) : null,
-      title: lot.title || 'Untitled Lot',
-      description: lot.description || '',
-      start_price: Number(lot.start_price) || 0,
-      current_price: Number(lot.start_price) || 0,
-      min_increment: Number(lot.min_increment) || 5,
-      status: 'live',
-      image_url: lot.image_url || null,
-      manufacturer: lot.manufacturer || null,
-      model: lot.model || null,
-      metadata: lot.metadata || {},
-      ends_at: lot.ends_at || event?.ends_at || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    }))
+    const formattedLots = lots.map(lot => {
+      const lotNum = lot.lot_number ? Number(lot.lot_number) : 0;
+      // STAGGERED CLOSING: Base Time + (Lot Number * 2 minutes)
+      const staggeredEndsAt = new Date(baseEndsAt.getTime() + (lotNum * 2 * 60 * 1000)).toISOString();
+
+      return {
+        event_id: eventId,
+        lot_number: lot.lot_number ? Number(lot.lot_number) : null,
+        title: lot.title || 'Untitled Lot',
+        description: lot.description || '',
+        start_price: Number(lot.start_price) || 0,
+        current_price: Number(lot.start_price) || 0,
+        min_increment: Number(lot.min_increment) || 5,
+        status: 'live',
+        image_url: lot.image_url || null,
+        manufacturer: lot.manufacturer || null,
+        model: lot.model || null,
+        metadata: lot.metadata || {},
+        ends_at: staggeredEndsAt,
+      };
+    })
 
     const { data: createdLots, error } = await adminSupabase
       .from('auctions')
@@ -194,12 +201,12 @@ export async function fetchLots({
                 .select('auction_id, max_amount, amount')
                 .eq('user_id', user.id)
                 .in('auction_id', lotIds)
-                .order('amount', { ascending: false })
             
-            // Only take the highest bid per lot for the current user
             userBids?.forEach((b: any) => {
-                if (!userBidsMap.has(b.auction_id)) {
-                    userBidsMap.set(b.auction_id, b)
+                const existing = userBidsMap.get(b.auction_id);
+                // On garde toujours l'enchère avec le max_amount le plus élevé
+                if (!existing || (b.max_amount > (existing.max_amount || 0))) {
+                    userBidsMap.set(b.auction_id, b);
                 }
             })
         }

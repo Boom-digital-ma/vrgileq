@@ -298,6 +298,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 text-xl font-bold font-display">$</span>
             <input
               type="number"
+              step="any"
               min={realtimePrice + minIncrement}
               value={bidAmount}
               onChange={(e) => setBidAmount(Number(e.target.value))}

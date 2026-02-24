@@ -47,6 +47,26 @@ export async function markAsCollected(saleId: string) {
   return { success: true }
 }
 
+export async function generateEventInvoicesAction(eventId: string) {
+    try {
+        const supabase = await createClient()
+        const { data, error } = await supabase.rpc('generate_event_invoices', {
+            p_event_id: eventId
+        })
+
+        if (error) throw error
+
+        revalidatePath(`/admin/events/${eventId}`)
+        revalidatePath('/admin/sales')
+        
+        const count = Array.isArray(data) ? data.length : 0;
+        return { success: true, count }
+    } catch (err: any) {
+        console.error("Invoicing Error:", err.message)
+        return { error: err.message }
+    }
+}
+
 export async function refundSale(saleId: string) {
   try {
     const supabase = await createClient()

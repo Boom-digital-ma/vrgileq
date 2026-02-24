@@ -10,10 +10,40 @@ import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 
 export const EventList = () => {
+  const [activeTab, setActiveTab] = useState<'all' | 'live' | 'upcoming' | 'closed'>('all')
+  const now = new Date().toISOString()
+
   const result = useTable({
     resource: "auction_events",
-    pagination: { pageSize: 10 }
+    pagination: { pageSize: 10 },
+    sorters: {
+        initial: [{ field: "start_at", order: "desc" }]
+    }
   })
+
+  const { setFilters, filters } = result as any;
+
+  const handleTabChange = (tab: 'all' | 'live' | 'upcoming' | 'closed') => {
+    setActiveTab(tab)
+    
+    if (tab === 'all') {
+        setFilters([], "replace")
+    } else if (tab === 'live') {
+        setFilters([
+            { field: "status", operator: "eq", value: "live" },
+            { field: "start_at", operator: "lte", value: now },
+            { field: "ends_at", operator: "gt", value: now }
+        ], "replace")
+    } else if (tab === 'upcoming') {
+        setFilters([
+            { field: "start_at", operator: "gt", value: now }
+        ], "replace")
+    } else if (tab === 'closed') {
+        setFilters([
+            { field: "ends_at", operator: "lte", value: now }
+        ], "replace")
+    }
+  }
 
   // Fetch global settings for dynamic default deposit
   const settingsResult = useList({ resource: "site_settings" })
@@ -114,6 +144,28 @@ export const EventList = () => {
             </button>
         </div>
       </div>
+
+      <nav className="flex items-center gap-2 border-b border-zinc-100 pb-4 overflow-x-auto">
+        {[
+            { id: 'all', label: 'All Protocols' },
+            { id: 'live', label: 'Live Events' },
+            { id: 'upcoming', label: 'Upcoming' },
+            { id: 'closed', label: 'Closed / Archived' }
+        ].map((tab) => (
+            <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id as any)}
+                className={cn(
+                    "px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
+                    activeTab === tab.id 
+                        ? "bg-zinc-900 text-white shadow-lg" 
+                        : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50"
+                )}
+            >
+                {tab.label}
+            </button>
+        ))}
+      </nav>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {events.map((event: any) => (

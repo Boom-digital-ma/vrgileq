@@ -1,7 +1,7 @@
 'use client'
 
 import { useShow, useList, useNavigation, useDelete, useInvalidate, useTable } from "@refinedev/core"
-import { ArrowLeft, Plus, Loader2, Package, Gavel, Trash2, Edit, Save, Eye, Search, Calendar } from "lucide-react"
+import { ArrowLeft, Plus, Loader2, Package, Gavel, Trash2, Edit, Save, Eye, Search, Calendar, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -10,6 +10,7 @@ import { Modal } from "./Modal"
 import { ImageUpload } from "./ImageUpload"
 import { adminUpsertLot } from "@/app/actions/lots"
 import { generateEventPickupSlots, deleteEventPickupSlots } from "@/app/actions/events"
+import { generateEventInvoicesAction } from "@/app/actions/sales"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { formatEventDate } from "@/lib/utils"
@@ -175,6 +176,21 @@ export const EventShow = () => {
             </div>
         </div>
         <div className="flex items-center gap-3">
+            <button 
+                onClick={async () => {
+                    if (!confirm("Generate consolidated invoices for all winners of this event?")) return;
+                    setFormLoading(true);
+                    const res = await generateEventInvoicesAction(eventId);
+                    if (res.success) toast.success(`${res.count} invoices generated!`);
+                    else toast.error(res.error);
+                    setFormLoading(false);
+                }}
+                disabled={formLoading}
+                className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 hover:bg-emerald-100 disabled:opacity-50"
+            >
+                {formLoading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />} 
+                Generate Invoices
+            </button>
             <button 
                 onClick={async () => {
                     setFormLoading(true);

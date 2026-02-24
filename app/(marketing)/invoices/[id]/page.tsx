@@ -26,10 +26,14 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
     .from('sales')
     .select(`
       *,
-      auction:auctions (
-        title,
-        lot_number,
-        description
+      sale_items (
+        id,
+        hammer_price,
+        auction:auctions (
+            title,
+            lot_number,
+            description
+        )
       ),
       winner:profiles (
         full_name,
@@ -166,18 +170,20 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-50">
-                  <tr>
-                    <td className="py-6">
-                      <p className="font-bold text-prussian-blue text-lg">{sale.auction.title}</p>
-                      <p className="text-sm text-neutral-500 max-w-md line-clamp-1">{sale.auction.description}</p>
-                    </td>
-                    <td className="py-6 text-right font-medium text-neutral-600">
-                      {sale.auction.lot_number || 'N/A'}
-                    </td>
-                    <td className="py-6 text-right font-bold text-prussian-blue">
-                      ${Number(sale.hammer_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </td>
-                  </tr>
+                  {sale.sale_items?.map((item: any) => (
+                    <tr key={item.id}>
+                        <td className="py-6">
+                        <p className="font-bold text-prussian-blue text-lg">{item.auction?.title}</p>
+                        <p className="text-sm text-neutral-500 max-w-md line-clamp-1">{item.auction?.description}</p>
+                        </td>
+                        <td className="py-6 text-right font-medium text-neutral-600">
+                        {item.auction?.lot_number || 'N/A'}
+                        </td>
+                        <td className="py-6 text-right font-bold text-prussian-blue">
+                        ${Number(item.hammer_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

@@ -116,6 +116,7 @@ export default async function EventPage({
         minIncrement: Number(lot.min_increment),
         userMaxBid: userBid?.max_amount,
         userCurrentBid: userBid?.amount,
+        winner_id: lot.winner_id,
         manufacturer: lot.manufacturer,
         model: lot.model
     };

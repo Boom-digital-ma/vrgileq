@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap } from "lucide-react";
+import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown } from "lucide-react";
 import QuickViewModal from "./QuickViewModal";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { placeBid } from "@/app/actions/bids";
@@ -33,6 +33,7 @@ export interface Product {
   minIncrement?: number;
   userMaxBid?: number;
   userCurrentBid?: number;
+  winner_id?: string;
 }
 
 export default function AuctionCard({ product, user, disableRealtime = false }: { product: Product, user: any, disableRealtime?: boolean }) {
@@ -48,11 +49,16 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
   const [realtimePrice, setRealtimePrice] = useState(product.price);
   const [realtimeBidCount, setRealtimeBidCount] = useState(product.bidCount);
   const [realtimeEndsAt, setRealtimeEndsAt] = useState(product.endsAt);
+  const [userMaxBid, setUserMaxBid] = useState(product.userMaxBid);
+  const [userCurrentBid, setUserCurrentBid] = useState(product.userCurrentBid);
+  const [winnerId, setWinnerId] = useState(product.winner_id);
   const [isStarted, setIsStarted] = useState(!product.startAt || new Date(product.startAt) <= new Date());
   const [isEnded, setIsEnded] = useState(new Date(product.endsAt) <= new Date());
+  const [isUrgent, setIsUrgent] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
@@ -93,7 +99,10 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
     setRealtimePrice(product.price);
     setRealtimeBidCount(product.bidCount);
     setRealtimeEndsAt(product.endsAt);
-  }, [product.price, product.bidCount, product.endsAt]);
+    setUserMaxBid(product.userMaxBid);
+    setUserCurrentBid(product.userCurrentBid);
+    setWinnerId(product.winner_id);
+  }, [product.price, product.bidCount, product.endsAt, product.userMaxBid, product.userCurrentBid, product.winner_id]);
 
   // 1. Timer Effect
   useEffect(() => {
@@ -111,6 +120,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
       if (isTimerMounted) {
         setIsStarted(started);
         setIsEnded(ended);
+        setIsUrgent(started && !ended && (endTime - now) < 24 * 60 * 60 * 1000);
       }
 
       if (!started && product.startAt) {
@@ -160,6 +170,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
       }, (payload: any) => {
         if (isSubscriptionMounted) {
           setRealtimePrice(Number(payload.new.current_price));
+          setWinnerId(payload.new.winner_id);
           if (payload.new.ends_at) {
             setRealtimeEndsAt(payload.new.ends_at);
           }
@@ -174,6 +185,9 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
         if (isSubscriptionMounted) {
           setRealtimeBidCount(prev => prev + 1);
           setRealtimePrice(prev => Math.max(prev, Number(payload.new.amount)));
+          if (payload.new.status === 'active') {
+              setWinnerId(payload.new.user_id);
+          }
         }
       })
       .subscribe();
@@ -269,10 +283,18 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
     }
   };
 
+  const isWinning = user && winnerId === user.id;
+  const isOutbid = user && userCurrentBid && winnerId && winnerId !== user.id;
+
   return (
     <>
-      <div className="group flex flex-col bg-white border border-zinc-200/80 rounded-[24px] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(11,43,83,0.1)] hover:border-primary/20 overflow-hidden h-full relative italic">
-        {/* Media Container - FIXED: Force full fill */}
+      <div className={cn(
+          "group flex flex-col bg-white border rounded-[24px] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(11,43,83,0.1)] overflow-hidden h-full relative italic",
+          isWinning ? "border-emerald-500/30 bg-emerald-50/5 shadow-lg shadow-emerald-500/5" : 
+          isOutbid ? "border-rose-500/30 bg-rose-50/5 shadow-lg shadow-rose-500/5" : 
+          "border-zinc-200/80 hover:border-primary/20"
+      )}>
+        {/* Media Container */}
         <div 
           className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100 cursor-pointer"
           onTouchStart={onTouchStart}
@@ -300,10 +322,11 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             </div>
           )}
           
-          <div className="absolute top-6 left-6 flex gap-2 items-center z-10 pointer-events-none">
+          <div className="absolute top-6 left-6 flex items-center gap-2 z-10 pointer-events-none">
             <div className="bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border border-white/20">
               #{product.lotNumber || product.id.slice(0,4)}
             </div>
+            
             {mounted && isStarted && timeLeft !== "Auction Ended" && (
               <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
                   <span className="relative flex h-2 w-2">
@@ -325,13 +348,9 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             )}
           </div>
 
-          <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md border border-white/40 px-3 py-1.5 rounded-full flex items-center gap-2 text-[10px] font-bold text-primary shadow-sm pointer-events-none">
-            {isStarted ? <Timer className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />} {mounted ? timeLeft : "..."}
-          </div>
-
           {allImages.length > 1 && (
             <>
-              {/* Pagination Dots - Always visible on mobile, hover on desktop */}
+              {/* Pagination Dots */}
               <div className="absolute bottom-4 left-1/2 -translate-y-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
                 {allImages.map((_, i) => (
                   <div 
@@ -346,7 +365,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                 ))}
               </div>
 
-              {/* Navigation Arrows - visible on hover or always on touch if we wanted, but let's keep them accessible */}
+              {/* Navigation Arrows */}
               <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 opacity-0 group-hover:opacity-100 lg:group-hover:opacity-100 transition-all duration-300 z-20">
                   <button onClick={handlePrevImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowLeft size={14} /></button>
                   <button onClick={handleNextImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowRight size={14} /></button>
@@ -382,44 +401,97 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           </div>
           
           <Link href={`/auctions/${product.id}`} className="group/title">
-            <h2 className="mb-2 text-lg font-bold leading-tight text-secondary group-hover/title:text-primary transition-colors line-clamp-2 min-h-[3.5rem] font-display uppercase italic">
+            <h2 className="mb-2 text-base font-bold leading-tight text-secondary group-hover/title:text-primary transition-colors line-clamp-2 min-h-[2.5rem] font-display uppercase italic">
               {product.title}
             </h2>
           </Link>
 
-          {(product.manufacturer || product.model) && (
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
-              {product.manufacturer && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight">Mfr:</span>
-                  <span className="text-[10px] font-bold text-secondary uppercase truncate max-w-[100px]">{product.manufacturer}</span>
-                </div>
-              )}
-              {product.model && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight">Model:</span>
-                  <span className="text-[10px] font-bold text-secondary uppercase truncate max-w-[100px]">{product.model}</span>
-                </div>
-              )}
+          <div className="relative">
+            <div className={cn(
+                "space-y-3 overflow-hidden transition-all duration-500",
+                isExpanded ? "max-h-96 opacity-100" : "max-h-6 opacity-60"
+            )}>
+                <p className={cn(
+                    "text-[11px] font-medium text-zinc-400 leading-relaxed uppercase italic",
+                    !isExpanded && "line-clamp-1"
+                )}>
+                    {product.description || "High-quality industrial asset. Physically verified by our technical assessment team."}
+                </p>
+
+                {(product.manufacturer || product.model) && (
+                    <div className={cn(
+                        "flex flex-wrap gap-x-4 gap-y-1 transition-opacity duration-300",
+                        isExpanded ? "opacity-100" : "opacity-0"
+                    )}>
+                    {product.manufacturer && (
+                        <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight">Mfr:</span>
+                        <span className="text-[10px] font-bold text-secondary uppercase truncate max-w-[100px]">{product.manufacturer}</span>
+                        </div>
+                    )}
+                    {product.model && (
+                        <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tight">Model:</span>
+                        <span className="text-[10px] font-bold text-secondary uppercase truncate max-w-[100px]">{product.model}</span>
+                        </div>
+                    )}
+                    </div>
+                )}
             </div>
-          )}
 
-          <p className="text-[11px] font-medium text-zinc-400 leading-relaxed uppercase mb-4 line-clamp-2">
-            {product.description || "High-quality industrial asset. Physically verified by our technical assessment team."}
-          </p>
+            <button 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                className="mt-2 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-primary hover:text-secondary transition-colors group/more"
+            >
+                {isExpanded ? "Show Less" : "Details"}
+                <ChevronDown size={12} className={cn("transition-transform duration-300", isExpanded ? "rotate-180" : "")} />
+            </button>
+          </div>
 
-          <div className="mt-auto pt-5 border-t border-zinc-50 flex items-center justify-between mb-6">
-            <div>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1 italic">Current Price</p>
-              <div className="text-2xl font-bold text-secondary tabular-nums font-display leading-none">
-                ${mounted ? realtimePrice.toLocaleString() : realtimePrice.toString()}
+          <div className="mt-auto pt-5 border-t border-zinc-100 flex items-center justify-between mb-6">
+            <div className="space-y-3">
+              {/* Timer back in content area - LARGER & STATIC RED */}
+              <div className={cn(
+                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 font-black uppercase tracking-wider transition-all duration-500",
+                  "bg-rose-50 border-rose-200 text-rose-600 shadow-sm"
+              )}>
+                <Timer size={14} />
+                <span className="text-[11px] tabular-nums">{mounted ? timeLeft : "---"}</span>
               </div>
-              {product.userMaxBid && product.userMaxBid > realtimePrice && (
-                  <div className="flex items-center gap-1 mt-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest animate-pulse">
-                      <Zap size={10} className="fill-current" /> 
-                      Proxy Active: ${product.userMaxBid.toLocaleString()}
-                  </div>
-              )}
+
+              <div>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1 italic leading-none">Current Price</p>
+                <div className="text-2xl font-bold text-secondary tabular-nums font-display leading-none" suppressHydrationWarning>
+                  ${mounted ? realtimePrice.toLocaleString() : realtimePrice.toString()}
+                </div>
+
+                {/* Status Section */}
+                <div className="mt-1.5 space-y-1">
+                    {/* Winning Status */}
+                    {isWinning && (
+                        <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[9px] uppercase tracking-widest animate-in fade-in duration-500">
+                            <Trophy size={12} />
+                            You are in the lead
+                        </div>
+                    )}
+
+                    {/* Proxy Active */}
+                    {userMaxBid && userMaxBid > realtimePrice && (
+                        <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest" suppressHydrationWarning>
+                            <Zap size={10} className="fill-current" /> 
+                            Proxy Active: ${userMaxBid.toLocaleString()}
+                        </div>
+                    )}
+
+                    {/* Outbid Status - Positioned at the bottom */}
+                    {isOutbid && (
+                        <div className="flex items-center gap-1.5 text-rose-600 animate-pulse">
+                            <AlertCircle size={12} />
+                            <span className="text-[9px] font-black uppercase tracking-widest leading-none">Someone outbid you!</span>
+                        </div>
+                    )}
+                </div>
+              </div>
             </div>
             <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsHistoryModalOpen(true); }}
@@ -447,7 +519,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           ) : !isStarted ? (
             <button 
               disabled
-              className="w-full bg-zinc-50 border-2 border-zinc-100 text-zinc-400 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
+              className="w-full bg-zinc-50 border-2 border-zinc-100 text-zinc-400 py-3 rounded-xl font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default text-[10px]"
             >
                 <Clock size={16} />
                 Starting Soon
@@ -461,6 +533,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">$</span>
                     <input 
                       type="number" 
+                      step="any"
                       min={realtimePrice + (product.minIncrement || 1)} 
                       value={bidAmount} 
                       onChange={(e) => setBidAmount(Number(e.target.value))} 

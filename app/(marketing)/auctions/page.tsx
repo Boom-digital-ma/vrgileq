@@ -187,6 +187,7 @@ export default async function AuctionsPage({
                                             minIncrement: Number(lot.min_increment),
                                             userMaxBid: userBid?.max_amount,
                                             userCurrentBid: userBid?.amount,
+                                            winner_id: lot.winner_id,
                                             manufacturer: lot.manufacturer,
                                             model: lot.model
                                         }
@@ -233,6 +234,7 @@ export default async function AuctionsPage({
                                             pickupLocation: lot.auction_events?.location,
                                             description: lot.description,
                                             minIncrement: Number(lot.min_increment),
+                                            winner_id: lot.winner_id,
                                             manufacturer: lot.manufacturer,
                                             model: lot.model
                                         }))}

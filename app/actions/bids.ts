@@ -48,15 +48,17 @@ export async function placeBid({
   }
 
   // RULE 2: Auto-Proxy Logic
-  // If user enters more than the minimum required bid, treat the excess as a proxy bid
-  let finalAmount = amount;
-  let finalMaxBid = maxBidAmount;
+  // Any amount above minRequiredBid is treated as a potential proxy/max bid by the SQL engine
   const minRequiredBid = Number(auction.current_price) + Number(auction.min_increment);
-
-  if (amount > minRequiredBid) {
-    finalAmount = minRequiredBid;
-    finalMaxBid = amount; // The high amount becomes the ceiling
+  
+  if (amount < minRequiredBid) {
+    throw new Error(`Minimum bid required is $${minRequiredBid}`);
   }
+
+  // We send the full amount as both the bid and the max_amount
+  // The SQL RPC will determine the actual price jump needed
+  const finalAmount = amount;
+  const finalMaxBid = amount;
 
   let previousWinnerProfile = null
   let previousWinnerEmail = null

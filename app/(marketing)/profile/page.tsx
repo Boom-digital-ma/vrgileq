@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Gavel, Star, Trophy, Clock, Package, ArrowRight, CreditCard, ShieldCheck, Plus, Trash2, ShieldAlert, Loader2, History, User, Settings, Lock, ChevronRight, FileText, Truck, Zap } from 'lucide-react'
+import { Gavel, Star, Trophy, Clock, Package, ArrowRight, CreditCard, ShieldCheck, Plus, Trash2, ShieldAlert, Loader2, History, User, Settings, Lock, ChevronRight, FileText, Truck, Zap, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Elements } from '@stripe/react-stripe-js'
@@ -17,9 +17,9 @@ import { toast } from 'sonner'
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState<'bids' | 'won' | 'watchlist' | 'payment' | 'security' | 'info'>('bids')
-  const [data, setData] = useState<{ bids: any[], won: any[], watchlist: any[], profile: any, cards: any[] }>({ 
-    bids: [], won: [], watchlist: [], profile: null, cards: [] 
+  const [activeTab, setActiveTab] = useState<'bids' | 'won' | 'watchlist' | 'payment' | 'security' | 'info' | 'invoices'>('bids')
+  const [data, setData] = useState<{ bids: any[], wonLots: any[], invoices: any[], watchlist: any[], profile: any, cards: any[] }>({ 
+    bids: [], wonLots: [], invoices: [], watchlist: [], profile: null, cards: [] 
   })
   const [loading, setLoading] = useState(true)
   const [emailLoading, setEmailLoading] = useState(false)
@@ -55,10 +55,20 @@ export default function ProfilePage() {
       }
     })
 
-    const { data: won } = await supabase
-      .from('sales')
-      .select('*, auction:auctions(*, auction_images(*), auction_events(title))')
+    // 1. Fetch Won Lots (Directly from auctions where winner_id matches)
+    const { data: wonLots } = await supabase
+      .from('auctions')
+      .select('*, auction_images(*), auction_events(title)')
       .eq('winner_id', user.id)
+      .in('status', ['sold', 'ended'])
+      .order('ends_at', { ascending: false })
+
+    // 2. Fetch Consolidated Invoices
+    const { data: invoices } = await supabase
+      .from('sales')
+      .select('*, sale_items(*, auction:auctions(*, auction_images(*))), event:auction_events(title)')
+      .eq('winner_id', user.id)
+      .order('created_at', { ascending: false })
 
     const { data: watch } = await supabase
       .from('watchlist')
@@ -67,7 +77,8 @@ export default function ProfilePage() {
 
     setData({
       bids: Array.from(uniqueBidsMap.values()),
-      won: won || [],
+      wonLots: wonLots || [],
+      invoices: invoices || [],
       watchlist: watch?.map((w: any) => w.auctions) || [],
       profile: profileRes.data,
       cards: cardsRes
@@ -178,7 +189,7 @@ export default function ProfilePage() {
             </div>
             <div className="bg-secondary p-6 rounded-3xl min-w-[140px] shadow-xl shadow-secondary/10 text-white italic">
                 <div className="text-[9px] font-bold uppercase text-white/40 tracking-widest mb-1">Lots Won</div>
-                <div className="text-3xl font-bold font-display tabular-nums leading-none">{loading ? '---' : data.won.length}</div>
+                <div className="text-3xl font-bold font-display tabular-nums leading-none">{loading ? '---' : data.wonLots.length}</div>
             </div>
           </div>
         </div>
@@ -193,6 +204,7 @@ export default function ProfilePage() {
               {[
                 { id: 'bids', label: 'Live Bids', icon: Gavel },
                 { id: 'won', label: 'Won Items', icon: Trophy },
+                { id: 'invoices', label: 'Official Invoices', icon: FileText },
                 { id: 'watchlist', label: 'Watchlist', icon: Star },
                 { id: 'payment', label: 'Secure Wallet', icon: CreditCard },
                 { id: 'info', label: 'Identity', icon: User },
@@ -362,19 +374,37 @@ export default function ProfilePage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 mb-8 border-b border-zinc-100 pb-6">
                         <Trophy size={20} className="text-primary" />
-                        <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Acquisition History</h2>
+                        <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Won Assets</h2>
                       </div>
-                      {data.won.length === 0 ? (
+                      {data.wonLots.length === 0 ? (
                         <EmptyState message="No won assets in record" link="/auctions" linkText="Start Bidding" />
                       ) : (
-                        data.won.map((sale) => (
+                        data.wonLots.map((lot) => (
                           <AuctionRow 
-                            key={sale.id} 
-                            auction={sale.auction} 
-                            bidAmount={sale.hammer_price} 
+                            key={lot.id} 
+                            auction={lot} 
+                            bidAmount={lot.current_price} 
                             isWon 
-                            saleId={sale.id}
-                            status={sale.status}
+                            status="sold"
+                          />
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'invoices' && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 mb-8 border-b border-zinc-100 pb-6">
+                        <FileText size={20} className="text-primary" />
+                        <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Official Billing</h2>
+                      </div>
+                      {data.invoices.length === 0 ? (
+                        <EmptyState message="No invoices generated yet" link="/auctions" linkText="Participate in Events" />
+                      ) : (
+                        data.invoices.map((sale) => (
+                          <AcquisitionRow 
+                            key={sale.id} 
+                            sale={sale}
                           />
                         ))
                       )}
@@ -460,6 +490,77 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function AcquisitionRow({ sale }: { sale: any }) {
+  const lotCount = sale.sale_items?.length || 0;
+  const firstItem = sale.sale_items?.[0]?.auction;
+  const imgUrl = firstItem?.auction_images?.[0]?.url || firstItem?.image_url || "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad";
+
+  return (
+    <div className="flex flex-col md:flex-row items-center gap-8 bg-white border border-zinc-100 p-6 rounded-[32px] group hover:border-primary/20 transition-all hover:shadow-xl hover:shadow-secondary/5 italic">
+      <div className="relative h-24 w-full md:w-40 shrink-0 overflow-hidden rounded-2xl border border-zinc-50 bg-zinc-50 flex items-center justify-center">
+        {lotCount > 0 ? (
+            <>
+                <Image src={getOptimizedImageUrl(imgUrl, { width: 200 })} alt="Acquisition" fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="200px" />
+                <div className="absolute inset-0 bg-zinc-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-[10px] font-black uppercase tracking-widest">{lotCount} Items</span>
+                </div>
+            </>
+        ) : (
+            <Package size={32} className="text-zinc-200" />
+        )}
+      </div>
+      
+      <div className="flex-1 min-w-0 text-center md:text-left">
+        <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+          <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">Consolidated Invoice #{sale.invoice_number}</span>
+          <span className={cn(
+              "text-[8px] font-black uppercase px-2 py-0.5 rounded border",
+              sale.status === 'paid' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"
+          )}>{sale.status}</span>
+        </div>
+        <h3 className="text-xl font-bold text-secondary uppercase truncate group-hover:text-primary transition-colors font-display leading-tight">
+            {sale.event?.title || 'Industrial Liquidation Event'}
+        </h3>
+        <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-3">
+            <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-zinc-400">
+                <Package size={12} className="text-primary" /> {lotCount} Lots Included
+            </div>
+            <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-zinc-400">
+                <Calendar size={12} className="text-primary" /> Issued {formatEventDate(sale.created_at)}
+            </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
+        <p className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">Invoice Total</p>
+        <div className="text-2xl font-bold text-secondary font-display tabular-nums italic leading-none">${Number(sale.total_amount).toLocaleString()}</div>
+        
+        <div className="mt-2 flex gap-2">
+            <Link 
+            href={`/invoices/${sale.id}`}
+            className="flex items-center gap-2 bg-zinc-900 text-white px-4 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-primary transition-all shadow-md"
+            >
+            <FileText size={12} /> Details
+            </Link>
+            {sale.status === 'paid' && (
+            <Link 
+                href={`/gate-pass/${sale.id}`}
+                target="_blank"
+                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-md"
+            >
+                <Truck size={12} /> Pass
+            </Link>
+            )}
+        </div>
+      </div>
+
+      <Link href={`/invoices/${sale.id}`} className="bg-zinc-50 text-zinc-400 p-5 rounded-[20px] hover:bg-primary hover:text-white transition-all border border-zinc-100 group-hover:border-primary">
+        <ArrowRight size={24} />
+      </Link>
     </div>
   )
 }
