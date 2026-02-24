@@ -10,28 +10,30 @@ Le système repose sur une structure à 4 niveaux :
 *   **Sales :** Couche de finalisation créée automatiquement à la clôture, gérant les taxes et le retrait.
 
 ## 2. Intelligence du Moteur d'Enchères
-### Proxy Bidding (Max Bid)
-Algorithme SQL permettant aux utilisateurs de définir un plafond caché :
-*   Le système enchérit automatiquement pour le compte de l'utilisateur.
-*   Il respecte toujours l'incrément minimum (`min_increment`).
-*   La logique est gérée de manière atomique en PL/pgSQL pour garantir l'intégrité même en cas de forte concurrence.
+### Proxy Bidding & Price Jumps
+Algorithme SQL (`place_bid_secure`) permettant aux utilisateurs de définir un plafond caché :
+*   **Duel de Proxies :** En cas de concurrence entre deux enchères automatiques, le prix "saute" intelligemment à `LEAST(max_perdant + increment, max_gagnant)`.
+*   **Intégrité :** La logique est gérée de manière atomique en PL/pgSQL pour garantir l'intégrité même en cas de forte concurrence.
+
+### Staggered Closing (Fermeture Échelonnée)
+*   **Calcul Automatique :** Lors de l'importation ManyFastScan, chaque lot reçoit une heure de fin calculée : `Fin_Evenement + (Num_Lot * 2 minutes)`.
+*   **Objectif :** Éviter les pics de charge et augmenter l'engagement sur les lots successifs.
 
 ### Anti-Sniping (Auto-Extension)
 Protection contre les enchères de dernière seconde :
-*   Si une offre est placée moins de X minutes avant la fin (configurable dans l'admin), la date de clôture est repoussée de Y minutes.
-*   La synchronisation est maintenue en temps réel via Supabase Realtime vers tous les clients connectés.
+*   Si une offre est placée moins de X minutes avant la fin, la date de clôture est repoussée de Y minutes (configurables via `site_settings`).
 
 ## 3. Flux Logistique & Post-Vente
-### Facturation Automatisée
-Dès qu'un lot passe au statut `sold` :
-*   Un **Trigger SQL** génère une entrée dans la table `sales`.
-*   Le montant total est calculé : `Hammer Price + Buyer's Premium + Tax Rate`.
-*   Un numéro de facture unique (`INV-XXXX`) est attribué.
+### Facturation Consolidée
+Migration vers une structure 1:N (une facture pour plusieurs lots) :
+*   **sale_items :** Nouvelle table de jointure entre `sales` et `auctions`.
+*   **RPC `generate_event_invoices` :** Fonction SQL regroupant tous les gains d'un utilisateur par événement pour générer une facture unique.
+*   **Calculs :** Somme des prix adjudications + calcul global des frais et taxes.
 
 ### Système de Retrait (Pickup)
 *   **Génération :** L'Admin génère des créneaux temporels (ex: 15 min d'intervalle) avec une capacité maximale.
-*   **Réservation :** Le gagnant choisit son créneau sur sa page facture. Le système décompte les places restantes via la vue `pickup_slots_with_counts`.
-*   **Gate Pass :** Document HTML sécurisé avec QR Code contenant les métadonnées de la vente, accessible uniquement après confirmation du paiement (`PAID`).
+*   **Réservation :** Le gagnant choisit son créneau sur sa page facture consolidée.
+*   **Gate Pass :** Document HTML sécurisé avec QR Code listant tous les actifs de la facture, accessible uniquement après confirmation du paiement (`PAID`).
 
 ## 4. Optimisation des Performances
 ### Images CDN

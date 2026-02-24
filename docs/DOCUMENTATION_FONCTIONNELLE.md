@@ -72,26 +72,33 @@ Le schéma de base de données est conçu pour la performance et la sécurité (
 - **Outbid Alerts :** Notification immédiate par email avec récupération sécurisée de l'adresse via le client Admin (fallback Auth).
 - **Rappels d'Événements :** Nouveau bouton "Cloche" 🔔 permettant aux utilisateurs de s'abonner aux alertes de début d'événement (email envoyé 30 minutes avant le lancement).
 - **Clôture Automatique :** Utilisation de `pg_cron` et d'Edge Functions pour fermer les lots à l'heure précise.
-- **Facturation Auto :** Génération immédiate d'une facture (table `sales`) dès qu'un lot est marqué "Sold".
+- **Staggered Closing (Fermeture Échelonnée) :** Les lots sont automatiquement décalés de **2 minutes** lors de l'importation pour éviter la congestion et maximiser les ventes.
+- **Facturation Consolidée :** Les factures (table `sales`) sont générées manuellement par l'admin à la fin de l'événement, regroupant tous les lots d'un même acheteur sur un seul document.
 
 ---
 
 ## 6. Post-Auction & Logistique (Nouveau)
 ### 🧾 Facturation & Paiements
+- **Facturation par Événement :** Un acheteur reçoit une seule facture regroupant l'ensemble de ses gains pour un événement donné.
 - **Paiement Soustractif :** Le système capture automatiquement le dépôt de garantie (caution d'inscription) lors de la victoire et ne débite que le solde restant sur la carte du client.
 - **Transactions Simplifiées :** Suppression des blocages bancaires (holds) pendant la mise pour fluidifier l'expérience utilisateur.
-- **Page Facture :** Route dynamique `/invoices/[id]` pour les gagnants.
-- **Calculs :** Prix Marteau + Buyer's Premium + Taxes = Total.
+- **Page Facture :** Route dynamique `/invoices/[id]` affichant le tableau détaillé des lots inclus.
+- **Calculs :** Somme des prix marteaux + Buyer's Premium global + Taxes = Total.
 - **Statut :** Suivi en temps réel (Pending -> Paid -> Collected).
-
-### 🚚 Retrait & Gate Pass
-- **Planification :** Les gagnants choisissent un créneau de retrait directement sur leur facture.
-- **Gate Pass :** Génération d'un document PDF/HTML officiel avec QR Code pour le contrôle à la sortie.
-- **Contrôle d'Accès :** Le Gate Pass n'est généré que si la facture est intégralement payée.
 
 ---
 
-## 7. Dashboard Administration (Back-office)
+## 7. Interface Utilisateur (UX Premium)
+### ⚡ Temps Réel & Feedback
+- **Indicateurs de Victoire :** Les cartes de lots changent de couleur instantanément (Bordure émeraude + badge "You are in the lead") si l'utilisateur est le meilleur enchérisseur.
+- **Alertes Outbid :** La carte devient rouge avec un message clignotant "Someone outbid you!" dès que l'utilisateur perd la main.
+- **Timer d'Urgence :** Compte à rebours rouge statique positionné au-dessus du prix pour une visibilité immédiate.
+- **Détails Pliables :** Descriptions et infos techniques (Modèle, Fabricant) compactées par défaut pour réduire la hauteur des cartes et améliorer la navigation.
+- **Profil Structuré :** Distinction claire entre les actifs physiques (**Won Assets**) et les documents comptables (**Official Billing**).
+
+---
+
+## 8. Dashboard Administration (Back-office)
 Interface professionnelle basée sur Refine v5, réorganisée par pôles métiers :
 - **Vue d'Ensemble :** KPI en temps réel (Chiffre d'affaires, Taux de retrait, Utilisateurs actifs).
 - **Inventory Management :** Gestion complète des Événements et des Lots (avec upload d'images optimisé).

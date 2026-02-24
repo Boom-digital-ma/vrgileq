@@ -15,18 +15,27 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
-  // Check role to inform client of destination
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', data.user.id)
-    .single()
+  // Check role to inform client of destination with error handling
+  let role = 'client';
+  try {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+    
+    if (!profileError && profile) {
+      role = profile.role;
+    }
+  } catch (e) {
+    console.error("Login: Profile fetch failed", e);
+  }
 
   revalidatePath('/', 'layout')
 
   return { 
     success: true, 
-    role: profile?.role || 'client' 
+    role: role 
   }
 }
 

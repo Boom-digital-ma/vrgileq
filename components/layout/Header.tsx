@@ -29,8 +29,11 @@ export default function Header() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // 1. Initial Session Check
     supabase.auth.getSession().then(({ data: { session } }: any) => {
+      if (!isMounted) return;
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) fetchProfile(currentUser.id);
@@ -39,6 +42,7 @@ export default function Header() {
 
     // 2. Listen for Auth Changes (Login/Logout)
     const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
+      if (!isMounted) return;
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) fetchProfile(currentUser.id);
@@ -59,7 +63,7 @@ export default function Header() {
                 table: 'profiles', 
                 filter: `id=eq.${user.id}` 
             }, (payload: any) => {
-                setProfile(payload.new);
+                if (isMounted) setProfile(payload.new);
             })
             .subscribe();
     }
@@ -71,21 +75,26 @@ export default function Header() {
         .select('global_announcement, announcement_text, announcement_link')
         .eq('id', 'global')
         .maybeSingle();
+      
+      if (!isMounted) return;
       if (settings?.global_announcement) setAnnouncement(settings.global_announcement);
       if (settings?.announcement_text) setAnnouncementPopupText(settings.announcement_text);
       if (settings?.announcement_link) setAnnouncementLink(settings.announcement_link);
     };
     fetchSettings();
 
-    const handleScroll = () => setScrolled(window.scrollY > 10);
+    const handleScroll = () => {
+        if (isMounted) setScrolled(window.scrollY > 10);
+    };
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
+      isMounted = false;
       authListener.subscription.unsubscribe();
       if (profileChannel) supabase.removeChannel(profileChannel);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [supabase, user?.id]);
+  }, [supabase]);
 
   const handleLogout = async () => {
     try {
