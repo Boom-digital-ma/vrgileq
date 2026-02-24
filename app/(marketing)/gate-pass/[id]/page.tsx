@@ -79,7 +79,8 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
   }
 
   // Generate a verification URL for the QR Code (pointing back to this page or an admin check)
-  const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/gate-pass/${sale.id}`
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'
+  const verificationUrl = `${siteUrl}/gate-pass/${sale.id}`
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verificationUrl)}`
 
   return (

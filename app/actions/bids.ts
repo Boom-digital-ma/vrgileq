@@ -151,12 +151,13 @@ export async function placeBid({
     if (previousWinnerEmail && updatedAuction?.winner_id !== previousWinnerProfile?.id) {
         console.log(`[EMAIL_SERVICE] Winner changed! Sending outbid email to ${previousWinnerEmail}`);
         try {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'
             await sendOutbidEmail({
                 to: previousWinnerEmail,
                 bidderName: previousWinnerProfile?.full_name || 'Bidder',
                 auctionTitle: auction?.title || 'Industrial Item',
                 newAmount: updatedAuction?.current_price || finalAmount,
-                auctionUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/auctions/${auctionId}`
+                auctionUrl: `${siteUrl}/auctions/${auctionId}`
             });
             console.log(`[EMAIL_SERVICE] Outbid email dispatched to ${previousWinnerEmail}`);
         } catch (emailErr) {
