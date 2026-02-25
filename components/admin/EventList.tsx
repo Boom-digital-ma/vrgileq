@@ -127,7 +127,7 @@ export const EventList = () => {
                     const confirmClose = confirm("Execute closing sequence for all expired lots across all events?");
                     if (!confirmClose) return;
                     try {
-                        const { error } = await createClient().rpc('check_and_close_auctions');
+                        const { error } = await createClient().rpc('check_and_open_and_close_events');
                         if (error) throw error;
                         toast.success("Global closing sequence executed");
                         tableQuery.refetch();

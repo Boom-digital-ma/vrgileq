@@ -274,7 +274,7 @@ export const EventShow = () => {
                                                 setIsActionsOpen(false);
                                                 setFormLoading(true);
                                                 try {
-                                                    const { error } = await supabase.rpc('check_and_close_auctions');
+                                                    const { error } = await supabase.rpc('check_and_open_and_close_events');
                                                     if (error) throw error;
                                                     toast.success("Closing sequence executed");
                                                     tableQuery?.refetch?.();
