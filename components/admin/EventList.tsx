@@ -30,17 +30,15 @@ export const EventList = () => {
         setFilters([], "replace")
     } else if (tab === 'live') {
         setFilters([
-            { field: "status", operator: "eq", value: "live" },
-            { field: "start_at", operator: "lte", value: now },
-            { field: "ends_at", operator: "gt", value: now }
+            { field: "status", operator: "eq", value: "live" }
         ], "replace")
     } else if (tab === 'upcoming') {
         setFilters([
-            { field: "start_at", operator: "gt", value: now }
+            { field: "status", operator: "eq", value: "scheduled" }
         ], "replace")
     } else if (tab === 'closed') {
         setFilters([
-            { field: "ends_at", operator: "lte", value: now }
+            { field: "status", operator: "eq", value: "closed" }
         ], "replace")
     }
   }
