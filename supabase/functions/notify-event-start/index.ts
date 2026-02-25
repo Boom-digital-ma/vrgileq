@@ -15,15 +15,18 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 1. Find upcoming events starting in the next 30 minutes
+    // 1. Find upcoming events starting in the next 30 minutes 
+    // OR events that started in the last 15 minutes but haven't been notified
     const now = new Date()
     const thirtyMinutesLater = new Date(now.getTime() + 30 * 60000)
+    const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60000)
 
     const { data: upcomingEvents, error: eventError } = await supabaseClient
       .from('auction_events')
-      .select('id, title, start_at')
-      .gt('start_at', now.toISOString())
+      .select('id, title, start_at, status')
+      .gt('start_at', fifteenMinutesAgo.toISOString())
       .lt('start_at', thirtyMinutesLater.toISOString())
+      .in('status', ['live', 'scheduled'])
 
     if (eventError) throw eventError
 
@@ -48,15 +51,19 @@ Deno.serve(async (req) => {
       if (reminders && reminders.length > 0) {
         for (const r of reminders) {
           if (r.user?.email) {
+            const isLive = new Date(event.start_at) <= now || event.status === 'live'
+            const titlePrefix = isLive ? "Event is Now Live!" : "Event Starting Soon!"
+            
             batchEmails.push({
               from: FROM_EMAIL,
               to: r.user.email,
-              subject: `Starting Soon: ${event.title}`,
+              subject: `${titlePrefix}: ${event.title}`,
               html: eventStartingTemplate(
                 r.user.full_name || 'Valued Member',
                 event.title,
-                `https://virginialiquidation.com/events/${event.id}`,
-                event.start_at
+                `https://virginialiquidation.vercel.app/events/${event.id}`,
+                event.start_at,
+                titlePrefix
               )
             })
             reminderIds.push(r.id)

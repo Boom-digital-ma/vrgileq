@@ -1,4 +1,4 @@
-export const eventStartingTemplate = (userName: string, eventTitle: string, eventUrl: string, startAt: string) => `
+export const eventStartingTemplate = (userName: string, eventTitle: string, eventUrl: string, startAt: string, titlePrefix: string = "Event Starting Soon!") => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,16 +19,16 @@ export const eventStartingTemplate = (userName: string, eventTitle: string, even
     <div class="header">
       <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/public_assets/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
     </div>
-    <h1 class="title" style="text-align: center; margin-top: 30px;">Event Starting Soon!</h1>
+    <h1 class="title" style="text-align: center; margin-top: 30px;">${titlePrefix}</h1>
     <p class="text">Hello ${userName},</p>
     <p class="text">
-      The event you are watching, <span class="highlight">${eventTitle}</span>, is about to begin.
+      The event you are watching, <span class="highlight">${eventTitle}</span>, is ${titlePrefix === "Event is Now Live!" ? "now open for bidding" : "about to begin"}.
     </p>
     <p class="text">
         Start Time: <strong>${new Date(startAt).toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'full', timeStyle: 'short' })}</strong>
     </p>
     <div style="text-align: center;">
-      <a href="${eventUrl}" class="button">Enter Auction Room</a>
+      <a href="${eventUrl.replace('https://virginialiquidation.com', 'https://virginialiquidation.vercel.app')}" class="button">Enter Auction Room</a>
     </div>
     <p class="text" style="margin-top: 30px; font-size: 14px; text-align: center;">
       Prepare your bids early. Good luck!

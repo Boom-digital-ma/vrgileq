@@ -26,6 +26,6 @@ END $$;
 
 SELECT cron.schedule(
     'notify-event-start',
-    '*/10 * * * *',
+    '*/5 * * * *',
     'SELECT public.check_and_notify_event_start()'
 );
