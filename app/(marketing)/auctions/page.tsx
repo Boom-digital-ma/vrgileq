@@ -259,7 +259,7 @@ export default async function AuctionsPage({
   const now = new Date().toISOString()
 
   // Pre-fetch counts to determine default tab if none or if current is empty
-  const { count: liveCount } = await supabase.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live').lte('start_at', now).gt('ends_at', now)
+  const { count: liveCount } = await supabase.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live')
   const { count: upcomingCount } = await supabase.from('auction_events').select('*', { count: 'exact', head: true }).or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
   
   // Auto-fallback logic
@@ -278,11 +278,11 @@ export default async function AuctionsPage({
     .neq('status', 'draft')
 
   if (filter === 'live') {
-    eventQuery = eventQuery.eq('status', 'live').lte('start_at', now).gt('ends_at', now)
+    eventQuery = eventQuery.eq('status', 'live')
   } else if (filter === 'upcoming') {
     eventQuery = eventQuery.or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
   } else if (filter === 'past') {
-    eventQuery = eventQuery.or(`status.eq.closed,ends_at.lte.${now}`)
+    eventQuery = eventQuery.eq('status', 'closed')
   }
 
   const { data: events, count: eventCount } = await eventQuery
@@ -400,9 +400,10 @@ export default async function AuctionsPage({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
           {events?.map((event) => {
-            const isEnded = new Date(event.ends_at) <= new Date();
-            const isUpcoming = new Date(event.start_at) > new Date();
-            const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : event.status);
+            const now = new Date();
+            const isEnded = event.status === 'closed' || (event.status !== 'live' && new Date(event.ends_at) <= now);
+            const isUpcoming = event.status === 'scheduled' || (event.status === 'live' && new Date(event.start_at) > now);
+            const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
 
             return (
               <Link 
@@ -455,7 +456,7 @@ export default async function AuctionsPage({
                   </p>
                   
                   <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
-                      <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} />
+                      <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} status={event.status} />
                       <div className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white">
                           <ArrowRight size={20} />
                       </div>

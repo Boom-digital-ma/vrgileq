@@ -52,7 +52,7 @@ export default async function AuctionDetailPage({ params }: { params: { id: stri
     },
     "offers": {
       "@type": "Offer",
-      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'}/auctions/${lot.id}`,
+      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'}/auctions/${lot.id}`,
       "priceCurrency": "USD",
       "price": lot.current_price,
       "availability": lot.status === 'live' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",

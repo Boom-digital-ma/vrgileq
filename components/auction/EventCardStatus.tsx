@@ -6,9 +6,10 @@ import { cn } from "@/lib/utils";
 interface EventCardStatusProps {
   startAt: string;
   endsAt: string;
+  status?: string;
 }
 
-export default function EventCardStatus({ startAt, endsAt }: EventCardStatusProps) {
+export default function EventCardStatus({ startAt, endsAt, status }: EventCardStatusProps) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -16,8 +17,8 @@ export default function EventCardStatus({ startAt, endsAt }: EventCardStatusProp
     return () => clearInterval(timer);
   }, []);
 
-  const isEnded = new Date(endsAt) <= now;
-  const isUpcoming = new Date(startAt) > now;
+  const isEnded = status === 'closed' || (status !== 'live' && new Date(endsAt) <= now);
+  const isUpcoming = status === 'scheduled' || (status === 'live' && new Date(startAt) > now);
 
   if (isEnded) {
     return (

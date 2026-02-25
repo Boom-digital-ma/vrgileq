@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase/server'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'
   const supabase = createAdminClient()
 
   // 1. Static Routes

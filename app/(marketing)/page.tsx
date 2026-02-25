@@ -23,8 +23,6 @@ export default async function HomePage() {
     .from('auction_events')
     .select('*')
     .eq('status', 'live')
-    .lte('start_at', now)
-    .gt('ends_at', now)
     .order('ends_at', { ascending: true })
     .limit(3);
 
@@ -44,7 +42,7 @@ export default async function HomePage() {
     const { data: past } = await supabase
         .from('auction_events')
         .select('*')
-        .or(`status.eq.closed,ends_at.lte.${now}`)
+        .eq('status', 'closed')
         .neq('status', 'draft')
         .order('ends_at', { ascending: false })
         .limit(3);
@@ -75,9 +73,10 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
           {events?.map((event) => {
-            const isEnded = new Date(event.ends_at) <= new Date();
-            const isUpcoming = new Date(event.start_at) > new Date();
-            const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : event.status);
+            const now = new Date();
+            const isEnded = event.status === 'closed' || (event.status !== 'live' && new Date(event.ends_at) <= now);
+            const isUpcoming = event.status === 'scheduled' || (event.status === 'live' && new Date(event.start_at) > now);
+            const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
 
             return (
               <div key={event.id} className="group flex flex-col bg-white rounded-[32px] border border-zinc-100 overflow-hidden transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.08)] hover:-translate-y-2">
@@ -128,7 +127,7 @@ export default async function HomePage() {
                   </p>
                   
                   <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
-                      <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} />
+                      <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} status={event.status} />
                       <Link 
                           href={`/events/${event.id}`} 
                           className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white"

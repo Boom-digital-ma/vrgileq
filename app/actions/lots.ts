@@ -84,10 +84,17 @@ export async function importLots(eventId: string, lots: any[]) {
     const { data: event } = await adminSupabase.from('auction_events').select('ends_at').eq('id', eventId).single()
     const baseEndsAt = event?.ends_at ? new Date(event.ends_at) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    const formattedLots = lots.map(lot => {
-      const lotNum = lot.lot_number ? Number(lot.lot_number) : 0;
-      // STAGGERED CLOSING: Base Time + (Lot Number * 2 minutes)
-      const staggeredEndsAt = new Date(baseEndsAt.getTime() + (lotNum * 2 * 60 * 1000)).toISOString();
+    // Sort lots by lot_number to ensure correct sequence
+    const sortedLots = [...lots].sort((a, b) => {
+      const numA = a.lot_number ? Number(a.lot_number) : 0;
+      const numB = b.lot_number ? Number(b.lot_number) : 0;
+      return numA - numB;
+    });
+
+    const formattedLots = sortedLots.map((lot, index) => {
+      // STAGGERED CLOSING: Base Time + (Index * 2 minutes)
+      // This ensures Lot 1 (index 0) starts at base, Lot 2 at +2m, etc.
+      const staggeredEndsAt = new Date(baseEndsAt.getTime() + (index * 2 * 60 * 1000)).toISOString();
 
       return {
         event_id: eventId,

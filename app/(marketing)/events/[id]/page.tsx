@@ -136,7 +136,7 @@ export default async function EventPage({
     "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
     "location": {
       "@type": "VirtualLocation",
-      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'}/events/${event.id}`
+      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'}/events/${event.id}`
     },
     "image": [event.image_url].filter(Boolean),
     "description": event.description,
@@ -147,7 +147,7 @@ export default async function EventPage({
     },
     "offers": {
       "@type": "Offer",
-      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'}/events/${event.id}`,
+      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'}/events/${event.id}`,
       "price": event.deposit_amount || "0",
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock"

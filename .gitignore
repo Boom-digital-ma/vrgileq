@@ -36,12 +36,14 @@ yarn-error.log*
 # vercel
 .vercel
 
+# docs
+/docs/
+TODO_*.md
+GEMINI.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# context
-GEMINI.md
 
 # Playwright
 node_modules/

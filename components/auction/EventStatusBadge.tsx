@@ -37,9 +37,9 @@ export default function EventStatusBadge({ initialStatus, startAt, endsAt, event
     };
   }, [eventId, supabase]);
 
-  const isEnded = new Date(endsAt) <= now;
-  const isUpcoming = new Date(startAt) > now;
-  const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : status);
+  const isEnded = status === 'closed' || (status !== 'live' && new Date(endsAt) <= now);
+  const isUpcoming = status === 'scheduled' || (status === 'live' && new Date(startAt) > now);
+  const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
   const isLive = displayStatus === 'live';
 
   return (

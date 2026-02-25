@@ -151,7 +151,7 @@ export async function placeBid({
     if (previousWinnerEmail && updatedAuction?.winner_id !== previousWinnerProfile?.id) {
         console.log(`[EMAIL_SERVICE] Winner changed! Sending outbid email to ${previousWinnerEmail}`);
         try {
-            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'
             await sendOutbidEmail({
                 to: previousWinnerEmail,
                 bidderName: previousWinnerProfile?.full_name || 'Bidder',

@@ -42,8 +42,8 @@ export default function ProtocolCards({ event }: ProtocolCardsProps) {
     };
   }, [event.id, supabase]);
 
-  const isEnded = new Date(event.ends_at) <= now || status === 'closed';
-  const isUpcoming = new Date(event.start_at) > now;
+  const isEnded = status === 'closed' || (status !== 'live' && new Date(event.ends_at) <= now);
+  const isUpcoming = status === 'scheduled' || (status === 'live' && new Date(event.start_at) > now);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-20">
