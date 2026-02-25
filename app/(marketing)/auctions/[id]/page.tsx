@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import AuctionDetailsRealtime from '@/components/auction/AuctionDetailsRealtime'
 import { Metadata } from 'next'
 
@@ -66,6 +68,17 @@ export default async function AuctionDetailPage({ params }: { params: { id: stri
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      
+      {/* Back Navigation Bar */}
+      <div className="border-b border-zinc-100 bg-white sticky top-16 z-30">
+        <div className="container mx-auto px-6 py-4">
+            <Link href="/auctions" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-primary transition-all group">
+                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                Back to Catalog
+            </Link>
+        </div>
+      </div>
+
       <AuctionDetailsRealtime initialLot={lot} initialBids={bids || []} />
     </div>
   )
