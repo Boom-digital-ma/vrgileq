@@ -358,8 +358,9 @@ export const EventShow = () => {
                                 </td>
                                 <td className="px-8 py-4">
                                     {(() => {
-                                        const isEnded = new Date(lot.ends_at) <= new Date();
-                                        const displayStatus = isEnded && lot.status === 'live' ? 'ended' : lot.status;
+                                        const now = new Date();
+                                        const isEnded = lot.status === 'ended' || lot.status === 'sold' || (lot.status !== 'live' && new Date(lot.ends_at) <= now);
+                                        const displayStatus = isEnded ? (lot.status === 'sold' ? 'sold' : 'ended') : 'live';
                                         return (
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-zinc-900">{lot.title}</span>

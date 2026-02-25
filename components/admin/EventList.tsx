@@ -179,8 +179,10 @@ export const EventList = () => {
             <div className="p-8 flex-1">
                 <div className="flex justify-between items-start mb-4">
                     {(() => {
-                        const isEnded = new Date(event.ends_at) <= new Date();
-                        const displayStatus = isEnded && event.status === 'live' ? 'closed' : event.status;
+                        const now = new Date();
+                        const isEnded = event.status === 'closed' || (event.status !== 'live' && new Date(event.ends_at) <= now);
+                        const isUpcoming = event.status === 'scheduled' || (event.status === 'live' && new Date(event.start_at) > now);
+                        const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
                         
                         return (
                             <span className={cn(
