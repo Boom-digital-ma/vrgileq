@@ -5,7 +5,7 @@ const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || ""
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || ""
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || ""
-const SITE_URL = Deno.env.get("SITE_URL") || "http://localhost:3000"
+const SITE_URL = Deno.env.get("SITE_URL") || "https://virginialiquidation.vercel.app"
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: "2026-01-28.clover",
