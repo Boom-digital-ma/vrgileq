@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star, Clock, Trophy, Zap } from "lucide-react";
+import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star, Clock, Trophy, Zap, ChevronRight } from "lucide-react";
 import { placeBid } from "@/app/actions/bids";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { checkRegistration } from "@/app/actions/registrations";
@@ -206,10 +206,14 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   
   // Logic to identify user's winning status and proxy
   const userWinningBid = userProfile ? sortedBids.find(b => b.user_id === userProfile.id && b.status === 'active') : null;
+  const userHasBid = userProfile ? realtimeBids.some(b => b.user_id === userProfile.id) : false;
   
   // A user is winning if the TOP bid is theirs
   const isWinning = sortedBids.length > 0 && userProfile && sortedBids[0].user_id === userProfile.id;
   
+  // A user is outbid if they have a bid but aren't the top bidder
+  const isOutbid = userHasBid && !isWinning;
+
   // Proxy is active if they are winning AND have a max_amount set higher than current price
   const userProxyAmount = userWinningBid?.max_amount;
   const isProxyActive = isWinning && userProxyAmount && userProxyAmount > realtimePrice;
@@ -224,6 +228,60 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
   return (
     <div className="sticky top-24 flex flex-col bg-white border border-zinc-200/80 rounded-[32px] p-8 shadow-[0_20px_50px_rgba(11,43,83,0.05)]">
+      
+      {/* 1. CRITICAL ALERTS (TOP) */}
+      {userProfile && !hasCard && (
+          <Link href="/profile" className="mb-8 p-6 bg-rose-500 rounded-[24px] text-white flex items-center justify-between group transition-all hover:bg-rose-600 shadow-xl shadow-rose-500/20 animate-pulse">
+              <div className="flex items-center gap-4">
+                  <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+                      <AlertCircle className="h-6 w-6" />
+                  </div>
+                  <div>
+                      <div className="text-xs font-black uppercase tracking-[0.2em] leading-none mb-1">Action Required</div>
+                      <div className="text-sm font-bold uppercase italic tracking-tighter">Add card to your profile to bid</div>
+                  </div>
+              </div>
+              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
+      )}
+
+      {/* 2. BIDDING STATUS (Winning / Outbid) */}
+      {isWinning && (
+          <div className="mb-8 bg-emerald-500 rounded-[24px] p-6 text-white shadow-xl shadow-emerald-500/20 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="flex items-center gap-4">
+                  <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+                      <Trophy className="h-6 w-6" />
+                  </div>
+                  <div>
+                      <div className="text-xs font-black uppercase tracking-[0.2em] leading-none mb-1">Status: Winning</div>
+                      <div className="text-sm font-bold uppercase italic tracking-tighter">You hold the high bid</div>
+                      {isProxyActive && (
+                        <div className="mt-2 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-white/80">
+                            <Zap size={10} className="fill-current" />
+                            Proxy Active: ${userProxyAmount?.toLocaleString()}
+                        </div>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {isOutbid && (
+          <div className="mb-8 bg-rose-50 border-2 border-rose-200 rounded-[24px] p-6 text-rose-600 shadow-xl shadow-rose-500/5 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="flex items-center gap-4">
+                  <div className="bg-rose-100 p-3 rounded-2xl">
+                      <AlertCircle className="h-6 w-6 animate-pulse" />
+                  </div>
+                  <div>
+                      <div className="text-xs font-black uppercase tracking-[0.2em] leading-none mb-1">Status: Outbid</div>
+                      <div className="text-sm font-bold uppercase italic tracking-tighter">Someone outbid you!</div>
+                      <div className="mt-2 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-rose-400">
+                          Re-bid now to regain lead
+                      </div>
+                  </div>
+              </div>
+          </div>
+      )}
 
       {/* Urgency-Driven Timer Section */}
       <div className={cn(
@@ -266,30 +324,6 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
       <form onSubmit={handleBid} className="flex flex-col gap-5 mb-8">
         
-        {/* User Status / Proxy Indicator */}
-        {isWinning && (
-            <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl animate-in fade-in slide-in-from-top-2 shadow-sm">
-                <div className="flex items-center gap-3">
-                    <div className="bg-emerald-100 p-2.5 rounded-full text-emerald-600">
-                        <Trophy size={20} />
-                    </div>
-                    <div>
-                        <p className="text-emerald-800 font-bold text-sm uppercase tracking-tight leading-none mb-1">You are Winning!</p>
-                        {isProxyActive ? (
-                            <p className="text-emerald-600/80 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1.5">
-                                <Zap size={12} className="fill-current" />
-                                Proxy Active up to ${userProxyAmount?.toLocaleString()}
-                            </p>
-                        ) : (
-                            <p className="text-emerald-600/80 text-[10px] uppercase font-bold tracking-widest">
-                                You hold the highest bid
-                            </p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        )}
-
         <div className="relative group/input">
           <label className="absolute -top-2 left-4 bg-white px-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 z-10 group-focus-within/input:text-primary transition-colors">
             Place Your Bid / Max Bid
@@ -309,30 +343,6 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
             Tip: Entering a higher amount will set it as your maximum bid, and the system will automatically bid the minimum necessary up to that limit to keep you winning.
           </p>
         </div>
-
-        {userProfile && (
-            hasCard ? (
-                <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3">
-                    <div className="bg-white p-1.5 rounded-full shadow-sm">
-                        <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Identity Verified</div>
-                        <div className="text-[9px] font-medium text-emerald-600/70 uppercase">Payment method secured</div>
-                    </div>
-                </div>
-            ) : (
-                <Link href="/profile" className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 group transition-all hover:bg-rose-100/50">
-                    <div className="bg-white p-1.5 rounded-full shadow-sm">
-                        <AlertCircle className="h-4 w-4 text-rose-500" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-bold text-rose-700 uppercase tracking-wide group-hover:underline">Action Required</div>
-                        <div className="text-[9px] font-medium text-rose-600/70 uppercase">Add card to your profile</div>
-                    </div>
-                </Link>
-            )
-        )}
 
         {userProfile && (
             <div className="flex gap-2 mb-4">
