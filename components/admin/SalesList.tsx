@@ -9,7 +9,7 @@ export const SalesList = () => {
   const result = useTable({
     resource: "sales",
     meta: { 
-      select: "*, auction:auctions(title, image_url), winner:profiles(full_name), event:auction_events(title)" 
+      select: "*, auction:auctions(title, image_url), sale_items(id, auction:auctions(title, image_url)), winner:profiles(full_name), event:auction_events(title)" 
     },
     pagination: { pageSize: 10 },
     sorters: {
@@ -100,7 +100,15 @@ export const SalesList = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="h-10 w-10 rounded-lg bg-zinc-100 overflow-hidden border border-zinc-200">
-                    {sale.auction?.image_url ? (
+                    {sale.sale_items && sale.sale_items.length > 0 ? (
+                        sale.sale_items[0].auction?.image_url ? (
+                            <img src={sale.sale_items[0].auction.image_url} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                            <div className="h-full w-full flex items-center justify-center text-zinc-300">
+                                <Package size={16} />
+                            </div>
+                        )
+                    ) : sale.auction?.image_url ? (
                       <img src={sale.auction.image_url} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-zinc-300">
@@ -112,7 +120,14 @@ export const SalesList = () => {
                 <td className="px-6 py-4">
                   <div className="flex flex-col">
                     <span className="font-bold text-zinc-900">{sale.winner?.full_name || 'Anonymous Bidder'}</span>
-                    <span className="text-xs text-zinc-500 line-clamp-1">{sale.auction?.title}</span>
+                    <span className="text-xs text-zinc-500 line-clamp-1">
+                        {sale.sale_items && sale.sale_items.length > 0 
+                            ? (sale.sale_items.length === 1 
+                                ? sale.sale_items[0].auction?.title 
+                                : `${sale.sale_items.length} Items: ${sale.sale_items[0].auction?.title}...`)
+                            : (sale.auction?.title || 'No Lot Linked')
+                        }
+                    </span>
                   </div>
                 </td>
                 <td className="px-6 py-4">

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { format } from 'date-fns'
 import PrintInvoiceButton from '@/components/auction/PrintInvoiceButton'
-import { CheckCircle2, Truck, Calendar, Clock, MapPin } from 'lucide-react'
+import { CheckCircle2, Truck, Calendar, Clock, MapPin, ShieldCheck } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,6 +31,16 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
         description,
         image_url
       ),
+      sale_items (
+        id,
+        auction_id,
+        hammer_price,
+        auction:auctions (
+          title,
+          lot_number,
+          image_url
+        )
+      ),
       winner:profiles (
         full_name,
         email,
@@ -54,7 +64,9 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
   }
 
   // 3. Authorization check
-  if (sale.winner_id !== user.id && user.user_metadata?.role !== 'admin') {
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = profile?.role === 'admin'
+  if (sale.winner_id !== user.id && !isAdmin) {
     return redirect('/profile')
   }
 
@@ -78,14 +90,21 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
     )
   }
 
-  // Generate a verification URL for the QR Code (pointing back to this page or an admin check)
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'
-  const verificationUrl = `${siteUrl}/gate-pass/${sale.id}`
+  // Generate a verification URL for the QR Code (pointing to the simplified verification page)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'
+  const verificationUrl = `${siteUrl}/gate-pass/${sale.id}/verify`
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verificationUrl)}`
 
   return (
     <div className="min-h-screen bg-neutral-100 py-12 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0 font-sans">
-      <div className="max-w-2xl mx-auto">
+      {/* Admin Indicator for Gate Pass */}
+      {isAdmin && sale.winner_id !== user.id && (
+        <div className="max-w-2xl mx-auto mb-6 bg-zinc-900 text-primary py-2 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 print:hidden">
+          <ShieldCheck size={14} /> Administrative View: Customer Gate Pass (User: {(sale.winner as any)?.full_name})
+        </div>
+      )}
+
+      <div className="max-w-2xl mx-auto print:max-w-none">
         {/* Actions - Hidden on print */}
         <div className="flex justify-between items-center mb-8 print:hidden">
           <h1 className="text-2xl font-bold text-prussian-blue font-geist italic uppercase tracking-tighter">Gate Pass / Bon de Sortie</h1>
@@ -93,7 +112,7 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
         </div>
 
         {/* Gate Pass Container */}
-        <div className="bg-white rounded-[40px] shadow-2xl shadow-neutral-200/50 overflow-hidden border border-neutral-100 print:shadow-none print:border-none print:rounded-none relative">
+        <div className="bg-white rounded-[40px] shadow-2xl shadow-neutral-200/50 overflow-hidden border border-neutral-100 print:shadow-none print:border-none print:rounded-none relative print:m-0">
           
           {/* Top Stamp / Status */}
           <div className="absolute top-8 right-8 rotate-12 opacity-20 print:opacity-100 pointer-events-none">
@@ -123,10 +142,10 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
             </div>
           </div>
 
-          <div className="p-10 sm:p-12 space-y-12">
+          <div className="p-10 sm:p-12 space-y-12 print:p-8 print:space-y-8">
             
             {/* Primary Details: QR & Appointment */}
-            <div className="flex flex-col sm:flex-row gap-12 items-center sm:items-start bg-zinc-50 rounded-[32px] p-8 border border-zinc-100">
+            <div className="flex flex-col sm:flex-row gap-12 items-center sm:items-start bg-zinc-50 rounded-[32px] p-8 border border-zinc-100 print:gap-8 print:p-6 break-inside-avoid">
               <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-200 shrink-0">
                 <img src={qrCodeUrl} alt="Verification QR" className="w-32 h-32" />
                 <p className="text-[8px] font-bold text-center mt-2 uppercase tracking-widest text-zinc-400">Scan to Verify</p>
@@ -154,7 +173,7 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
                     <MapPin size={12} /> Pickup Location
                   </h3>
                   <p className="text-sm font-bold text-zinc-600 leading-relaxed">
-                    {sale.event?.location || 'Virginia Liquidation Main Warehouse'}<br />
+                    {(sale.event as any)?.location || 'Virginia Liquidation Main Warehouse'}<br />
                     Richmond, VA, United States
                   </p>
                 </div>
@@ -164,15 +183,56 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
             {/* Lot Verification */}
             <div>
               <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6 border-b border-neutral-100 pb-2">Authorized Assets</h3>
-              <div className="flex gap-6 items-center">
-                <div className="h-20 w-20 rounded-2xl bg-zinc-50 border border-zinc-100 overflow-hidden shrink-0">
-                   {sale.auction.image_url && <img src={sale.auction.image_url} className="h-full w-full object-cover" />}
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-black text-primary uppercase tracking-widest mb-1">Lot #{sale.auction.lot_number || '---'}</p>
-                  <h4 className="text-xl font-bold text-prussian-blue leading-tight">{sale.auction.title}</h4>
-                  <p className="text-[10px] font-mono text-neutral-400 mt-1">ID: {sale.auction_id}</p>
-                </div>
+              <div className="space-y-6">
+                {sale.sale_items && sale.sale_items.length > 0 ? (
+                  sale.sale_items.map((item: any) => (
+                    <div key={item.id} className="flex gap-6 items-center">
+                      <div className="h-20 w-20 rounded-2xl bg-zinc-50 border border-zinc-100 overflow-hidden shrink-0">
+                         {item.auction?.image_url && <img src={item.auction.image_url} className="h-full w-full object-cover" />}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-xs font-black text-primary uppercase tracking-widest mb-1">Lot #{item.auction?.lot_number || '---'}</p>
+                            <h4 className="text-xl font-bold text-prussian-blue leading-tight">{item.auction?.title}</h4>
+                            <p className="text-[10px] font-mono text-neutral-400 mt-1">ID: {item.auction_id}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-black text-prussian-blue">${Number(item.hammer_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : sale.auction ? (
+                  <div className="flex gap-6 items-center">
+                    <div className="h-20 w-20 rounded-2xl bg-zinc-50 border border-zinc-100 overflow-hidden shrink-0">
+                       {sale.auction.image_url && <img src={sale.auction.image_url} className="h-full w-full object-cover" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-xs font-black text-primary uppercase tracking-widest mb-1">Lot #{sale.auction.lot_number || '---'}</p>
+                          <h4 className="text-xl font-bold text-prussian-blue leading-tight">{sale.auction.title}</h4>
+                          <p className="text-[10px] font-mono text-neutral-400 mt-1">ID: {sale.auction_id}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-prussian-blue">${Number(sale.hammer_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-neutral-400 italic">No assets linked to this pass.</p>
+                )}
+              </div>
+
+              {/* Total Summary on Gate Pass */}
+              <div className="mt-8 pt-6 border-t border-zinc-100 flex justify-between items-center">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Total Paid (Clearence Amount)</p>
+                <p className="text-2xl font-black text-emerald-600 font-geist italic tracking-tighter">
+                  ${Number(sale.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </p>
               </div>
             </div>
 
@@ -180,8 +240,8 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
             <div className="grid grid-cols-2 gap-8 pt-8 border-t border-dashed border-neutral-200">
                <div>
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Registered Owner</h3>
-                  <p className="font-bold text-prussian-blue">{sale.winner.full_name}</p>
-                  <p className="text-xs text-neutral-500">{sale.winner.phone}</p>
+                  <p className="font-bold text-prussian-blue">{(sale.winner as any).full_name}</p>
+                  <p className="text-xs text-neutral-500">{(sale.winner as any).phone}</p>
                </div>
                <div className="text-right">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Invoice Reference</h3>
@@ -210,9 +270,10 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
 
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          body { background: white !important; }
+          body { background: white !important; padding: 0 !important; margin: 0 !important; }
           .print\:hidden { display: none !important; }
-          @page { margin: 1cm; }
+          @page { margin: 0.5cm; size: auto; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}} />
     </div>

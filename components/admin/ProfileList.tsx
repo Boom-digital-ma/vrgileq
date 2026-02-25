@@ -3,6 +3,7 @@
 import { useTable } from "@refinedev/core"
 import { BadgeCheck, ShieldAlert, User, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 export const ProfileList = () => {
   const result = useTable({
@@ -48,6 +49,7 @@ export const ProfileList = () => {
               <th className="px-6 py-4 font-semibold uppercase text-[10px] tracking-widest">Full Name / Identity</th>
               <th className="px-6 py-4 font-semibold uppercase text-[10px] tracking-widest text-center">Role</th>
               <th className="px-6 py-4 font-semibold uppercase text-[10px] tracking-widest text-right">Security</th>
+              <th className="px-6 py-4 font-semibold uppercase text-[10px] tracking-widest text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
@@ -82,6 +84,15 @@ export const ProfileList = () => {
                           <ShieldAlert size={14} /> PENDING
                       </span>
                   )}
+                </td>
+                <td className="px-6 py-4 text-right">
+                    <Link 
+                        href={`/profile/${profile.id}`}
+                        target="_blank"
+                        className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors border-b border-transparent hover:border-primary"
+                    >
+                        View Profile
+                    </Link>
                 </td>
               </tr>
             ))}

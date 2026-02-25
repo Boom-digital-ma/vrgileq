@@ -99,6 +99,16 @@ export const SaleShow = () => {
             >
                 <Printer size={16} className="text-zinc-400" /> View Invoice
             </Link>
+
+            {sale.status === 'paid' && (
+                <Link 
+                  href={`/gate-pass/${sale.id}`} 
+                  target="_blank"
+                  className="bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold shadow-lg active:scale-95 transition-all flex items-center gap-2 hover:bg-emerald-700"
+                >
+                    <Truck size={16} /> View Gate Pass
+                </Link>
+            )}
             
             {sale.status !== 'paid' && (
                 <button 
@@ -179,6 +189,7 @@ export const SaleShow = () => {
                     currentSlotId={sale.pickup_slot_id}
                     slots={slots}
                     isPaid={sale.status === 'paid'}
+                    isCollected={!!sale.collected_at}
                     onSuccess={() => query?.refetch()}
                 />
             </section>

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { cn, formatEventDate } from '@/lib/utils'
 import PrintInvoiceButton from '@/components/auction/PrintInvoiceButton'
 import PickupScheduler from '@/components/auction/PickupScheduler'
-import { Truck } from 'lucide-react'
+import { Truck, ShieldCheck } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,14 +65,22 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
     .eq('event_id', sale.event_id)
     .order('start_at', { ascending: true })
 
-  // 5. Authorization check (extra safety though RLS handles it)
-  if (sale.winner_id !== user.id && user.user_metadata?.role !== 'admin') {
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = profile?.role === 'admin'
+  if (sale.winner_id !== user.id && !isAdmin) {
     return redirect('/profile')
   }
 
   return (
     <div className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0">
-      <div className="max-w-4xl mx-auto">
+      {/* Admin Indicator for Invoices */}
+      {isAdmin && sale.winner_id !== user.id && (
+        <div className="max-w-4xl mx-auto mb-6 bg-zinc-900 text-primary py-2 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 print:hidden">
+          <ShieldCheck size={14} /> Administrative View: Customer Invoice (User: {(sale.winner as any)?.full_name})
+        </div>
+      )}
+
+      <div className="max-w-4xl mx-auto print:max-w-none">
         {/* Actions - Hidden on print */}
         <div className="flex justify-between items-center mb-8 print:hidden">
           <h1 className="text-2xl font-bold text-prussian-blue font-geist">Invoice Details</h1>
@@ -91,7 +99,7 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
         </div>
 
         {/* Invoice Container */}
-        <div className="bg-white rounded-[32px] shadow-xl shadow-neutral-200/50 overflow-hidden border border-neutral-100 print:shadow-none print:border-none print:rounded-none">
+        <div className="bg-white rounded-[32px] shadow-xl shadow-neutral-200/50 overflow-hidden border border-neutral-100 print:shadow-none print:border-none print:rounded-none print:m-0">
           {/* Header */}
           <div className="bg-prussian-blue p-8 sm:p-12 text-white flex flex-col sm:flex-row justify-between gap-8 items-start">
             <div>
@@ -137,21 +145,21 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-4">Bill To</h3>
                 <div className="space-y-1 font-geist">
-                  <p className="text-lg font-bold text-prussian-blue">{sale.winner.full_name}</p>
-                  <p className="text-neutral-600">{sale.winner.email}</p>
-                  {sale.winner.phone && <p className="text-neutral-600">{sale.winner.phone}</p>}
+                  <p className="text-lg font-bold text-prussian-blue">{(sale.winner as any).full_name}</p>
+                  <p className="text-neutral-600">{(sale.winner as any).email}</p>
+                  {(sale.winner as any).phone && <p className="text-neutral-600">{(sale.winner as any).phone}</p>}
                   <p className="text-neutral-600 mt-2">
-                    {sale.winner.address_line}<br />
-                    {sale.winner.city}, {sale.winner.state} {sale.winner.zip_code}<br />
-                    {sale.winner.country}
+                    {(sale.winner as any).address_line}<br />
+                    {(sale.winner as any).city}, {(sale.winner as any).state} {(sale.winner as any).zip_code}<br />
+                    {(sale.winner as any).country}
                   </p>
                 </div>
               </div>
               <div className="sm:text-right">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-4">Auction Details</h3>
                 <div className="space-y-1">
-                  <p className="font-bold text-prussian-blue">{sale.event?.title || 'Industrial Liquidation'}</p>
-                  <p className="text-neutral-500 text-sm">{sale.event?.location || 'Online Auction'}</p>
+                  <p className="font-bold text-prussian-blue">{(sale.event as any)?.title || 'Industrial Liquidation'}</p>
+                  <p className="text-neutral-500 text-sm">{(sale.event as any)?.location || 'Online Auction'}</p>
                   <div className="mt-4 inline-block px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-bold uppercase tracking-tight border border-teal-100">
                     Status: {sale.status.toUpperCase()}
                   </div>
@@ -227,9 +235,11 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
 
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          body { background: white !important; }
+          body { background: white !important; padding: 0 !important; margin: 0 !important; }
           .print\:hidden { display: none !important; }
-          @page { margin: 0; }
+          @page { margin: 0.5cm; size: auto; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .break-inside-avoid { break-inside: avoid; }
         }
       `}} />
     </div>

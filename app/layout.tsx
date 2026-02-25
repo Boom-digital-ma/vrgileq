@@ -15,7 +15,7 @@ const sansFont = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'),
   title: {
     default: "Virginia Liquidation | Industrial & Estate Auctions",
     template: "%s | Virginia Liquidation"
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://virginialiquidation.com",
+    url: "https://virginialiquidation.vercel.app",
     siteName: "Virginia Liquidation",
     title: "Virginia Liquidation | Professional Industrial Marketplace",
     description: "The leading engine for high-end industrial and commercial liquidations in Northern Virginia.",

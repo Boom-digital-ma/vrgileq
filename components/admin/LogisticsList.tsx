@@ -15,7 +15,7 @@ export const LogisticsList = () => {
   const result = useTable({
     resource: "sales",
     meta: { 
-      select: "*, auction:auctions(title, lot_number), winner:profiles(full_name, phone), pickup_slot:pickup_slots(*)" 
+      select: "*, auction:auctions(title, lot_number), sale_items(id, auction:auctions(title, lot_number)), winner:profiles(full_name, phone), pickup_slot:pickup_slots(*)" 
     },
     filters: {
         permanent: [
@@ -148,9 +148,28 @@ export const LogisticsList = () => {
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 bg-zinc-50 rounded-xl border border-zinc-100 flex items-center justify-center shrink-0">
-                            <span className="text-[10px] font-black italic text-zinc-400">#{sale.auction?.lot_number}</span>
+                            <span className="text-[10px] font-black italic text-zinc-400">
+                                {sale.sale_items && sale.sale_items.length > 0 
+                                    ? `#${sale.sale_items[0].auction?.lot_number}${sale.sale_items.length > 1 ? '+' : ''}`
+                                    : `#${sale.auction?.lot_number || '---'}`
+                                }
+                            </span>
                         </div>
-                        <span className="text-sm font-bold text-zinc-900 line-clamp-1">{sale.auction?.title}</span>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold text-zinc-900 line-clamp-1">
+                                {sale.sale_items && sale.sale_items.length > 0 
+                                    ? (sale.sale_items.length === 1 
+                                        ? sale.sale_items[0].auction?.title 
+                                        : `${sale.sale_items.length} Items - ${sale.sale_items[0].auction?.title}...`)
+                                    : (sale.auction?.title || 'No Asset Linked')
+                                }
+                            </span>
+                            {sale.sale_items && sale.sale_items.length > 1 && (
+                                <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-tight">
+                                    Lots: {sale.sale_items.map((i: any) => i.auction?.lot_number).join(', ')}
+                                </span>
+                            )}
+                        </div>
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right">

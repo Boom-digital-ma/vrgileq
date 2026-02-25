@@ -4,7 +4,7 @@ import { Phone, Mail, MapPin, Instagram, Facebook, Twitter, Linkedin, ArrowRight
 
 export default function Footer() {
   return (
-    <footer className="mt-20">
+    <footer className="mt-20 print:hidden">
       {/* SaaS Premium High-Contrast Banner */}
       <div className="bg-secondary text-white overflow-hidden relative">
         <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">

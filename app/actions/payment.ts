@@ -109,6 +109,59 @@ export async function setDefaultPaymentMethod(paymentMethodId: string) {
   }
 }
 
+export async function releaseEventDeposits(eventId: string) {
+  try {
+    const adminSupabase = createAdminClient()
+    
+    // 1. Get all registrations for this event that are authorized but not captured
+    const { data: registrations, error } = await adminSupabase
+        .from('event_registrations')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('status', 'authorized')
+        .not('stripe_payment_intent_id', 'is', null)
+        .eq('deposit_captured', false)
+
+    if (error) throw error
+    if (!registrations || registrations.length === 0) {
+        return { success: true, count: 0, message: "No deposits to release" }
+    }
+
+    let releaseCount = 0
+    let errorCount = 0
+
+    // 2. Cancel each PaymentIntent in Stripe
+    for (const reg of registrations) {
+        try {
+            await stripe.paymentIntents.cancel(reg.stripe_payment_intent_id!)
+            
+            // 3. Update registration status in DB
+            await adminSupabase
+                .from('event_registrations')
+                .update({ status: 'released', updated_at: new Date().toISOString() })
+                .eq('id', reg.id)
+            
+            releaseCount++
+        } catch (stripeErr: any) {
+            console.error(`Failed to release deposit for reg ${reg.id}:`, stripeErr.message)
+            errorCount++
+        }
+    }
+
+    revalidatePath(`/admin/events/${eventId}`)
+    return { 
+        success: true, 
+        count: releaseCount, 
+        errors: errorCount,
+        message: `Successfully released ${releaseCount} deposits. Errors: ${errorCount}`
+    }
+
+  } catch (error: any) {
+    console.error("Release deposits error:", error.message)
+    return { success: false, error: error.message }
+  }
+}
+
 export async function getPaymentMethods() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

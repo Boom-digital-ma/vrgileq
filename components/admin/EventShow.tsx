@@ -1,7 +1,7 @@
 'use client'
 
 import { useShow, useList, useNavigation, useDelete, useInvalidate, useTable } from "@refinedev/core"
-import { ArrowLeft, Plus, Loader2, Package, Gavel, Trash2, Edit, Save, Eye, Search, Calendar, FileText } from "lucide-react"
+import { ArrowLeft, Plus, Loader2, Package, Gavel, Trash2, Edit, Save, Eye, Search, Calendar, FileText, Shield, Unlock, MoreHorizontal, Zap, Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -10,6 +10,7 @@ import { Modal } from "./Modal"
 import { ImageUpload } from "./ImageUpload"
 import { adminUpsertLot } from "@/app/actions/lots"
 import { generateEventPickupSlots, deleteEventPickupSlots } from "@/app/actions/events"
+import { releaseEventDeposits } from "@/app/actions/payment"
 import { generateEventInvoicesAction } from "@/app/actions/sales"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
@@ -160,6 +161,8 @@ export const EventShow = () => {
     }
   }
 
+  const [isActionsOpen, setIsActionsOpen] = useState(false)
+
   const inputClasses = "w-full h-11 bg-zinc-50 border border-zinc-200 rounded-xl px-4 text-sm outline-none focus:bg-white focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all font-medium text-zinc-900 font-sans"
   const labelClasses = "text-[11px] font-black uppercase tracking-widest text-zinc-400 ml-1 mb-1 block font-sans"
 
@@ -167,65 +170,133 @@ export const EventShow = () => {
 
   return (
     <div className="space-y-8 font-sans text-zinc-900 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-100 pb-8 font-sans">
-        <div className="flex items-center gap-4">
-            <Link href="/admin/events" className="p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-400"><ArrowLeft size={20} /></Link>
-            <div>
-                <h1 className="text-3xl font-black uppercase tracking-tighter italic">{event?.title || 'Auction Inventory'}</h1>
-                <p className="text-xs font-medium text-zinc-500 uppercase tracking-widest italic">Global Stream • {total} Items</p>
+      {/* Header Section: Full Width Title + Actions Row */}
+      <div className="border-b border-zinc-100 pb-10">
+        <div className="flex flex-col gap-6">
+            <div className="flex items-center gap-4">
+                <Link href="/admin/events" className="p-2.5 bg-white border border-zinc-200 rounded-2xl hover:bg-zinc-50 transition-all text-zinc-400 shadow-sm"><ArrowLeft size={20} /></Link>
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter italic text-zinc-900 leading-none">{event?.title || 'Auction Inventory'}</h1>
             </div>
-        </div>
-        <div className="flex items-center gap-3">
-            <button 
-                onClick={async () => {
-                    if (!confirm("Generate consolidated invoices for all winners of this event?")) return;
-                    setFormLoading(true);
-                    const res = await generateEventInvoicesAction(eventId);
-                    if (res.success) toast.success(`${res.count} invoices generated!`);
-                    else toast.error(res.error);
-                    setFormLoading(false);
-                }}
-                disabled={formLoading}
-                className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 hover:bg-emerald-100 disabled:opacity-50"
-            >
-                {formLoading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />} 
-                Generate Invoices
-            </button>
-            <button 
-                onClick={async () => {
-                    setFormLoading(true);
-                    try {
-                        const { error } = await supabase.rpc('check_and_close_auctions');
-                        if (error) throw error;
-                        toast.success("Closing sequence executed");
-                        tableQuery?.refetch?.();
-                    } catch (err: any) {
-                        toast.error("Execution failed: " + err.message);
-                    } finally {
-                        setFormLoading(false);
-                    }
-                }}
-                disabled={formLoading}
-                className="bg-rose-50 text-rose-600 border border-rose-100 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2 hover:bg-rose-100 disabled:opacity-50"
-            >
-                {formLoading ? <Loader2 size={16} className="animate-spin" /> : <Gavel size={16} />} 
-                Force Close Expired
-            </button>
-            <button 
-                onClick={() => setIsPickupOpen(true)}
-                className="bg-white text-zinc-900 border border-zinc-200 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2"
-            >
-                <Calendar size={16} className="text-zinc-400" /> Manage Pickups
-            </button>
-            <Link 
-                href={`/admin/events/${eventId}/import`} 
-                className="bg-white text-zinc-900 border border-zinc-200 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2"
-            >
-                <Save size={16} className="text-zinc-400" /> ManyFastScan Sync
-            </Link>
-            <button onClick={() => { setUploadedImages([]); setIsCreateOpen(true); }} className="bg-zinc-900 text-white px-6 py-3 rounded-xl text-xs font-bold shadow-lg active:scale-95 transition-all">
-                <Plus size={16} className="inline mr-2" /> Catalog New Lot
-            </button>
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] bg-primary/5 px-3 py-1 rounded-full border border-primary/10">Global Inventory Pool</span>
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">{total} Items Registered</span>
+                </div>
+
+                {/* Reorganized Dropdown Actions */}
+                <div className="flex items-center gap-3 relative">
+                    <button 
+                        onClick={() => { setUploadedImages([]); setIsCreateOpen(true); }} 
+                        className="bg-zinc-900 text-white px-6 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center gap-2 hover:bg-primary"
+                    >
+                        <Plus size={16} strokeWidth={3} /> New Lot
+                    </button>
+
+                    <div className="relative">
+                        <button 
+                            onClick={() => setIsActionsOpen(!isActionsOpen)}
+                            className={cn(
+                                "p-3.5 rounded-2xl border-2 transition-all flex items-center gap-2 shadow-sm px-5",
+                                isActionsOpen ? "bg-zinc-900 border-zinc-900 text-white" : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-300"
+                            )}
+                        >
+                            <Menu size={18} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Event Actions</span>
+                        </button>
+
+                        {isActionsOpen && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsActionsOpen(false)} />
+                                <div className="absolute right-0 mt-3 w-72 bg-white border border-zinc-200 rounded-[32px] shadow-2xl z-50 overflow-hidden py-3 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="px-6 py-3 border-b border-zinc-50 mb-2">
+                                        <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">Administrative Protocols</p>
+                                    </div>
+                                    
+                                    {/* Logistics Group */}
+                                    <div className="px-3 space-y-1 mb-4">
+                                        <button 
+                                            onClick={() => { setIsPickupOpen(true); setIsActionsOpen(false); }}
+                                            className="w-full flex items-center gap-4 px-4 py-3 text-zinc-600 hover:bg-zinc-50 rounded-2xl transition-all group"
+                                        >
+                                            <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors"><Calendar size={16} /></div>
+                                            <span className="text-[11px] font-bold uppercase tracking-tight">Manage Pickups</span>
+                                        </button>
+                                        <Link 
+                                            href={`/admin/events/${eventId}/import`} 
+                                            className="w-full flex items-center gap-4 px-4 py-3 text-zinc-600 hover:bg-zinc-50 rounded-2xl transition-all group"
+                                        >
+                                            <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors"><Save size={16} /></div>
+                                            <span className="text-[11px] font-bold uppercase tracking-tight">ManyFastScan Sync</span>
+                                        </Link>
+                                    </div>
+
+                                    <div className="px-6 py-3 border-b border-zinc-50 mb-2">
+                                        <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">Financial Operations</p>
+                                    </div>
+
+                                    {/* Financial Group */}
+                                    <div className="px-3 space-y-1">
+                                        <button 
+                                            onClick={async () => {
+                                                setIsActionsOpen(false);
+                                                if (!confirm("Generate consolidated invoices for all winners?")) return;
+                                                setFormLoading(true);
+                                                const res = await generateEventInvoicesAction(eventId);
+                                                if (res.success) toast.success(`${res.count} invoices generated!`);
+                                                else toast.error(res.error);
+                                                setFormLoading(false);
+                                            }}
+                                            disabled={formLoading}
+                                            className="w-full flex items-center gap-4 px-4 py-3 text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all group"
+                                        >
+                                            <div className="p-2 bg-emerald-50 rounded-xl group-hover:bg-emerald-500 group-hover:text-white transition-all"><FileText size={16} /></div>
+                                            <span className="text-[11px] font-bold uppercase tracking-tight">Generate Invoices</span>
+                                        </button>
+                                        <button 
+                                            onClick={async () => {
+                                                setIsActionsOpen(false);
+                                                if (!confirm("Release all uncaptured deposits?")) return;
+                                                setFormLoading(true);
+                                                const res = await releaseEventDeposits(eventId);
+                                                if (res.success) toast.success(res.message);
+                                                else toast.error(res.error);
+                                                setFormLoading(false);
+                                            }}
+                                            disabled={formLoading}
+                                            className="w-full flex items-center gap-4 px-4 py-3 text-zinc-500 hover:bg-zinc-50 rounded-2xl transition-all group"
+                                        >
+                                            <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-zinc-900 group-hover:text-white transition-all"><Unlock size={16} /></div>
+                                            <span className="text-[11px] font-bold uppercase tracking-tight">Release Deposits</span>
+                                        </button>
+                                        <button 
+                                            onClick={async () => {
+                                                setIsActionsOpen(false);
+                                                setFormLoading(true);
+                                                try {
+                                                    const { error } = await supabase.rpc('check_and_close_auctions');
+                                                    if (error) throw error;
+                                                    toast.success("Closing sequence executed");
+                                                    tableQuery?.refetch?.();
+                                                } catch (err: any) {
+                                                    toast.error("Execution failed: " + err.message);
+                                                } finally {
+                                                    setFormLoading(false);
+                                                }
+                                            }}
+                                            disabled={formLoading}
+                                            className="w-full flex items-center gap-4 px-4 py-3 text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group"
+                                        >
+                                            <div className="p-2 bg-rose-50 rounded-xl group-hover:bg-rose-500 group-hover:text-white transition-all"><Zap size={16} /></div>
+                                            <span className="text-[11px] font-bold uppercase tracking-tight">Force Close Event</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
 

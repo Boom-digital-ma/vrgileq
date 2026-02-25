@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, Clock, CheckCircle2, Loader2, AlertCircle, MapPin, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, CheckCircle2, Loader2, AlertCircle, MapPin, ChevronRight, Truck } from 'lucide-react'
 import { cn, formatEventDate, formatEventTime, formatEventDateShort } from '@/lib/utils'
 import { bookPickupSlot } from '@/app/actions/sales'
 import { toast } from 'sonner'
@@ -22,10 +22,11 @@ interface PickupSchedulerProps {
   currentSlotId?: string
   slots: Slot[]
   isPaid: boolean
+  isCollected?: boolean
   onSuccess?: () => void
 }
 
-export default function PickupScheduler({ saleId, eventId, currentSlotId, slots, isPaid, onSuccess }: PickupSchedulerProps) {
+export default function PickupScheduler({ saleId, eventId, currentSlotId, slots, isPaid, isCollected, onSuccess }: PickupSchedulerProps) {
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
@@ -53,7 +54,11 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
                 <Calendar className={currentSlot ? "text-emerald-500" : "text-zinc-400"} size={18} />
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Logistics & Removal</h3>
             </div>
-            {currentSlot && (
+            {isCollected ? (
+                <span className="bg-zinc-900 text-primary px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10 flex items-center gap-1.5 shadow-xl">
+                    <CheckCircle2 size={12} /> Asset Collected
+                </span>
+            ) : currentSlot && (
                 <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-tighter border border-emerald-100">
                     Appointment Set
                 </span>
@@ -61,7 +66,23 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
         </div>
 
         <div className="p-8">
-            {currentSlot ? (
+            {isCollected ? (
+                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-5">
+                        <div className="h-14 w-14 bg-zinc-900 rounded-2xl flex items-center justify-center text-primary shadow-xl">
+                            <Truck size={28} />
+                        </div>
+                        <div>
+                            <p className="text-xl font-bold text-zinc-900 font-display uppercase tracking-tight">
+                                Removal Completed
+                            </p>
+                            <p className="text-sm font-medium text-zinc-400">
+                                This asset has been verified and released from the premises.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            ) : currentSlot ? (
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-5">
                         <div className="h-14 w-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-emerald-200">

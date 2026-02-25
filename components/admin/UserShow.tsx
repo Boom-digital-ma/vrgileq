@@ -58,6 +58,13 @@ export const UserShow = () => {
             </div>
         </div>
         <div className="flex items-center gap-3">
+            <Link 
+                href={`/profile/${record?.id}`}
+                target="_blank"
+                className="bg-white text-zinc-900 border border-zinc-200 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all flex items-center gap-2 hover:bg-zinc-50"
+            >
+                <Eye size={16} className="text-zinc-400" /> Full Profile Dossier
+            </Link>
             {record?.is_verified ? (
                 <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 flex items-center gap-2">
                     <BadgeCheck size={16} /> Verified Bidder

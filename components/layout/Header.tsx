@@ -109,7 +109,7 @@ export default function Header() {
   return (
     <>
       {/* Grouped Sticky Container for Announcement + Menu */}
-      <div className="sticky top-0 z-50 w-full">
+      <div className="sticky top-0 z-50 w-full print:hidden">
         {/* Announcement Bar - Now inside the sticky wrapper */}
         {announcement && (
             <div className="bg-secondary text-white py-2 px-6 border-b border-white/5 overflow-hidden">
