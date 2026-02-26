@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, ArrowRight, Package, MapPin, TrendingUp, Calendar, Gavel, ShieldCheck, Zap, ChevronRight, BarChart3, Globe2 } from "lucide-react";
+import { Building2, ArrowRight, Package, MapPin, TrendingUp, Calendar, Gavel, ShieldCheck, Zap, ChevronRight, BarChart3, Globe2, Truck } from "lucide-react";
 import HeroSlider from "@/components/layout/HeroSlider";
 import SearchBar from "@/components/layout/SearchBar";
 import EventStatusBadge from "@/components/auction/EventStatusBadge";
@@ -239,29 +239,65 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FINAL FAQ / TRUST MINI */}
-      <section className="px-6 py-24">
-        <div className="mx-auto max-w-3xl">
-            <div className="text-center mb-16 italic">
-                <h2 className="text-3xl font-black text-secondary uppercase font-display mb-4">Common Protocols</h2>
-                <p className="text-zinc-400 font-bold uppercase tracking-widest text-xs italic">Registry FAQ Highlights</p>
-            </div>
-            
-            <div className="space-y-4">
-                {[
-                    { q: "Where are you located?", a: "We operate in Beltsville, Maryland and serve buyers from across Maryland, Washington DC, and Northern Virginia." },
-                    { q: "Do you sell pallets?", a: "No. We specialize in individual inspected items to ensure transparency and value for our bidders." },
-                    { q: "Can resellers buy here?", a: "Yes. Many of our bidders flip tools, appliances, and overstock items sourced from our auctions." },
-                    { q: "Do you ship items?", a: "No. All auctions are local pickup only at our Beltsville facility to keep costs low for buyers." }
-                ].map((item, i) => (
-                    <div key={i} className="bg-white border border-zinc-100 p-8 rounded-3xl italic shadow-sm">
-                        <h4 className="text-sm font-black text-secondary uppercase mb-3 flex items-center gap-3">
-                            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                            {item.q}
-                        </h4>
-                        <p className="text-[13px] text-zinc-500 font-medium uppercase leading-relaxed pl-4.5">{item.a}</p>
+      {/* FINAL FAQ / TRUST MINI - Premium SaaS UI */}
+      <section className="px-6 py-24 bg-white border-t border-zinc-100">
+        <div className="mx-auto max-w-5xl">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-20 items-start">
+                <div className="lg:sticky lg:top-32 italic">
+                    <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/20 shadow-sm">
+                        <Globe2 size={28} />
                     </div>
-                ))}
+                    <h2 className="text-4xl font-black text-secondary uppercase font-display leading-[0.9] mb-6 tracking-tighter">
+                        Common <br/> <span className="text-primary">Protocols.</span>
+                    </h2>
+                    <p className="text-sm text-zinc-400 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                        Essential registry information for Maryland, DC, and Virginia bidders.
+                    </p>
+                    <Link href="/contact" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary border-b-2 border-primary pb-1 hover:text-secondary hover:border-secondary transition-all">
+                        Access Support Center →
+                    </Link>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-4">
+                    {[
+                        { 
+                            q: "Where are you located?", 
+                            a: "We operate a centralized facility in Beltsville, Maryland, strategically positioned to serve the entire DMV metropolitan area.",
+                            icon: MapPin
+                        },
+                        { 
+                            q: "Do you sell mystery pallets?", 
+                            a: "Negative. We specialize in individual asset liquidation. Every item is unboxed, inspected, and listed with high-resolution documentation.",
+                            icon: Package
+                        },
+                        { 
+                            q: "Are these auctions open to resellers?", 
+                            a: "Affirmative. Our platform is a primary sourcing hub for local resellers, contractors, and DIY homeowners across Maryland.",
+                            icon: TrendingUp
+                        },
+                        { 
+                            q: "Is nationwide shipping available?", 
+                            a: "Our protocol is strictly local pickup at the Beltsville facility. This ensures zero shipping friction and immediate inventory acquisition.",
+                            icon: Truck
+                        }
+                    ].map((item, i) => (
+                        <div key={i} className="group bg-zinc-50/50 border border-zinc-100 p-8 rounded-[32px] italic transition-all duration-500 hover:bg-white hover:shadow-xl hover:shadow-secondary/5 hover:border-primary/20">
+                            <div className="flex items-start gap-6">
+                                <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-zinc-300 group-hover:text-primary border border-zinc-100 transition-colors shrink-0">
+                                    <item.icon size={20} />
+                                </div>
+                                <div>
+                                    <h4 className="text-base font-black text-secondary uppercase mb-3 tracking-tight group-hover:text-primary transition-colors">
+                                        {item.q}
+                                    </h4>
+                                    <p className="text-[13px] text-zinc-500 font-medium uppercase leading-relaxed">
+                                        {item.a}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
       </section>
