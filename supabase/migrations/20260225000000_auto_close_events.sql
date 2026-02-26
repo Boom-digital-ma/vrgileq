@@ -3,7 +3,13 @@ CREATE OR REPLACE FUNCTION public.check_and_open_and_close_events()
 RETURNS void AS $$
 DECLARE
   v_auction RECORD;
+  v_url TEXT;
+  v_key TEXT;
 BEGIN
+  -- Get credentials once to avoid repetitive vault queries
+  SELECT decrypted_secret INTO v_url FROM vault.decrypted_secrets WHERE name = 'SUPABASE_URL';
+  SELECT decrypted_secret INTO v_key FROM vault.decrypted_secrets WHERE name = 'SUPABASE_SERVICE_ROLE_KEY';
+
   -- 1. Open scheduled events that should be live
   UPDATE auction_events 
   SET status = 'live', updated_at = now()
@@ -19,11 +25,11 @@ BEGIN
   LOOP
     -- Call Edge Function to close the auction
     PERFORM net.http_post(
-      url := (SELECT value FROM vault.secrets WHERE name = 'SUPABASE_URL') || '/functions/v1/close-auction',
+      url := v_url || '/functions/v1/close-auction',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'Authorization', 'Bearer ' || (SELECT value FROM vault.secrets WHERE name = 'SUPABASE_SERVICE_ROLE_KEY'),
-        'apikey', (SELECT value FROM vault.secrets WHERE name = 'SUPABASE_SERVICE_ROLE_KEY')
+        'Authorization', 'Bearer ' || v_key,
+        'apikey', v_key
       ),
       body := jsonb_build_object('auction_id', v_auction.id)
     );
