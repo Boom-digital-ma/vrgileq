@@ -69,8 +69,34 @@ export async function deletePaymentMethod(paymentMethodId: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    // Detach the payment method from the customer in Stripe
+    const { data: profile } = await supabase.from('profiles').select('stripe_customer_id, default_payment_method_id').eq('id', user.id).single()
+    if (!profile?.stripe_customer_id) throw new Error('No Stripe customer found')
+
+    // 1. Get all payment methods to ensure they aren't deleting their last one
+    const methods = await stripe.paymentMethods.list({
+      customer: profile.stripe_customer_id,
+      type: 'card',
+    })
+
+    if (methods.data.length <= 1) {
+      throw new Error('You must maintain at least one verified payment method on file for active bidding authorizations. Please add a new card before removing this one.')
+    }
+
+    // 2. Detach the payment method from the customer in Stripe
     await stripe.paymentMethods.detach(paymentMethodId)
+    
+    // 3. If they deleted their default card, set the next available one as default
+    if (profile.default_payment_method_id === paymentMethodId) {
+      const remainingMethods = methods.data.filter(m => m.id !== paymentMethodId)
+      if (remainingMethods.length > 0) {
+        const nextDefault = remainingMethods[0].id
+        await stripe.customers.update(profile.stripe_customer_id, {
+          invoice_settings: { default_payment_method: nextDefault },
+        })
+        const adminSupabase = createAdminClient()
+        await adminSupabase.from('profiles').update({ default_payment_method_id: nextDefault }).eq('id', user.id)
+      }
+    }
     
     revalidatePath('/profile')
     return { success: true }
