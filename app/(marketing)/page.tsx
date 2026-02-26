@@ -10,8 +10,8 @@ import { cn, formatEventDate } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Premium Industrial Auction Marketplace",
-  description: "Bid on high-quality industrial assets, commercial equipment, and surplus machinery. Virginia's leading marketplace for technical liquidations and estate sales.",
+  title: "Maryland’s Trusted Online Liquidation Auction | Local Pickup in Beltsville",
+  description: "Bid on inspected Home Depot returns, appliances, and overstock inventory. No pallets. No mystery. Serving Maryland, DC & Virginia with simple local pickup in Beltsville.",
 };
 
 export default async function HomePage() {
@@ -51,23 +51,67 @@ export default async function HomePage() {
 
   return (
     <div className="bg-zinc-50 font-sans tracking-tight text-neutral antialiased">
-      <HeroSlider />
+      {/* Hero Section Rebranded */}
+      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
+        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <div className="flex items-center justify-center gap-3 mb-8">
+                <div className="h-[1px] w-10 bg-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Beltsville, MD • Local Pickup</span>
+                <div className="h-[1px] w-10 bg-primary" />
+            </div>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-secondary leading-[0.85] font-display uppercase mb-10">
+                Bid <span className="text-primary italic">Smart.</span> <br/> 
+                Buy <span className="text-primary italic">Direct.</span>
+            </h1>
+            <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase mb-12">
+                Home Depot returns, appliances, and Target overstock. Sold individually. Inspected in Beltsville. No mystery pallets.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+                <Link href="/auctions" className="bg-secondary text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary transition-all shadow-2xl shadow-secondary/20">
+                    View Live Auctions
+                </Link>
+                <Link href="/how-it-works" className="bg-zinc-50 text-zinc-400 border border-zinc-100 px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-100 transition-all">
+                    How it Works
+                </Link>
+            </div>
+        </div>
+        <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
+        <div className="absolute -top-24 -right-24 h-96 w-96 bg-secondary/5 blur-[120px] rounded-full" />
+      </section>
+
+      {/* Trust Bar */}
+      <div className="bg-zinc-900 py-6 overflow-hidden border-y border-white/5">
+        <div className="flex whitespace-nowrap animate-[marquee_30s_linear_infinite] gap-20">
+            {[1,2,3,4].map(i => (
+                <div key={i} className="flex items-center gap-20 text-[10px] font-black uppercase tracking-[0.5em] text-white/20 italic">
+                    <span>Home Depot Returns</span>
+                    <span className="text-primary">•</span>
+                    <span>Appliance Liquidation</span>
+                    <span className="text-primary">•</span>
+                    <span>Target Overstock</span>
+                    <span className="text-primary">•</span>
+                    <span>Beltsville Pickup</span>
+                    <span className="text-primary">•</span>
+                </div>
+            ))}
+        </div>
+      </div>
 
       {/* Featured Events Section */}
-      <section className="px-6 py-16">
+      <section className="px-6 py-24">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="max-w-2xl">
                 <div className="flex items-center gap-2 mb-4">
                     <div className="h-1 w-8 bg-primary rounded-full" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Strategic Inventory</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Live Inventory Protocol</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary italic font-display uppercase leading-none">
-                    Market <span className="text-primary">Opportunities</span>
+                    Current <span className="text-primary">Events</span>
                 </h2>
             </div>
-            <Link href="/auctions" className="group flex items-center gap-3 bg-white border border-zinc-200 px-6 py-3 rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:border-primary/30 transition-all shadow-sm">
-                View All Catalog <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform text-primary" />
+            <Link href="/auctions" className="group flex items-center gap-3 bg-white border border-zinc-200 px-8 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:border-primary/30 transition-all shadow-sm">
+                Access Global Catalog <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform text-primary" />
             </Link>
           </div>
 
@@ -79,7 +123,7 @@ export default async function HomePage() {
             const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
 
             return (
-              <div key={event.id} className="group flex flex-col bg-white rounded-[32px] border border-zinc-100 overflow-hidden transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.08)] hover:-translate-y-2">
+              <div key={event.id} className="group flex flex-col bg-white rounded-[40px] border border-zinc-100 overflow-hidden transition-all duration-500 hover:shadow-[0_40px_80px_rgba(11,43,83,0.1)] hover:-translate-y-2">
                 <Link href={`/events/${event.id}`} className="block relative aspect-[4/3] w-full overflow-hidden bg-zinc-50 border-b border-zinc-100">
                   {event.image_url ? (
                       <Image
@@ -92,10 +136,10 @@ export default async function HomePage() {
                       />
                   ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-200 text-[10px] font-bold uppercase italic p-12 text-center" suppressHydrationWarning>
-                          Image Pending
+                          Inventory Preview Pending
                       </div>
                   )}
-                  <div className="absolute top-6 left-6 flex flex-col gap-2 items-start z-10" suppressHydrationWarning>
+                  <div className="absolute top-8 left-8 flex flex-col gap-2 items-start z-10" suppressHydrationWarning>
                     <EventStatusBadge 
                         eventId={event.id}
                         initialStatus={event.status}
@@ -105,34 +149,30 @@ export default async function HomePage() {
                   </div>
                 </Link>
                 
-                <div className="p-8 flex flex-col flex-1" suppressHydrationWarning>
-                  <div className="flex items-center gap-2 mb-4 text-zinc-400" suppressHydrationWarning>
+                <div className="p-10 flex flex-col flex-1" suppressHydrationWarning>
+                  <div className="flex items-center gap-2 mb-6 text-zinc-400" suppressHydrationWarning>
                     <Calendar size={14} className="text-primary" suppressHydrationWarning />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                    <span className="text-[10px] font-black uppercase tracking-widest italic">
                         {isEnded 
-                          ? 'Event Ended' 
+                          ? 'Registry Closed' 
                           : (isUpcoming 
-                              ? `Starts ${formatEventDate(event.start_at)}` 
+                              ? `Opening ${formatEventDate(event.start_at)}` 
                               : `Ends ${formatEventDate(event.ends_at)}`)
                         }
                     </span>
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors italic font-display uppercase leading-tight line-clamp-2 h-14">
+                  <h3 className="text-2xl font-black text-secondary mb-6 group-hover:text-primary transition-colors italic font-display uppercase leading-tight line-clamp-2 h-16">
                       {event.title}
                   </h3>
 
-                  <p className="text-[11px] font-medium text-zinc-400 leading-relaxed uppercase mb-8 line-clamp-3 italic">
-                      {event.description || "Industrial assets and surplus equipment liquidation event. Preview open for registered bidders."}
-                  </p>
-                  
-                  <div className="mt-auto pt-6 border-t border-zinc-50 flex justify-between items-center">
+                  <div className="mt-auto pt-8 border-t border-zinc-50 flex justify-between items-center">
                       <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} status={event.status} />
                       <Link 
                           href={`/events/${event.id}`} 
-                          className="bg-zinc-50 group-hover:bg-primary p-4 rounded-2xl transition-all border border-zinc-100 group-hover:border-primary group-hover:text-white"
+                          className="bg-zinc-900 text-white p-4 rounded-2xl transition-all hover:bg-primary shadow-xl shadow-zinc-900/10 active:scale-95"
                       >
-                          <ArrowRight size={20} />
+                          <ArrowRight size={20} strokeWidth={3} />
                       </Link>
                   </div>
                 </div>
@@ -143,93 +183,111 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* WHY PARTNER WITH US - SaaS UX */}
+      {/* WHY BUYERS CHOOSE US - Value Prop */}
       <section className="px-6 py-12">
         <div className="mx-auto max-w-7xl">
-            <div className="bg-secondary rounded-[48px] p-12 md:p-20 relative overflow-hidden italic text-white">
-                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-16 items-center">
-                    <div>
-                        <div className="flex items-center gap-3 mb-8">
-                            <span className="h-[1px] w-10 bg-primary" />
-                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Strategic Advantage</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div className="bg-secondary rounded-[48px] p-12 md:p-16 text-white italic relative overflow-hidden flex flex-col justify-between">
+                    <div className="relative z-10">
+                        <div className="h-12 w-12 bg-primary/20 rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/20">
+                            <ShieldCheck size={28} />
                         </div>
-                        <h2 className="text-5xl md:text-7xl font-bold tracking-tight mb-10 leading-[0.85] font-display uppercase">
-                            Modern <br/>Liquidation.
+                        <h2 className="text-4xl md:text-5xl font-black uppercase font-display leading-none mb-8 tracking-tighter italic">
+                            Maryland's No-Pallet <br/> <span className="text-primary text-glow">Promise.</span>
                         </h2>
-                        <p className="text-white/50 text-lg font-medium leading-relaxed max-w-lg mb-12">
-                            Virginia Liquidation provides a professional secondary market for industrial assets with a focus on speed and transparency.
+                        <p className="text-lg text-white/50 font-medium leading-relaxed mb-12 uppercase">
+                            We’re not a warehouse of mystery pallets. Every item is sold individually and most inventory is inspected before listing.
                         </p>
-                        <Link href="/sellers" className="inline-flex items-center gap-4 text-xs font-bold uppercase tracking-widest border-b border-primary pb-2 hover:text-primary transition-all group">
-                            Explore Seller Services <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <div className="flex gap-4 relative z-10">
+                        <Link href="/inventory" className="text-xs font-black uppercase tracking-widest border-b-2 border-primary pb-1 hover:text-primary transition-all">
+                            Explore Our Sources →
                         </Link>
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {[
-                            { title: "Cataloging", icon: BarChart3, desc: "Professional lotting & verification." },
-                            { title: "Logistics", icon: MapPin, desc: "Full-service removal & shipping." },
-                            { title: "Security", icon: ShieldCheck, desc: "Stripe-backed financial protection." },
-                            { title: "Network", icon: Globe2, desc: "Nationwide industrial buyers reach." },
-                        ].map((item, i) => (
-                            <div key={i} className="p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-[32px] hover:bg-white/10 transition-all">
-                                <div className="h-10 w-10 bg-primary/20 rounded-2xl flex items-center justify-center text-primary mb-4">
-                                    <item.icon size={20} />
-                                </div>
-                                <h4 className="text-sm font-bold text-white mb-1 uppercase italic">{item.title}</h4>
-                                <p className="text-[10px] text-white/30 font-medium leading-relaxed uppercase">{item.desc}</p>
-                            </div>
-                        ))}
+                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                        <Package size={300} />
                     </div>
                 </div>
-                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
-                <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {[
+                        { title: "Individual Items", icon: Package, desc: "Never forced to buy a full pallet of junk." },
+                        { title: "Inspected Stock", icon: Zap, desc: "Functional verification on major appliances." },
+                        { title: "Local Beltsville", icon: MapPin, desc: "Fast, organized local pickup in Maryland." },
+                        { title: "Simple Bidding", icon: Gavel, desc: "Modern real-time bidding for everyone." },
+                    ].map((item, i) => (
+                        <div key={i} className="bg-white border border-zinc-100 p-8 rounded-[40px] flex flex-col italic hover:border-primary/20 transition-all shadow-sm hover:shadow-xl hover:shadow-secondary/5 group">
+                            <div className="h-12 w-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all mb-6 border border-zinc-100">
+                                <item.icon size={22} />
+                            </div>
+                            <h4 className="text-lg font-black text-secondary mb-2 uppercase italic leading-none">{item.title}</h4>
+                            <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-tight leading-relaxed">{item.desc}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
       </section>
 
-      {/* BIG STATS / INVENTORY BLOC */}
-      <section className="px-6 py-12">
+      {/* HOW IT WORKS MINI - Rebranded */}
+      <section className="px-6 py-24 bg-white border-y border-zinc-100">
         <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-white border border-zinc-100 rounded-[40px] p-10 flex flex-col justify-between group hover:border-primary/20 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-secondary/5">
-                    <div>
-                        <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 group-hover:scale-110 transition-transform">
-                            <ShieldCheck size={24} />
-                        </div>
-                        <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-2">Verified Inventory</h4>
-                        <p className="text-[11px] font-medium text-zinc-500 leading-relaxed uppercase italic">Every asset is physically cataloged by our technical team.</p>
-                    </div>
-                    <div className="mt-12">
-                        <span className="text-7xl font-bold text-secondary font-display italic leading-none tracking-tighter group-hover:text-primary transition-colors">100%</span>
-                    </div>
+            <div className="text-center mb-20">
+                <div className="flex items-center justify-center gap-3 mb-6">
+                    <div className="h-1 w-8 bg-primary rounded-full" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Execution Protocol</span>
+                    <div className="h-1 w-8 bg-primary rounded-full" />
                 </div>
+                <h2 className="text-4xl md:text-6xl font-black text-secondary uppercase font-display italic tracking-tighter">Fast-Track <span className="text-primary text-glow">Success.</span></h2>
+            </div>
 
-                <div className="bg-white border border-zinc-100 rounded-[40px] p-10 flex flex-col justify-between group hover:border-primary/20 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-secondary/5">
-                    <div>
-                        <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 group-hover:scale-110 transition-transform">
-                            <Zap size={24} />
-                        </div>
-                        <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-2">Execution Speed</h4>
-                        <p className="text-[11px] font-medium text-zinc-500 leading-relaxed uppercase italic">Rapid removal protocols and instant payment processing.</p>
-                    </div>
-                    <div className="mt-12">
-                        <span className="text-7xl font-bold text-secondary font-display italic leading-none tracking-tighter group-hover:text-primary transition-colors">FAST</span>
-                    </div>
-                </div>
-
-                <Link href="/auctions" className="bg-primary rounded-[40px] p-10 flex flex-col justify-between group hover:bg-secondary transition-all duration-500 shadow-2xl shadow-primary/20 hover:shadow-secondary/20">
-                    <div className="flex justify-end">
-                        <div className="h-12 w-12 bg-white/20 rounded-2xl flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-500">
-                            <ArrowRight size={24} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                {[
+                    { step: "01", title: "Register Free", desc: "Create your bidder account in seconds with secure verification." },
+                    { step: "02", title: "Place Bids", desc: "Bid from anywhere in Maryland, DC, or Virginia in real-time." },
+                    { step: "03", title: "Pick Up Local", desc: "Fast collection in Beltsville — organized and efficient." },
+                ].map((item, i) => (
+                    <div key={i} className="text-center italic relative group">
+                        <span className="text-[100px] font-black text-zinc-50 absolute -top-16 left-1/2 -translate-x-1/2 select-none group-hover:text-primary/5 transition-colors">{item.step}</span>
+                        <div className="relative z-10">
+                            <h4 className="text-2xl font-black text-secondary mb-4 uppercase">{item.title}</h4>
+                            <p className="text-sm text-zinc-400 font-bold uppercase leading-relaxed max-w-[200px] mx-auto">{item.desc}</p>
                         </div>
                     </div>
-                    <div>
-                        <h4 className="text-3xl font-bold text-white font-display uppercase italic leading-tight mb-4">Start <br/>Exploring <br/>Events</h4>
-                        <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest flex items-center gap-2 italic">
-                            Live Auctions Now <span className="h-1 w-1 bg-white rounded-full animate-pulse" />
-                        </p>
-                    </div>
+                ))}
+            </div>
+            
+            <div className="mt-20 text-center">
+                <Link href="/auth/signup" className="bg-primary text-white px-12 py-6 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-secondary transition-all shadow-2xl shadow-primary/30 inline-flex items-center gap-3 active:scale-95 italic">
+                    Start Bidding Today <ArrowRight size={18} />
                 </Link>
+            </div>
+        </div>
+      </section>
+
+      {/* FINAL FAQ / TRUST MINI */}
+      <section className="px-6 py-24">
+        <div className="mx-auto max-w-3xl">
+            <div className="text-center mb-16 italic">
+                <h2 className="text-3xl font-black text-secondary uppercase font-display mb-4">Common Protocols</h2>
+                <p className="text-zinc-400 font-bold uppercase tracking-widest text-xs italic">Registry FAQ Highlights</p>
+            </div>
+            
+            <div className="space-y-4">
+                {[
+                    { q: "Where are you located?", a: "We operate in Beltsville, Maryland and serve buyers from across Maryland, Washington DC, and Northern Virginia." },
+                    { q: "Do you sell pallets?", a: "No. We specialize in individual inspected items to ensure transparency and value for our bidders." },
+                    { q: "Can resellers buy here?", a: "Yes. Many of our bidders flip tools, appliances, and overstock items sourced from our auctions." },
+                    { q: "Do you ship items?", a: "No. All auctions are local pickup only at our Beltsville facility to keep costs low for buyers." }
+                ].map((item, i) => (
+                    <div key={i} className="bg-white border border-zinc-100 p-8 rounded-3xl italic shadow-sm">
+                        <h4 className="text-sm font-black text-secondary uppercase mb-3 flex items-center gap-3">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                            {item.q}
+                        </h4>
+                        <p className="text-[13px] text-zinc-500 font-medium uppercase leading-relaxed pl-4.5">{item.a}</p>
+                    </div>
+                ))}
             </div>
         </div>
       </section>

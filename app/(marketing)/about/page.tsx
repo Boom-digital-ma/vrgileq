@@ -17,14 +17,14 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <div className="flex items-center justify-center gap-3 mb-8">
                 <div className="h-[1px] w-10 bg-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Our Legacy since 1981</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Trusted Local Partner</span>
                 <div className="h-[1px] w-10 bg-primary" />
             </div>
             <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
-                The New <br/> <span className="text-primary">Player</span>.
+                Serving the <br/> <span className="text-primary">DMV</span>.
             </h1>
             <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
-                Bridging the gap between industrial tradition and modern liquidation technology for over 40 years.
+                Virginia Liquidation was built to serve the Maryland–DC–Virginia community with a better liquidation buying experience.
             </p>
         </div>
         <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
@@ -38,15 +38,15 @@ export default function AboutPage() {
                     <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/20">
                         <ShieldCheck size={24} />
                     </div>
-                    <h2 className="text-4xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none mb-6">Un-eBay <br/>Philosophy.</h2>
+                    <h2 className="text-4xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none mb-6">Local <br/>Expertise.</h2>
                     <p className="text-zinc-400 font-medium text-sm leading-relaxed uppercase mb-8">
-                        We don't just host listings. We Physically catalog, verify, and manage every asset that passes through our marketplace.
+                        We are based in Beltsville, Maryland and proudly serve buyers from across the DMV region.
                     </p>
                     <div className="flex flex-col gap-4">
                         {[
-                            { label: "Founded", val: "1981" },
-                            { label: "HQ", val: "Alexandria, VA" },
-                            { label: "Status", val: "Licensed & Bonded" },
+                            { label: "Location", val: "Beltsville, MD" },
+                            { label: "Region", val: "Greater DMV Area" },
+                            { label: "Status", val: "Authorized Local Auctions" },
                         ].map((stat, i) => (
                             <div key={i} className="flex justify-between items-center py-3 border-b border-zinc-100">
                                 <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">{stat.label}</span>
@@ -58,9 +58,9 @@ export default function AboutPage() {
 
                 <div className="space-y-16">
                     <div className="p-10 md:p-16 bg-white rounded-[48px] border border-zinc-100 shadow-sm italic group hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500">
-                        <h3 className="text-2xl font-bold text-secondary font-display uppercase mb-8">Professional Technical Assessment</h3>
+                        <h3 className="text-2xl font-bold text-secondary font-display uppercase mb-8">Our Simple Mission</h3>
                         <p className="text-zinc-500 text-lg leading-relaxed uppercase font-medium">
-                            Virginia Liquidation specializes in industrial auctions, large lots of bulk items, and overstocked inventory from manufacturers. Unlike generic marketplaces, we provide high-resolution technical documentation and physically verified reports for every asset.
+                            Our mission is simple: Make liquidation buying easier, safer, and more profitable. Whether you're a homeowner looking for a deal or a reseller sourcing inventory, our platform gives you transparent listings and organized local pickup.
                         </p>
                     </div>
 

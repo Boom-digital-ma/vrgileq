@@ -14,16 +14,16 @@ export default function Footer() {
                 </div>
                 <div>
                     <h3 className="text-xl md:text-2xl font-bold font-display uppercase italic leading-tight tracking-tight">
-                        Serving the Northern Virginia <br className="hidden md:block"/> industrial market <span className="text-primary">since 1981.</span>
+                        Maryland's trusted <br className="hidden md:block"/> liquidation auction <span className="text-primary">partner.</span>
                     </h3>
                 </div>
             </div>
             <Link 
-                href="/about" 
+                href="/how-it-works" 
                 className="group bg-white text-secondary px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center gap-3 shadow-xl shadow-black/20"
                 suppressHydrationWarning
             >
-                Our Legacy <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" suppressHydrationWarning />
+                How It Works <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" suppressHydrationWarning />
             </Link>
         </div>
         {/* Background Decoration */}
@@ -46,8 +46,8 @@ export default function Footer() {
                             suppressHydrationWarning
                         />
                     </div>
-                    <p className="text-sm font-medium leading-relaxed text-zinc-400 italic max-w-xs">
-                        Northern Virginia's premier marketplace for industrial liquidation, commercial equipment, and surplus auctions.
+                    <p className="text-sm font-medium leading-relaxed text-zinc-400 italic max-w-xs uppercase">
+                        Maryland's premier marketplace for inspected Home Depot returns, appliances, and overstock liquidation.
                     </p>
                     <div className="flex gap-3">
                         {[Instagram, Facebook, Twitter, Linkedin].map((Icon, i) => (
@@ -60,41 +60,41 @@ export default function Footer() {
 
                 {/* Navigation */}
                 <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Platform</h4>
-                    <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-500">
-                        <Link href="/auctions" className="hover:text-primary transition-colors">Live Auctions</Link>
-                        <Link href="/buyers" className="hover:text-primary transition-colors">Buyer's Guide</Link>
-                        <Link href="/sellers" className="hover:text-primary transition-colors">Sell With Us</Link>
-                        <Link href="/about" className="hover:text-primary transition-colors">Company History</Link>
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Auction Guide</h4>
+                    <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-50">
+                        <Link href="/how-it-works" className="text-zinc-500 hover:text-primary transition-colors uppercase">Process</Link>
+                        <Link href="/inventory" className="text-zinc-500 hover:text-primary transition-colors uppercase">Inventory</Link>
+                        <Link href="/pickup-information" className="text-zinc-500 hover:text-primary transition-colors uppercase">Local Pickup</Link>
+                        <Link href="/blog" className="text-zinc-500 hover:text-primary transition-colors uppercase">Journal</Link>
                     </nav>
                 </div>
 
                 {/* Support */}
                 <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Support</h4>
-                    <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-500">
-                        <Link href="/contact" className="hover:text-primary transition-colors">Contact Center</Link>
-                        <Link href="/terms" className="hover:text-primary transition-colors">Bidding Terms</Link>
-                        <Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-                        <Link href="/engage" className="hover:text-primary transition-colors">Enterprise Services</Link>
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Institutional</h4>
+                    <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-50">
+                        <Link href="/about" className="text-zinc-500 hover:text-primary transition-colors uppercase">Our Mission</Link>
+                        <Link href="/sellers" className="text-zinc-500 hover:text-primary transition-colors uppercase">Sell With Us</Link>
+                        <Link href="/terms" className="text-zinc-500 hover:text-primary transition-colors uppercase">Bidding Terms</Link>
+                        <Link href="/privacy" className="text-zinc-500 hover:text-primary transition-colors uppercase">Privacy Protocol</Link>
                     </nav>
                 </div>
 
                 {/* Contact */}
                 <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Direct Line</h4>
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Direct Registry</h4>
                     <div className="space-y-6">
-                        <a href="tel:7037689000" className="flex items-center gap-4 group">
+                        <a href="tel:2405550123" className="flex items-center gap-4 group">
                             <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-all">
                                 <Phone className="w-4 h-4 text-zinc-400 group-hover:text-primary" />
                             </div>
-                            <span className="text-[13px] font-bold text-zinc-500">(703) 768-9000</span>
+                            <span className="text-[13px] font-bold text-zinc-500 tracking-tighter uppercase italic">(240) 555-0123</span>
                         </a>
                         <div className="flex items-center gap-4 group">
                             <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100">
                                 <Mail className="w-4 h-4 text-zinc-400" />
                             </div>
-                            <span className="text-[13px] font-bold text-zinc-500 lowercase">info@virginialiquidation.com</span>
+                            <span className="text-[13px] font-bold text-zinc-500 lowercase italic">concierge@vrgileq.com</span>
                         </div>
                     </div>
                 </div>
@@ -102,12 +102,12 @@ export default function Footer() {
 
             {/* Bottom Bar */}
             <div className="mt-20 pt-8 border-t border-zinc-100 flex flex-col md:flex-row justify-between items-center gap-6">
-                <p className="text-[11px] font-medium text-zinc-400 italic">
-                    © 2026 Virginia Liquidation. Serving the industrial community for over 40 years.
+                <p className="text-[11px] font-medium text-zinc-400 italic uppercase">
+                    © 2026 Virginia Liquidation. Serving Maryland, DC & Northern Virginia.
                 </p>
                 <div className="flex items-center gap-2 bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                    <span className="text-[9px] font-bold uppercase text-emerald-700 tracking-wider italic">Bidder Network Online</span>
+                    <span className="text-[9px] font-bold uppercase text-emerald-700 tracking-wider italic">Registry Network Live</span>
                 </div>
             </div>
         </div>

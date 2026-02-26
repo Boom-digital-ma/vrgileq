@@ -168,14 +168,15 @@ export default function Header() {
                 </Link>
 
                                             {/* Desktop Navigation */}
-                                            <nav className="hidden lg:flex items-center gap-2">
+                                            <nav className="hidden lg:flex items-center gap-1">
                                                 {[
                                                     { name: 'Home', href: '/' },
                                                     { name: 'Auctions', href: '/auctions' },
-                                                    { name: 'Buyers', href: '/buyers' },
+                                                    { name: 'Process', href: '/how-it-works' },
+                                                    { name: 'Inventory', href: '/inventory' },
+                                                    { name: 'Journal', href: '/blog' },
                                                     { name: 'Sellers', href: '/sellers' },
                                                     { name: 'About', href: '/about' },
-                                                    { name: 'Contact', href: '/contact' },
                                                                     ].map((item) => {
                                                                         const isActive = item.href === '/' 
                                                                             ? pathname === '/' 
@@ -185,7 +186,7 @@ export default function Header() {
                                                                                 key={item.name} 
                                                                                 href={item.href} 
                                                                                 className={cn(
-                                                                                    "px-4 py-2 text-[11px] font-bold uppercase tracking-widest transition-all italic rounded-xl",
+                                                                                    "px-3 py-2 text-[10px] font-bold uppercase tracking-widest transition-all italic rounded-xl",
                                                                                     isActive 
                                                                                         ? "text-primary bg-primary/5" 
                                                                                         : "text-zinc-500 hover:text-primary"
@@ -265,15 +266,22 @@ export default function Header() {
             </div>
 
             <nav className="flex flex-col gap-1 mb-auto">
-              {['Home', 'Auctions', 'Buyers', 'Sellers', 'About', 'Contact'].map((item) => {
-                const href = item === 'Home' ? '/' : `/${item.toLowerCase()}`;
-                const isActive = href === '/' 
+              {[
+                { name: 'Home', href: '/' },
+                { name: 'Auctions', href: '/auctions' },
+                { name: 'Process', href: '/how-it-works' },
+                { name: 'Inventory', href: '/inventory' },
+                { name: 'Journal', href: '/blog' },
+                { name: 'Sellers', href: '/sellers' },
+                { name: 'About', href: '/about' },
+              ].map((item) => {
+                const isActive = item.href === '/' 
                     ? pathname === '/' 
-                    : pathname.startsWith(href) || (item === 'Auctions' && pathname.startsWith('/events'));
+                    : pathname.startsWith(item.href) || (item.name === 'Auctions' && pathname.startsWith('/events'));
                 return (
                     <Link 
-                        key={item}
-                        href={href} 
+                        key={item.name}
+                        href={item.href} 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                             "flex items-center justify-between py-4 px-4 rounded-2xl text-xl font-bold transition-all font-display italic uppercase",
@@ -282,7 +290,7 @@ export default function Header() {
                                 : "text-secondary hover:text-primary hover:bg-zinc-50"
                         )}
                     >
-                        {item} <ChevronRight size={18} className={cn(isActive ? "text-primary" : "text-zinc-200")} />
+                        {item.name} <ChevronRight size={18} className={cn(isActive ? "text-primary" : "text-zinc-200")} />
                     </Link>
                 );
               })}
