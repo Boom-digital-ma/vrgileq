@@ -51,39 +51,13 @@ export default async function HomePage() {
 
   return (
     <div className="bg-zinc-50 font-sans tracking-tight text-neutral antialiased">
-      {/* Hero Section Rebranded */}
-      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="flex items-center justify-center gap-3 mb-8">
-                <div className="h-[1px] w-10 bg-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Beltsville, MD • Local Pickup</span>
-                <div className="h-[1px] w-10 bg-primary" />
-            </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-secondary leading-[0.85] font-display uppercase mb-10">
-                Bid <span className="text-primary italic">Smart.</span> <br/> 
-                Buy <span className="text-primary italic">Direct.</span>
-            </h1>
-            <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase mb-12">
-                Home Depot returns, appliances, and Target overstock. Sold individually. Inspected in Beltsville. No mystery pallets.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-                <Link href="/auctions" className="bg-secondary text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary transition-all shadow-2xl shadow-secondary/20">
-                    View Live Auctions
-                </Link>
-                <Link href="/how-it-works" className="bg-zinc-50 text-zinc-400 border border-zinc-100 px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-100 transition-all">
-                    How it Works
-                </Link>
-            </div>
-        </div>
-        <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
-        <div className="absolute -top-24 -right-24 h-96 w-96 bg-secondary/5 blur-[120px] rounded-full" />
-      </section>
+      <HeroSlider />
 
-      {/* Trust Bar */}
-      <div className="bg-zinc-900 py-6 overflow-hidden border-y border-white/5">
+      {/* Trust Bar - Premium Secondary Light */}
+      <div className="bg-secondary/5 py-6 overflow-hidden border-y border-secondary/10">
         <div className="flex whitespace-nowrap animate-[marquee_30s_linear_infinite] gap-20">
             {[1,2,3,4].map(i => (
-                <div key={i} className="flex items-center gap-20 text-[10px] font-black uppercase tracking-[0.5em] text-white/20 italic">
+                <div key={i} className="flex items-center gap-20 text-[10px] font-black uppercase tracking-[0.5em] text-secondary/30 italic">
                     <span>Home Depot Returns</span>
                     <span className="text-primary">•</span>
                     <span>Appliance Liquidation</span>
@@ -170,7 +144,7 @@ export default async function HomePage() {
                       <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} status={event.status} />
                       <Link 
                           href={`/events/${event.id}`} 
-                          className="bg-zinc-900 text-white p-4 rounded-2xl transition-all hover:bg-primary shadow-xl shadow-zinc-900/10 active:scale-95"
+                          className="bg-primary/10 text-primary p-4 rounded-2xl transition-all hover:bg-primary hover:text-white shadow-sm active:scale-95"
                       >
                           <ArrowRight size={20} strokeWidth={3} />
                       </Link>
@@ -187,15 +161,15 @@ export default async function HomePage() {
       <section className="px-6 py-12">
         <div className="mx-auto max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div className="bg-secondary rounded-[48px] p-12 md:p-16 text-white italic relative overflow-hidden flex flex-col justify-between">
+                <div className="bg-primary/5 rounded-[48px] p-12 md:p-16 text-secondary italic relative overflow-hidden flex flex-col justify-between border border-primary/10">
                     <div className="relative z-10">
-                        <div className="h-12 w-12 bg-primary/20 rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/20">
+                        <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/10 shadow-sm">
                             <ShieldCheck size={28} />
                         </div>
                         <h2 className="text-4xl md:text-5xl font-black uppercase font-display leading-none mb-8 tracking-tighter italic">
-                            Maryland's No-Pallet <br/> <span className="text-primary text-glow">Promise.</span>
+                            Maryland's No-Pallet <br/> <span className="text-primary">Promise.</span>
                         </h2>
-                        <p className="text-lg text-white/50 font-medium leading-relaxed mb-12 uppercase">
+                        <p className="text-lg text-zinc-500 font-medium leading-relaxed mb-12 uppercase">
                             We’re not a warehouse of mystery pallets. Every item is sold individually and most inventory is inspected before listing.
                         </p>
                     </div>
@@ -204,7 +178,7 @@ export default async function HomePage() {
                             Explore Our Sources →
                         </Link>
                     </div>
-                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 text-primary">
                         <Package size={300} />
                     </div>
                 </div>
@@ -258,7 +232,7 @@ export default async function HomePage() {
             </div>
             
             <div className="mt-20 text-center">
-                <Link href="/auth/signup" className="bg-primary text-white px-12 py-6 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-secondary transition-all shadow-2xl shadow-primary/30 inline-flex items-center gap-3 active:scale-95 italic">
+                <Link href="/auth/signup" className="bg-primary text-white px-12 py-6 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-2xl shadow-primary/30 inline-flex items-center gap-3 active:scale-95 italic">
                     Start Bidding Today <ArrowRight size={18} />
                 </Link>
             </div>
