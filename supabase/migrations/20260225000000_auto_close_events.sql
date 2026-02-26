@@ -44,4 +44,4 @@ BEGIN
     SELECT 1 FROM auctions a WHERE a.event_id = ae.id
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
