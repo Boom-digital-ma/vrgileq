@@ -86,6 +86,25 @@ This document tracks the current state of the project and remaining tasks to rea
 - [x] **Vault Sync:** Updated SQL functions to use correct Supabase Vault column names (`decrypted_secret`).
 - [x] **Real-time Sync:** Implemented real-time profile name synchronization across Header and Dashboard.
 
+## 📋 PRIORITY 6: Event Lifecycle & Security Hardening (Completed)
+
+### 1. Staggered Closing Fix
+- [x] **Logic:** Switched from absolute lot numbers to relative indexing for 2-minute offsets.
+- [x] **UX:** Ensures first lot ends at base time, eliminating multi-hour gaps for high lot numbers.
+
+### 2. Automated Event Lifecycle
+- [x] **Status:** Events now automatically transition to `closed` when the last lot is sold/ended.
+- [x] **UI:** Enhanced `EventStatusBadge` and list filters to keep events visible as "Live" until technical closure.
+
+### 3. SQL Security (Option A)
+- [x] **Schema Lockdown:** Applied `SET search_path = public` to all critical `SECURITY DEFINER` functions.
+- [x] **Compliance:** Resolved Supabase security warnings regarding mutable search paths.
+
+### 4. Admin & User UX Polish
+- [x] **Navigation:** Added context-aware "Back to Event" button on Auction Detail pages.
+- [x] **Alerts:** Redesigned Bidding Widget with prioritized "Action Required" cards and real-time status (Winning/Outbid).
+- [x] **Settings:** Refactored Admin Settings into a modern horizontal tabbed interface.
+
 ---
 
 ## ✅ Completed Milestones
@@ -94,7 +113,8 @@ This document tracks the current state of the project and remaining tasks to rea
 - [x] **Post-Auction Workflow**: Automated invoicing, pickup booking, and gate passes.
 - [x] **Subtractive Payments**: Deposit deduction and automatic final charging.
 - [x] **Notification Engine**: Batch processing for high-volume email reliability.
+- [x] **Event Lifecycle**: Automated staggering and closure logic.
 - [x] **Production Build**: 100% TypeScript compliance and optimized assets.
 
 ---
-*Last updated: February 22, 2026*
+*Last updated: February 25, 2026*
