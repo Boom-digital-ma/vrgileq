@@ -1,27 +1,28 @@
-# 📈 Roadmap SEO & AIO (AI Optimization) - Virginia Liquidation
+# 🎯 Roadmap SEO & Domination Locale (Maryland)
 
-Ce document suit les optimisations pour le référencement naturel et la visibilité auprès des agents d'IA.
+Ce document liste les tâches prioritaires pour exécuter le plan marketing et optimiser le référencement de Virginia Liquidation.
 
-## 🛠 Phase 1 : Fondations Techniques
-- [ ] **Metadata Globales :** Configurer OpenGraph et Twitter Cards dans `layout.tsx`.
-- [ ] **Robots.txt :** Créer `app/robots.ts` et autoriser les bots IA (GPTBot, Claude-Bot).
-- [ ] **Sitemap.xml :** Créer `app/sitemap.ts` dynamique pour Lots & Événements.
-- [ ] **Canonical URLs :** Prévenir le contenu dupliqué.
+## 📋 Étape 1 : Landing Pages de Catégories (High Intent)
+*   [ ] **Page Home Depot :** Créer `/home-depot-returns-auction-maryland`.
+    *   *Contenu :* Titre H1 optimisé, 800 mots de texte SEO, liste filtrée des lots Home Depot.
+*   [ ] **Page Appliances :** Créer `/appliance-auction-dc-maryland`.
+    *   *Contenu :* Focus sur Beltsville pickup pour les objets lourds.
+*   [ ] **Page Target Overstock :** Créer `/target-overstock-auction-maryland`.
 
-## 💎 Phase 2 : Données Structurées (Rich Snippets)
-- [ ] **Product Schema :** JSON-LD sur chaque page de lot (`/auctions/[id]`).
-- [ ] **Event Schema :** JSON-LD sur chaque page d'événement (`/events/[id]`).
-- [ ] **Organization Schema :** Identité de marque globale.
-- [ ] **Breadcrumbs :** Hiérarchie de navigation structurée.
+## 📋 Étape 2 : Données Structurées (Schema.org)
+*   [ ] **LocalBusiness Schema :** Ajouter à la Homepage avec l'adresse exacte de Beltsville et les horaires.
+*   [ ] **FAQPage Schema :** Ajouter à la Homepage pour que les "Common Protocols" apparaissent directement dans Google.
+*   [ ] **Review Schema :** Implémenter une fois que les premiers avis clients seront récoltés.
 
-## 🤖 Phase 3 : AI Optimization (AIO)
-- [ ] **HTML Sémantique :** Structure claire pour l'extraction de données par les LLMs.
-- [ ] **Fact Sheets :** Spécifications techniques structurées (Mfr, Model) pour lecture machine.
-- [ ] **Natural Language FAQ :** Questions/Réponses pour la recherche conversationnelle.
+## 📋 Étape 3 : Content & Social (Autorité)
+*   [ ] **Articles de Blog :** Publier 4 articles de niche (ex: "How to flip tools in Maryland", "Evaluating scratch & dent appliances").
+*   [ ] **Google Business Profile :** Valider l'adresse Beltsville et poster une mise à jour hebdomadaire liée aux enchères live.
+*   [ ] **Backlinks Locaux :** Contacter les annuaires de Beltsville et Maryland.
 
-## 🖼 Phase 4 : SEO Visuel & Performance
-- [ ] **Alt-text Automation :** Textes alternatifs basés sur les titres des lots.
-- [ ] **Dynamic Social Cards :** Images de partage automatiques pour les lots.
+## 📋 Étape 4 : Technique & Indexation
+*   [ ] **Sitemap Update :** Vérifier que toutes les nouvelles pages CMS sont bien dans `sitemap.xml`.
+*   [ ] **Image Alt Tags :** Audit complet des tags ALT sur les images de lots pour le SEO Google Images.
+*   [ ] **Meta-titres :** Affiner chaque méta-titre pour inclure "Maryland" ou "Beltsville".
 
 ---
-*Dernière mise à jour : 22 Février 2026*
+*Dernière mise à jour : 25 Février 2026*

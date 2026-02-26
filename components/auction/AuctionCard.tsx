@@ -296,12 +296,12 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
       )}>
         {/* Media Container */}
         <div 
-          className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100 cursor-pointer"
+          className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
-          <Link href={`/auctions/${product.id}`} className="absolute inset-0">
+          <div className="absolute inset-0">
             <Image
               src={getOptimizedImageUrl(allImages[currentImageIndex], { width: 600 })}
               alt={`${product.title} ${product.manufacturer ? `by ${product.manufacturer}` : ''} ${product.model ? `(${product.model})` : ''} - Virginia Liquidation`}
@@ -314,7 +314,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
               priority={false}
             />
-          </Link>
+          </div>
 
           {imageLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-zinc-50/50 backdrop-blur-sm">

@@ -29,7 +29,8 @@ export default function SignUpPage() {
   const router = useRouter()
 
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     password: '',
@@ -48,7 +49,7 @@ export default function SignUpPage() {
 
   const nextStep = () => {
     if (step === 1) {
-        if (!formData.fullName || !formData.email || !formData.phone || !formData.password) {
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password) {
             setError("All identity fields are required.")
             return
         }
@@ -84,7 +85,13 @@ export default function SignUpPage() {
     setLoading(true)
     setError(null)
     const finalData = new FormData()
-    Object.entries(formData).forEach(([key, value]) => finalData.append(key, value))
+    Object.entries(formData).forEach(([key, value]) => {
+        if (key !== 'firstName' && key !== 'lastName') {
+            finalData.append(key, value as string)
+        }
+    })
+    finalData.append('fullName', `${formData.firstName} ${formData.lastName}`.trim())
+    
     const result = await signup(finalData, formData.paymentMethodId)
     if (result?.error) {
       setError(result.error)
@@ -139,17 +146,23 @@ export default function SignUpPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className={labelClasses}>Full Legal Name</label>
-                    <input type="text" value={formData.fullName} onChange={e => updateForm({ fullName: e.target.value })} className={inputClasses} placeholder="FULL NAME" />
+                    <label className={labelClasses}>First Name</label>
+                    <input type="text" value={formData.firstName} onChange={e => updateForm({ firstName: e.target.value })} className={inputClasses} placeholder="FIRST NAME" />
+                </div>
+                <div className="space-y-2">
+                    <label className={labelClasses}>Last Name</label>
+                    <input type="text" value={formData.lastName} onChange={e => updateForm({ lastName: e.target.value })} className={inputClasses} placeholder="LAST NAME" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className={labelClasses}>Digital Mail</label>
+                  <input type="email" value={formData.email} onChange={e => updateForm({ email: e.target.value })} className={inputClasses} placeholder="EMAIL@DOMAIN.COM" />
                 </div>
                 <div className="space-y-2">
                     <label className={labelClasses}>Mobile Phone</label>
                     <input type="tel" value={formData.phone} onChange={e => updateForm({ phone: e.target.value })} className={inputClasses} placeholder="(703) 000-0000" />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <label className={labelClasses}>Digital Mail</label>
-                <input type="email" value={formData.email} onChange={e => updateForm({ email: e.target.value })} className={inputClasses} placeholder="EMAIL@DOMAIN.COM" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
