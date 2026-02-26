@@ -6,6 +6,7 @@ ALTER FUNCTION public.check_and_close_auctions() SET search_path = public;
 ALTER FUNCTION public.sync_auction_event_data() SET search_path = public;
 ALTER FUNCTION public.sync_auction_event_dates() SET search_path = public;
 ALTER FUNCTION public.place_bid_secure(uuid, uuid, numeric, text, numeric) SET search_path = public;
+ALTER FUNCTION public.place_bid_secure(uuid, uuid, numeric, text) SET search_path = public;
 ALTER FUNCTION public.is_admin() SET search_path = public;
 ALTER FUNCTION public.handle_new_user() SET search_path = public;
 ALTER FUNCTION public.check_and_notify_event_start() SET search_path = public;
