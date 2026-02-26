@@ -9,6 +9,5 @@ ALTER FUNCTION public.place_bid_secure(uuid, uuid, numeric, text, numeric) SET s
 ALTER FUNCTION public.is_admin() SET search_path = public;
 ALTER FUNCTION public.handle_new_user() SET search_path = public;
 ALTER FUNCTION public.check_and_notify_event_start() SET search_path = public;
-ALTER FUNCTION public.check_and_notify_watchlist_closing() SET search_path = public;
+ALTER FUNCTION public.check_and_notify_watchlist() SET search_path = public;
 ALTER FUNCTION public.book_pickup_slot(uuid, uuid) SET search_path = public;
-ALTER FUNCTION public.extend_auction_final_minutes() SET search_path = public;
