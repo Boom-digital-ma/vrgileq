@@ -1,7 +1,7 @@
 'use client'
 
 import { useShow, useList, useNavigation, useDelete, useInvalidate, useTable } from "@refinedev/core"
-import { ArrowLeft, Plus, Loader2, Package, Gavel, Trash2, Edit, Save, Eye, Search, Calendar, FileText, Shield, Unlock, MoreHorizontal, Zap, Menu } from "lucide-react"
+import { ArrowLeft, Plus, Loader2, Package, Gavel, Trash2, Edit, Save, Eye, Search, Calendar, FileText, Shield, Unlock, MoreHorizontal, Zap, Menu, CreditCard } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -10,7 +10,7 @@ import { Modal } from "./Modal"
 import { ImageUpload } from "./ImageUpload"
 import { adminUpsertLot } from "@/app/actions/lots"
 import { generateEventPickupSlots, deleteEventPickupSlots } from "@/app/actions/events"
-import { releaseEventDeposits } from "@/app/actions/payment"
+import { releaseEventDeposits, processEventPayments } from "@/app/actions/payment"
 import { generateEventInvoicesAction } from "@/app/actions/sales"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
@@ -57,6 +57,18 @@ export const EventShow = () => {
   })
   const pickupCount = (pickupSlotsResult as any).query?.data?.total || (pickupSlotsResult as any).query?.data?.data?.length || 0
 
+  // 2c. Fetch existing invoices to check if generated
+  const salesResult = useList({
+    resource: "sales",
+    filters: [
+      { field: "event_id", operator: "eq", value: eventId }
+    ],
+    pagination: { mode: "off" },
+    queryOptions: { enabled: !!eventId }
+  })
+  const invoiceCount = (salesResult as any).query?.data?.total || (salesResult as any).query?.data?.data?.length || 0
+  const isSalesLoading = (salesResult as any).query?.isLoading
+
   const {
     current = 1,
     setCurrent,
@@ -83,6 +95,8 @@ export const EventShow = () => {
   const [selectedLotId, setSelectedId] = useState<string | null>(null)
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [formLoading, setFormLoading] = useState(false)
+  const [invoiceLoading, setInvoiceLoading] = useState(false)
+  const [paymentLoading, setPaymentLoading] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   
   // Custom Edit Fetching State
@@ -239,19 +253,89 @@ export const EventShow = () => {
                                     <div className="px-3 space-y-1">
                                         <button 
                                             onClick={async () => {
+                                                if (invoiceLoading) return;
                                                 setIsActionsOpen(false);
-                                                if (!confirm("Generate consolidated invoices for all winners?")) return;
-                                                setFormLoading(true);
-                                                const res = await generateEventInvoicesAction(eventId);
-                                                if (res.success) toast.success(`${res.count} invoices generated!`);
-                                                else toast.error(res.error);
-                                                setFormLoading(false);
+                                                
+                                                const confirmMsg = invoiceCount > 0 
+                                                    ? `Warning: ${invoiceCount} invoices already exist. Generate more for un-invoiced lots?`
+                                                    : "Generate consolidated invoices for all winners?";
+                                                    
+                                                if (!confirm(confirmMsg)) return;
+                                                
+                                                setInvoiceLoading(true);
+                                                try {
+                                                    const res = await generateEventInvoicesAction(eventId);
+                                                    if (res.success) {
+                                                        toast.success(`${res.count} invoices generated!`);
+                                                        await invalidate({ resource: "sales", invalidates: ["list", "detail"] });
+                                                    } else {
+                                                        toast.error(res.error);
+                                                    }
+                                                } finally {
+                                                    setInvoiceLoading(false);
+                                                }
                                             }}
-                                            disabled={formLoading}
-                                            className="w-full flex items-center gap-4 px-4 py-3 text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all group"
+                                            disabled={invoiceLoading}
+                                            className={cn(
+                                                "w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all group",
+                                                invoiceCount > 0 ? "text-primary" : "text-emerald-600 hover:bg-emerald-50"
+                                            )}
                                         >
-                                            <div className="p-2 bg-emerald-50 rounded-xl group-hover:bg-emerald-500 group-hover:text-white transition-all"><FileText size={16} /></div>
-                                            <span className="text-[11px] font-bold uppercase tracking-tight">Generate Invoices</span>
+                                            <div className="flex items-center gap-4">
+                                                <div className={cn(
+                                                    "p-2 rounded-xl transition-all",
+                                                    invoiceCount > 0 ? "bg-primary/10 text-primary" : "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white"
+                                                )}>
+                                                    {invoiceLoading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                                                </div>
+                                                <span className="text-[11px] font-bold uppercase tracking-tight">
+                                                    {invoiceLoading ? "Processing..." : "Generate Invoices"}
+                                                </span>
+                                            </div>
+                                            {invoiceCount > 0 && !invoiceLoading && (
+                                                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest border border-primary/20 animate-in fade-in slide-in-from-right-2">
+                                                    {invoiceCount} Active
+                                                </span>
+                                            )}
+                                        </button>
+
+                                        {/* CAPTURE PAYMENTS ACTION */}
+                                        <button 
+                                            onClick={async () => {
+                                                if (paymentLoading) return;
+                                                setIsActionsOpen(false);
+                                                
+                                                if (!confirm("This will CAPTURE deposits and CHARGE balances for all PENDING invoices. Proceed with mass debit?")) return;
+                                                
+                                                setPaymentLoading(true);
+                                                try {
+                                                    const res = await processEventPayments(eventId);
+                                                    if (res.success) {
+                                                        toast.success(res.message);
+                                                        await invalidate({ resource: "sales", invalidates: ["list", "detail"] });
+                                                        await invalidate({ resource: "event_registrations", invalidates: ["list", "detail"] });
+                                                    } else {
+                                                        toast.error(res.error);
+                                                    }
+                                                } finally {
+                                                    setPaymentLoading(false);
+                                                }
+                                            }}
+                                            disabled={paymentLoading || invoiceCount === 0}
+                                            className={cn(
+                                                "w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group",
+                                                paymentLoading ? "bg-zinc-100 text-zinc-400" : "text-blue-600 hover:bg-blue-50"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "p-2 rounded-xl transition-all",
+                                                paymentLoading ? "bg-zinc-200" : "bg-blue-50 text-blue-600 group-hover:bg-blue-500 group-hover:text-white"
+                                            )}>
+                                                {paymentLoading ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
+                                            </div>
+                                            <span className="text-[11px] font-bold uppercase tracking-tight">
+                                                {paymentLoading ? "Processing Debits..." : "Capture Payments"}
+                                            </span>
                                         </button>
                                         <button 
                                             onClick={async () => {

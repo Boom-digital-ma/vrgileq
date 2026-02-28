@@ -43,101 +43,11 @@ Deno.serve(async (req) => {
     if (winningBid) {
       console.log(`Winning bid found: ${winningBid.amount} by ${winningBid.user_id}`)
       
-      // 2. Fetch Winner Profile & Settings for payment
-      const { data: winnerProfile } = await supabaseAdmin.from('profiles').select('*').eq('id', winningBid.user_id).single()
-      const { data: settings } = await supabaseAdmin.from('site_settings').select('buyers_premium, tax_rate').eq('id', 'global').single()
-      
-      if (!winnerProfile?.stripe_customer_id || !winnerProfile?.default_payment_method_id) {
-          console.error("Winner has no payment method. Cannot auto-debit.")
-          // Mark as sold but unpaid
-          await supabaseAdmin.from("auctions").update({ status: "sold", winner_id: winningBid.user_id }).eq("id", auction_id)
-          return new Response(JSON.stringify({ error: "Winner missing payment method" }), { status: 200 })
-      }
-
-      // 3. Calculate Total (Hammer + Premium + Tax)
-      const bpRate = settings?.buyers_premium || 15
-      const taxRate = settings?.tax_rate || 0
-      const hammer = Number(winningBid.amount)
-      const bpAmount = hammer * (bpRate / 100)
-      const taxAmount = (hammer + bpAmount) * (taxRate / 100)
-      let totalToChargeCents = Math.round((hammer + bpAmount + taxAmount) * 100)
-
-      // 4. CHECK AND DEDUCT REGISTRATION DEPOSIT (Caution)
-      const { data: registration } = await supabaseAdmin
-        .from('event_registrations')
-        .select('id, stripe_payment_intent_id, deposit_captured')
-        .eq('event_id', auction.event_id)
-        .eq('user_id', winningBid.user_id)
-        .single()
-
-      let amountDeductedCents = 0
-      if (registration?.stripe_payment_intent_id && !registration.deposit_captured) {
-          try {
-              // Capture the deposit first
-              const depositIntent = await stripe.paymentIntents.capture(registration.stripe_payment_intent_id)
-              if (depositIntent.status === 'succeeded') {
-                  amountDeductedCents = depositIntent.amount_received
-                  totalToChargeCents -= amountDeductedCents
-                  
-                  // Mark deposit as used so it's not deducted from next winning lot in same event
-                  await supabaseAdmin
-                    .from('event_registrations')
-                    .update({ deposit_captured: true })
-                    .eq('id', registration.id)
-                  
-                  console.log(`Deposit of ${amountDeductedCents/100}$ captured and deducted.`)
-              }
-          } catch (captureErr: any) {
-              console.warn("Could not capture deposit (already captured or expired):", captureErr.message)
-          }
-      }
-
-      // 5. Create and Capture Payment for the REMAINING balance (if any)
-      let isPaid = false
-      let finalChargeId = null
-      
-      if (totalToChargeCents > 0) {
-          try {
-              const paymentIntent = await stripe.paymentIntents.create({
-                  amount: totalToChargeCents,
-                  currency: 'usd',
-                  customer: winnerProfile.stripe_customer_id,
-                  payment_method: winnerProfile.default_payment_method_id,
-                  off_session: true,
-                  confirm: true,
-                  description: `Final balance for Auction: ${auction.title} (Deposit of ${amountDeductedCents/100}$ deducted)`,
-                  metadata: { auction_id, user_id: winningBid.user_id }
-              })
-              
-              if (paymentIntent.status === 'succeeded') {
-                  isPaid = true
-                  finalChargeId = paymentIntent.id
-                  console.log(`Remaining balance of ${totalToChargeCents/100}$ charged: ${finalChargeId}`)
-              }
-          } catch (stripeErr: any) {
-              console.error("Balance Debit Error:", stripeErr.message)
-          }
-      } else {
-          // Hammer price was fully covered by the deposit (unlikely but possible)
-          isPaid = true
-          finalChargeId = registration?.stripe_payment_intent_id
-          console.log("Invoice fully covered by registration deposit.")
-      }
-
-      // 6. Update Auction & Bid status
+      // 1. Update Auction & Bid status
       await supabaseAdmin.from("auctions").update({ status: "sold", winner_id: winningBid.user_id }).eq("id", auction_id)
       await supabaseAdmin.from("bids").update({ status: "won" }).eq("id", winningBid.id)
 
-      // 7. Update Sale record
-      if (isPaid) {
-        await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for trigger
-        await supabaseAdmin.from("sales").update({ 
-            status: 'paid', 
-            stripe_payment_intent_id: finalChargeId 
-        }).eq("auction_id", auction_id)
-      }
-
-      // 8. In-app notification
+      // 2. In-app notification
       await supabaseAdmin.from("notifications").insert({
         user_id: winningBid.user_id,
         type: 'won',
@@ -145,6 +55,8 @@ Deno.serve(async (req) => {
         title: 'Congratulations!',
         message: `You won "${auction.title}" for $${auction.current_price}.`
       })
+
+      console.log(`Auction ${auction_id} marked as sold to ${winningBid.user_id}. Consolidated invoicing will be handled by Admin.`)
 
     } else {
       console.log("No bids found for this auction. Closing as ended.")

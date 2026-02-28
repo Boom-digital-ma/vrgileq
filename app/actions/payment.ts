@@ -188,6 +188,113 @@ export async function releaseEventDeposits(eventId: string) {
   }
 }
 
+export async function processEventPayments(eventId: string) {
+  try {
+    const adminSupabase = createAdminClient()
+    
+    // 1. Fetch all pending sales for this event with winner profile info
+    const { data: sales, error: salesError } = await adminSupabase
+        .from('sales')
+        .select('*, profiles!winner_id(*)')
+        .eq('event_id', eventId)
+        .eq('status', 'pending')
+
+    if (salesError) throw salesError
+    if (!sales || sales.length === 0) return { success: true, count: 0, message: "No pending sales to process" }
+
+    let successCount = 0
+    let errorCount = 0
+
+    for (const sale of sales) {
+        try {
+            const winnerProfile = sale.profiles
+            if (!winnerProfile?.stripe_customer_id || !winnerProfile?.default_payment_method_id) {
+                throw new Error(`Winner ${sale.winner_id} missing payment method`)
+            }
+
+            let totalToChargeCents = Math.round(Number(sale.total_amount) * 100)
+            let finalChargeId = null
+
+            // 2. Handle Deposit Capture
+            const { data: registration } = await adminSupabase
+                .from('event_registrations')
+                .select('id, stripe_payment_intent_id, deposit_captured')
+                .eq('event_id', eventId)
+                .eq('user_id', sale.winner_id)
+                .single()
+
+            let amountDeductedCents = 0
+            if (registration?.stripe_payment_intent_id && !registration.deposit_captured) {
+                try {
+                    const depositIntent = await stripe.paymentIntents.capture(registration.stripe_payment_intent_id)
+                    if (depositIntent.status === 'succeeded') {
+                        amountDeductedCents = depositIntent.amount_received
+                        totalToChargeCents -= amountDeductedCents
+                        
+                        await adminSupabase
+                            .from('event_registrations')
+                            .update({ deposit_captured: true })
+                            .eq('id', registration.id)
+                        
+                        finalChargeId = depositIntent.id
+                    }
+                } catch (captureErr: any) {
+                    console.warn(`Could not capture deposit for sale ${sale.id}:`, captureErr.message)
+                }
+            }
+
+            // 3. Charge Remaining Balance
+            if (totalToChargeCents > 0) {
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: totalToChargeCents,
+                    currency: 'usd',
+                    customer: winnerProfile.stripe_customer_id,
+                    payment_method: winnerProfile.default_payment_method_id,
+                    off_session: true,
+                    confirm: true,
+                    description: `Event Invoicing: ${sale.invoice_number} (Deposit of $${amountDeductedCents/100} deducted)`,
+                    metadata: { sale_id: sale.id, event_id: eventId }
+                })
+
+                if (paymentIntent.status === 'succeeded') {
+                    finalChargeId = paymentIntent.id
+                } else {
+                    throw new Error(`Payment failed: ${paymentIntent.status}`)
+                }
+            }
+
+            // 4. Mark Sale as Paid
+            await adminSupabase
+                .from('sales')
+                .update({ 
+                    status: 'paid', 
+                    stripe_payment_intent_id: finalChargeId,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', sale.id)
+
+            successCount++
+        } catch (err: any) {
+            console.error(`Error processing sale ${sale.id}:`, err.message)
+            errorCount++
+        }
+    }
+
+    revalidatePath(`/admin/events/${eventId}`)
+    revalidatePath('/admin/sales')
+    return { 
+        success: true, 
+        count: successCount, 
+        errors: errorCount,
+        message: `Processed ${successCount} payments. Errors: ${errorCount}`
+    }
+
+  } catch (error: any) {
+    console.error("Event payments error:", error.message)
+    return { success: false, error: error.message }
+  }
+}
+
 export async function getPaymentMethods() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
