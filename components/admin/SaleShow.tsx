@@ -1,7 +1,7 @@
 'use client'
 
 import { useShow, useNavigation } from "@refinedev/core"
-import { ArrowLeft, User, Package, Calendar, Clock, CreditCard, CheckCircle2, XCircle, Printer, Truck, Loader2 } from "lucide-react"
+import { ArrowLeft, User, Package, Calendar, Clock, CreditCard, CheckCircle2, XCircle, Printer, Truck, Loader2, Shield } from "lucide-react"
 import { useParams } from "next/navigation"
 import { cn, formatEventDate } from "@/lib/utils"
 import { updateSaleStatus, refundSale, refundSaleItem } from "@/app/actions/sales"
@@ -200,13 +200,19 @@ export const SaleShow = () => {
                                     <td className="px-8 py-6 text-right font-bold text-secondary tabular-nums italic">${Number(item.hammer_price).toLocaleString()}</td>
                                     <td className="px-8 py-6 text-right">
                                         {sale.status === 'paid' && item.status !== 'refunded' && (
-                                            <button 
-                                                disabled={loadingItems[item.id]}
-                                                onClick={() => handlePartialRefund(item.id, item.auction?.title)}
-                                                className="text-[9px] font-black uppercase tracking-widest text-rose-400 hover:text-rose-600 transition-colors disabled:opacity-50"
-                                            >
-                                                {loadingItems[item.id] ? "..." : "Refund Item"}
-                                            </button>
+                                            <>
+                                                {sale.stripe_payment_intent_id ? (
+                                                    <button 
+                                                        disabled={loadingItems[item.id]}
+                                                        onClick={() => handlePartialRefund(item.id, item.auction?.title)}
+                                                        className="text-[9px] font-black uppercase tracking-widest text-rose-400 hover:text-rose-600 transition-colors disabled:opacity-50"
+                                                    >
+                                                        {loadingItems[item.id] ? "..." : "Refund Item"}
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-[8px] font-bold text-zinc-300 uppercase italic">Manual Payment</span>
+                                                )}
+                                            </>
                                         )}
                                     </td>
                                 </tr>
@@ -281,14 +287,27 @@ export const SaleShow = () => {
                         </button>
                     )}
                     {sale.status === 'paid' && (
-                        <button 
-                          disabled={refunding}
-                          onClick={handleRefund}
-                          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-amber-100 text-amber-600 text-xs font-bold hover:bg-amber-50 transition-all disabled:opacity-50"
-                        >
-                            {refunding ? "Processing Refund..." : "Issue Full Refund"}
-                            {refunding ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
-                        </button>
+                        <>
+                            {sale.stripe_payment_intent_id ? (
+                                <button 
+                                  disabled={refunding}
+                                  onClick={handleRefund}
+                                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-amber-100 text-amber-600 text-xs font-bold hover:bg-amber-50 transition-all disabled:opacity-50"
+                                >
+                                    {refunding ? "Processing Refund..." : "Issue Full Refund"}
+                                    {refunding ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
+                                </button>
+                            ) : (
+                                <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl flex flex-col gap-1">
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Shield size={12} /> Manual Payment
+                                    </p>
+                                    <p className="text-[9px] text-zinc-400 italic font-medium leading-tight">
+                                        No Stripe ID found. Automatic refunds are unavailable for this record.
+                                    </p>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </section>

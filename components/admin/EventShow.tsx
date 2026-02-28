@@ -1,7 +1,7 @@
 'use client'
 
 import { useShow, useList, useNavigation, useDelete, useInvalidate, useTable } from "@refinedev/core"
-import { ArrowLeft, Plus, Loader2, Package, Gavel, Trash2, Edit, Save, Eye, Search, Calendar, FileText, Shield, Unlock, MoreHorizontal, Zap, Menu, CreditCard } from "lucide-react"
+import { ArrowLeft, Plus, Loader2, Package, Gavel, Trash2, Edit, Save, Eye, Search, Calendar, FileText, Shield, Unlock, MoreHorizontal, Zap, Menu, CreditCard, CheckCircle2, ShieldCheck, TrendingUp, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useParams } from "next/navigation"
@@ -60,14 +60,20 @@ export const EventShow = () => {
   // 2c. Fetch existing invoices to check if generated
   const salesResult = useList({
     resource: "sales",
-    filters: [
-      { field: "event_id", operator: "eq", value: eventId }
-    ],
+    filters: [{ field: "event_id", operator: "eq", value: eventId }],
     pagination: { mode: "off" },
     queryOptions: { enabled: !!eventId }
   })
   const invoiceCount = (salesResult as any).query?.data?.total || (salesResult as any).query?.data?.data?.length || 0
-  const isSalesLoading = (salesResult as any).query?.isLoading
+
+  // 2d. Fetch registrations to check release status
+  const regsResult = useList({
+    resource: "event_registrations",
+    filters: [{ field: "event_id", operator: "eq", value: eventId }],
+    pagination: { mode: "off" },
+    queryOptions: { enabled: !!eventId }
+  })
+  const registrations = (regsResult as any).query?.data?.data || []
 
   const {
     current = 1,
@@ -182,207 +188,281 @@ export const EventShow = () => {
 
   if (isEventLoading) return <div className="p-20 text-center text-zinc-400 font-bold uppercase tracking-widest text-[10px]">Loading Event Registry...</div>
 
+  // Calculate Pulse Stats
+  const hammerTotal = lots.filter((l: any) => l.status === 'sold' || l.status === 'live').reduce((acc: number, curr: any) => acc + (Number(curr.current_price) || 0), 0)
+  const totalBids = lots.reduce((acc: number, l: any) => acc + (l.bids?.length || 0), 0)
+  
+  const soldLots = lots.filter((l: any) => l.status === 'sold').length
+  const soldRate = total > 0 ? Math.round((soldLots / total) * 100) : 0
+
+  // Calculate status for the Hub
+  const winnersCount = Array.from(new Set(lots.filter((l: any) => l.status === 'sold' && l.winner_id).map((l: any) => l.winner_id))).length
+  const isInvoicingDone = invoiceCount >= winnersCount && winnersCount > 0
+  const isCaptureDone = invoiceCount > 0 && (salesResult as any).query.data?.data?.every((s: any) => s.status === 'paid' || s.status === 'refunded')
+  const isReleaseDone = registrations.length > 0 && registrations.every((r: any) => r.status === 'released' || r.deposit_captured === true)
+
   return (
     <div className="space-y-8 font-sans text-zinc-900 pb-20">
-      {/* Header Section: Full Width Title + Actions Row */}
-      <div className="border-b border-zinc-100 pb-10">
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-4">
-                <Link href="/admin/events" className="p-2.5 bg-white border border-zinc-200 rounded-2xl hover:bg-zinc-50 transition-all text-zinc-400 shadow-sm"><ArrowLeft size={20} /></Link>
+      {/* Header Section */}
+      <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-4">
+              <Link href="/admin/events" className="p-2.5 bg-white border border-zinc-200 rounded-2xl hover:bg-zinc-50 transition-all text-zinc-400 shadow-sm"><ArrowLeft size={20} /></Link>
+              <div>
                 <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter italic text-zinc-900 leading-none">{event?.title || 'Auction Inventory'}</h1>
-            </div>
-
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] bg-primary/5 px-3 py-1 rounded-full border border-primary/10">Global Inventory Pool</span>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">{total} Items Registered</span>
-                </div>
-
-                {/* Reorganized Dropdown Actions */}
-                <div className="flex items-center gap-3 relative">
-                    <button 
-                        onClick={() => { setUploadedImages([]); setIsCreateOpen(true); }} 
-                        className="bg-zinc-900 text-white px-6 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center gap-2 hover:bg-primary"
-                    >
-                        <Plus size={16} strokeWidth={3} /> New Lot
-                    </button>
-
-                    <div className="relative">
-                        <button 
-                            onClick={() => setIsActionsOpen(!isActionsOpen)}
-                            className={cn(
-                                "p-3.5 rounded-2xl border-2 transition-all flex items-center gap-2 shadow-sm px-5",
-                                isActionsOpen ? "bg-zinc-900 border-zinc-900 text-white" : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-300"
-                            )}
-                        >
-                            <Menu size={18} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Event Actions</span>
-                        </button>
-
-                        {isActionsOpen && (
-                            <>
-                                <div className="fixed inset-0 z-40" onClick={() => setIsActionsOpen(false)} />
-                                <div className="absolute right-0 mt-3 w-72 bg-white border border-zinc-200 rounded-[32px] shadow-2xl z-50 overflow-hidden py-3 animate-in fade-in zoom-in-95 duration-200">
-                                    <div className="px-6 py-3 border-b border-zinc-50 mb-2">
-                                        <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">Administrative Protocols</p>
-                                    </div>
-                                    
-                                    {/* Logistics Group */}
-                                    <div className="px-3 space-y-1 mb-4">
-                                        <button 
-                                            onClick={() => { setIsPickupOpen(true); setIsActionsOpen(false); }}
-                                            className="w-full flex items-center gap-4 px-4 py-3 text-zinc-600 hover:bg-zinc-50 rounded-2xl transition-all group"
-                                        >
-                                            <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors"><Calendar size={16} /></div>
-                                            <span className="text-[11px] font-bold uppercase tracking-tight">Manage Pickups</span>
-                                        </button>
-                                        <Link 
-                                            href={`/admin/events/${eventId}/import`} 
-                                            className="w-full flex items-center gap-4 px-4 py-3 text-zinc-600 hover:bg-zinc-50 rounded-2xl transition-all group"
-                                        >
-                                            <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors"><Save size={16} /></div>
-                                            <span className="text-[11px] font-bold uppercase tracking-tight">ManyFastScan Sync</span>
-                                        </Link>
-                                    </div>
-
-                                    <div className="px-6 py-3 border-b border-zinc-50 mb-2">
-                                        <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">Financial Operations</p>
-                                    </div>
-
-                                    {/* Financial Group */}
-                                    <div className="px-3 space-y-1">
-                                        <button 
-                                            onClick={async () => {
-                                                if (invoiceLoading) return;
-                                                setIsActionsOpen(false);
-                                                
-                                                const confirmMsg = invoiceCount > 0 
-                                                    ? `Warning: ${invoiceCount} invoices already exist. Generate more for un-invoiced lots?`
-                                                    : "Generate consolidated invoices for all winners?";
-                                                    
-                                                if (!confirm(confirmMsg)) return;
-                                                
-                                                setInvoiceLoading(true);
-                                                try {
-                                                    const res = await generateEventInvoicesAction(eventId);
-                                                    if (res.success) {
-                                                        toast.success(`${res.count} invoices generated!`);
-                                                        await invalidate({ resource: "sales", invalidates: ["list", "detail"] });
-                                                    } else {
-                                                        toast.error(res.error);
-                                                    }
-                                                } finally {
-                                                    setInvoiceLoading(false);
-                                                }
-                                            }}
-                                            disabled={invoiceLoading}
-                                            className={cn(
-                                                "w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all group",
-                                                invoiceCount > 0 ? "text-primary" : "text-emerald-600 hover:bg-emerald-50"
-                                            )}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={cn(
-                                                    "p-2 rounded-xl transition-all",
-                                                    invoiceCount > 0 ? "bg-primary/10 text-primary" : "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white"
-                                                )}>
-                                                    {invoiceLoading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
-                                                </div>
-                                                <span className="text-[11px] font-bold uppercase tracking-tight">
-                                                    {invoiceLoading ? "Processing..." : "Generate Invoices"}
-                                                </span>
-                                            </div>
-                                            {invoiceCount > 0 && !invoiceLoading && (
-                                                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest border border-primary/20 animate-in fade-in slide-in-from-right-2">
-                                                    {invoiceCount} Active
-                                                </span>
-                                            )}
-                                        </button>
-
-                                        {/* CAPTURE PAYMENTS ACTION */}
-                                        <button 
-                                            onClick={async () => {
-                                                if (paymentLoading) return;
-                                                setIsActionsOpen(false);
-                                                
-                                                if (!confirm("This will CAPTURE deposits and CHARGE balances for all PENDING invoices. Proceed with mass debit?")) return;
-                                                
-                                                setPaymentLoading(true);
-                                                try {
-                                                    const res = await processEventPayments(eventId);
-                                                    if (res.success) {
-                                                        toast.success(res.message);
-                                                        await invalidate({ resource: "sales", invalidates: ["list", "detail"] });
-                                                        await invalidate({ resource: "event_registrations", invalidates: ["list", "detail"] });
-                                                    } else {
-                                                        toast.error(res.error);
-                                                    }
-                                                } finally {
-                                                    setPaymentLoading(false);
-                                                }
-                                            }}
-                                            disabled={paymentLoading || invoiceCount === 0}
-                                            className={cn(
-                                                "w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group",
-                                                paymentLoading ? "bg-zinc-100 text-zinc-400" : "text-blue-600 hover:bg-blue-50"
-                                            )}
-                                        >
-                                            <div className={cn(
-                                                "p-2 rounded-xl transition-all",
-                                                paymentLoading ? "bg-zinc-200" : "bg-blue-50 text-blue-600 group-hover:bg-blue-500 group-hover:text-white"
-                                            )}>
-                                                {paymentLoading ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
-                                            </div>
-                                            <span className="text-[11px] font-bold uppercase tracking-tight">
-                                                {paymentLoading ? "Processing Debits..." : "Capture Payments"}
-                                            </span>
-                                        </button>
-                                        <button 
-                                            onClick={async () => {
-                                                setIsActionsOpen(false);
-                                                if (!confirm("Release all uncaptured deposits?")) return;
-                                                setFormLoading(true);
-                                                const res = await releaseEventDeposits(eventId);
-                                                if (res.success) toast.success(res.message);
-                                                else toast.error(res.error);
-                                                setFormLoading(false);
-                                            }}
-                                            disabled={formLoading}
-                                            className="w-full flex items-center gap-4 px-4 py-3 text-zinc-500 hover:bg-zinc-50 rounded-2xl transition-all group"
-                                        >
-                                            <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-zinc-900 group-hover:text-white transition-all"><Unlock size={16} /></div>
-                                            <span className="text-[11px] font-bold uppercase tracking-tight">Release Deposits</span>
-                                        </button>
-                                        <button 
-                                            onClick={async () => {
-                                                setIsActionsOpen(false);
-                                                setFormLoading(true);
-                                                try {
-                                                    const { error } = await supabase.rpc('check_and_open_and_close_events');
-                                                    if (error) throw error;
-                                                    toast.success("Closing sequence executed");
-                                                    tableQuery?.refetch?.();
-                                                } catch (err: any) {
-                                                    toast.error("Execution failed: " + err.message);
-                                                } finally {
-                                                    setFormLoading(false);
-                                                }
-                                            }}
-                                            disabled={formLoading}
-                                            className="w-full flex items-center gap-4 px-4 py-3 text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group"
-                                        >
-                                            <div className="p-2 bg-rose-50 rounded-xl group-hover:bg-rose-500 group-hover:text-white transition-all"><Zap size={16} /></div>
-                                            <span className="text-[11px] font-bold uppercase tracking-tight">Force Close Event</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mt-2">Operational Pulse & Settlement Hub</p>
+              </div>
+          </div>
       </div>
+
+      {/* EVENT PULSE BAR */}
+      <div className="bg-zinc-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden group border border-white/5">
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-8 divide-y md:divide-y-0 md:divide-x divide-white/10">
+              <div className="flex flex-col gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-primary">Volume (Hammer)</span>
+                  <span className="text-3xl font-black tabular-nums italic text-white">${hammerTotal.toLocaleString()}</span>
+              </div>
+              <div className="md:pl-8 flex flex-col gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Total Bids</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-black tabular-nums italic text-white">{totalBids}</span>
+                    <TrendingUp size={18} className="text-emerald-500 animate-pulse" />
+                  </div>
+              </div>
+              <div className="md:pl-8 flex flex-col gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Participation</span>
+                  <div className="flex items-center gap-2">
+                    <Users size={18} className="text-zinc-500" />
+                    <span className="text-xl font-bold text-white uppercase tracking-tight">Active Pulse</span>
+                  </div>
+              </div>
+              <div className="md:pl-8 flex flex-col gap-3">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Clearance Rate</span>
+                    <span className="text-sm font-black text-primary italic">{soldRate}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary shadow-[0_0_10px_rgba(4,154,158,0.5)] transition-all duration-1000 origin-left"
+                        style={{ width: `${soldRate}%` }}
+                      ></div>
+                  </div>
+              </div>
+          </div>
+          <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-primary/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/20 transition-all duration-700"></div>
+      </div>
+
+      {/* NEW SETTLEMENT PROTOCOL HUB */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* STEP 1: INVOICING */}
+          <div className={cn(
+              "p-6 rounded-[32px] border-2 transition-all flex flex-col justify-between h-48 relative overflow-hidden",
+              isInvoicingDone ? "bg-emerald-50 border-emerald-100" : "bg-white border-zinc-100 shadow-sm"
+          )}>
+              <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-4">
+                      <div className={cn("p-2 rounded-xl", isInvoicingDone ? "bg-emerald-500 text-white" : "bg-zinc-100 text-zinc-400")}>
+                          <FileText size={20} />
+                      </div>
+                      {isInvoicingDone && <CheckCircle2 size={20} className="text-emerald-500 animate-in zoom-in duration-300" />}
+                  </div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900">1. Invoice Engine</h3>
+                  <p className="text-[10px] text-zinc-500 font-medium mt-1">
+                      {isInvoicingDone ? `${invoiceCount} Invoices generated` : "Consolidate lots into billing."}
+                  </p>
+              </div>
+              
+              <button 
+                  onClick={async () => {
+                      if (invoiceLoading || isInvoicingDone) return;
+                      setInvoiceLoading(true);
+                      try {
+                          const res = await generateEventInvoicesAction(eventId);
+                          if (res.success) {
+                              toast.success(`${res.count} invoices generated!`);
+                              await invalidate({ resource: "sales", invalidates: ["list", "detail"] });
+                          } else toast.error(res.error);
+                      } finally { setInvoiceLoading(false); }
+                  }}
+                  disabled={invoiceLoading || isInvoicingDone || (event?.status !== 'closed' && event?.status !== 'live')}
+                  className={cn(
+                      "w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative z-10",
+                      isInvoicingDone 
+                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-200 cursor-default" 
+                        : "bg-zinc-900 text-white shadow-xl hover:bg-primary active:scale-95"
+                  )}
+              >
+                  {invoiceLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : isInvoicingDone ? "Billing Secured" : "Generate Billing"}
+              </button>
+              <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-zinc-50 rounded-full opacity-50"></div>
+          </div>
+
+          {/* STEP 2: PAYMENT CAPTURE */}
+          <div className={cn(
+              "p-6 rounded-[32px] border-2 transition-all flex flex-col justify-between h-48 relative overflow-hidden",
+              isCaptureDone ? "bg-blue-50 border-blue-100" : !isInvoicingDone ? "bg-zinc-50/50 border-zinc-50 opacity-60" : "bg-white border-zinc-100 shadow-sm"
+          )}>
+              <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-4">
+                      <div className={cn("p-2 rounded-xl", isCaptureDone ? "bg-blue-500 text-white" : "bg-zinc-100 text-zinc-400")}>
+                          <CreditCard size={20} />
+                      </div>
+                      {isCaptureDone && <CheckCircle2 size={20} className="text-blue-500 animate-in zoom-in duration-300" />}
+                  </div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900">2. Financial Clearing</h3>
+                  <p className="text-[10px] text-zinc-500 font-medium mt-1">
+                      {isCaptureDone ? "All payments processed" : "Capture deposits & charge balances."}
+                  </p>
+              </div>
+              
+              <button 
+                  onClick={async () => {
+                      if (paymentLoading || isCaptureDone) return;
+                      if (!confirm("This will CAPTURE deposits and CHARGE balances globally. Proceed?")) return;
+                      setPaymentLoading(true);
+                      try {
+                          const res = await processEventPayments(eventId);
+                          if (res.success) {
+                              toast.success(res.message);
+                              await invalidate({ resource: "sales", invalidates: ["list", "detail"] });
+                              await invalidate({ resource: "event_registrations", invalidates: ["list", "detail"] });
+                          } else toast.error(res.error);
+                      } finally { setPaymentLoading(false); }
+                  }}
+                  disabled={paymentLoading || !isInvoicingDone || isCaptureDone}
+                  className={cn(
+                      "w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative z-10",
+                      isCaptureDone 
+                        ? "bg-blue-500/10 text-blue-600 border border-blue-200 cursor-default" 
+                        : "bg-zinc-900 text-white shadow-xl hover:bg-primary active:scale-95 disabled:bg-zinc-100 disabled:text-zinc-400"
+                  )}
+              >
+                  {paymentLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : isCaptureDone ? "Funds Cleared" : "Execute Debits"}
+              </button>
+              <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-zinc-50 rounded-full opacity-50"></div>
+          </div>
+
+          {/* STEP 3: RELEASE DEPOSITS */}
+          <div className={cn(
+              "p-6 rounded-[32px] border-2 transition-all flex flex-col justify-between h-48 relative overflow-hidden",
+              isReleaseDone ? "bg-zinc-900 text-white border-zinc-900" : !isCaptureDone ? "bg-zinc-50/50 border-zinc-50 opacity-60" : "bg-white border-zinc-100 shadow-sm"
+          )}>
+              <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-4">
+                      <div className={cn("p-2 rounded-xl", isReleaseDone ? "bg-primary text-white" : "bg-zinc-100 text-zinc-400")}>
+                          {isReleaseDone ? <ShieldCheck size={20} /> : <Unlock size={20} />}
+                      </div>
+                      {isReleaseDone && <CheckCircle2 size={20} className="text-primary animate-in zoom-in duration-300" />}
+                  </div>
+                  <h3 className={cn("text-xs font-black uppercase tracking-widest", isReleaseDone ? "text-white" : "text-zinc-900")}>3. Integrity Release</h3>
+                  <p className={cn("text-[10px] font-medium mt-1", isReleaseDone ? "text-white/60" : "text-zinc-500")}>
+                      {isReleaseDone ? "All authorizations handled" : "Unblock deposits for non-winners."}
+                  </p>
+              </div>
+              
+              <button 
+                  onClick={async () => {
+                      if (formLoading || isReleaseDone) return;
+                      if (!confirm("Release all remaining authorized deposits for this event?")) return;
+                      setFormLoading(true);
+                      try {
+                          const res = await releaseEventDeposits(eventId);
+                          if (res.success) {
+                              toast.success(res.message);
+                              await invalidate({ resource: "event_registrations", invalidates: ["list", "detail"] });
+                          } else toast.error(res.error);
+                      } finally { setFormLoading(false); }
+                  }}
+                  disabled={formLoading || !isCaptureDone || isReleaseDone}
+                  className={cn(
+                      "w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative z-10",
+                      isReleaseDone 
+                        ? "bg-white/10 text-primary border border-white/20 cursor-default" 
+                        : "bg-zinc-900 text-white shadow-xl hover:bg-rose-500 active:scale-95 disabled:bg-zinc-100 disabled:text-zinc-400"
+                  )}
+              >
+                  {formLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : isReleaseDone ? "Integrity Secured" : "Release Authorizations"}
+              </button>
+              <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-white/5 rounded-full opacity-50"></div>
+          </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-100 pb-10">
+          <div className="flex items-center gap-3">
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest italic">{total} Items Registered in Catalog</span>
+          </div>
+
+          <div className="flex items-center gap-3 relative">
+              <button 
+                  onClick={() => { setUploadedImages([]); setIsCreateOpen(true); }} 
+                  className="bg-white text-zinc-900 border border-zinc-200 px-6 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all flex items-center gap-2 hover:bg-zinc-50"
+              >
+                  <Plus size={16} strokeWidth={3} /> New Lot
+              </button>
+
+              <div className="relative">
+                  <button 
+                      onClick={() => setIsActionsOpen(!isActionsOpen)}
+                      className={cn(
+                          "p-3.5 rounded-2xl border-2 transition-all flex items-center gap-2 shadow-sm px-5",
+                          isActionsOpen ? "bg-zinc-900 border-zinc-900 text-white" : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-300"
+                      )}
+                  >
+                      <Menu size={18} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Tools</span>
+                  </button>
+
+                  {isActionsOpen && (
+                      <>
+                          <div className="fixed inset-0 z-40" onClick={() => setIsActionsOpen(false)} />
+                          <div className="absolute right-0 mt-3 w-72 bg-white border border-zinc-200 rounded-[32px] shadow-2xl z-50 overflow-hidden py-3 animate-in fade-in zoom-in-95 duration-200">
+                              <div className="px-6 py-3 border-b border-zinc-50 mb-2">
+                                  <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">Advanced Utility</p>
+                              </div>
+
+                              <div className="px-3 space-y-1">
+                                  <button 
+                                      onClick={() => { setIsPickupOpen(true); setIsActionsOpen(false); }}
+                                      className="w-full flex items-center gap-4 px-4 py-3 text-zinc-600 hover:bg-zinc-50 rounded-2xl transition-all group"
+                                  >
+                                      <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors"><Calendar size={16} /></div>
+                                      <span className="text-[11px] font-bold uppercase tracking-tight">Manage Pickups</span>
+                                  </button>
+                                  <Link 
+                                      href={`/admin/events/${eventId}/import`} 
+                                      className="w-full flex items-center gap-4 px-4 py-3 text-zinc-600 hover:bg-zinc-50 rounded-2xl transition-all group"
+                                  >
+                                      <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors"><Save size={16} /></div>
+                                      <span className="text-[11px] font-bold uppercase tracking-tight">ManyFastScan Sync</span>
+                                  </Link>
+                                  <button 
+                                      onClick={async () => {
+                                          setIsActionsOpen(false);
+                                          setFormLoading(true);
+                                          try {
+                                              const { error } = await supabase.rpc('check_and_open_and_close_events');
+                                              if (error) throw error;
+                                              toast.success("Closing sequence executed");
+                                              tableQuery?.refetch?.();
+                                          } catch (err: any) {
+                                              toast.error("Execution failed: " + err.message);
+                                          } finally {
+                                              setFormLoading(false);
+                                          }
+                                      }}
+                                      disabled={formLoading}
+                                      className="w-full flex items-center gap-4 px-4 py-3 text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group"
+                                  >
+                                      <div className="p-2 bg-rose-50 rounded-xl group-hover:bg-rose-500 group-hover:text-white transition-all"><Zap size={16} /></div>
+                                      <span className="text-[11px] font-bold uppercase tracking-tight">Force Close Event</span>
+                                  </button>
+                              </div>
+                          </div>
+                      </>
+                  )}
+              </div>
+          </div>
+      </div>
+
 
       <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
         <div className="relative flex-1 w-full">
