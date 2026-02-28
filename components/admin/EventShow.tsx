@@ -273,7 +273,7 @@ export const EventShow = () => {
               
               <button 
                   onClick={async () => {
-                      if (invoiceLoading || isInvoicingDone) return;
+                      if (invoiceLoading || isInvoicingDone || event?.status !== 'closed') return;
                       setInvoiceLoading(true);
                       try {
                           const res = await generateEventInvoicesAction(eventId);
@@ -283,15 +283,17 @@ export const EventShow = () => {
                           } else toast.error(res.error);
                       } finally { setInvoiceLoading(false); }
                   }}
-                  disabled={invoiceLoading || isInvoicingDone || (event?.status !== 'closed' && event?.status !== 'live')}
+                  disabled={invoiceLoading || isInvoicingDone || event?.status !== 'closed'}
                   className={cn(
                       "w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative z-10",
                       isInvoicingDone 
                         ? "bg-emerald-500/10 text-emerald-600 border border-emerald-200 cursor-default" 
+                        : event?.status !== 'closed'
+                        ? "bg-zinc-50 text-zinc-300 border border-zinc-100 cursor-not-allowed"
                         : "bg-zinc-900 text-white shadow-xl hover:bg-primary active:scale-95"
                   )}
               >
-                  {invoiceLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : isInvoicingDone ? "Billing Secured" : "Generate Billing"}
+                  {invoiceLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : event?.status !== 'closed' ? "Awaiting Closure" : isInvoicingDone ? "Billing Secured" : "Generate Billing"}
               </button>
               <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-zinc-50 rounded-full opacity-50"></div>
           </div>
@@ -316,7 +318,7 @@ export const EventShow = () => {
               
               <button 
                   onClick={async () => {
-                      if (paymentLoading || isCaptureDone) return;
+                      if (paymentLoading || isCaptureDone || event?.status !== 'closed') return;
                       if (!confirm("This will CAPTURE deposits and CHARGE balances globally. Proceed?")) return;
                       setPaymentLoading(true);
                       try {
@@ -328,15 +330,17 @@ export const EventShow = () => {
                           } else toast.error(res.error);
                       } finally { setPaymentLoading(false); }
                   }}
-                  disabled={paymentLoading || !isInvoicingDone || isCaptureDone}
+                  disabled={paymentLoading || !isInvoicingDone || isCaptureDone || event?.status !== 'closed'}
                   className={cn(
                       "w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative z-10",
                       isCaptureDone 
                         ? "bg-blue-500/10 text-blue-600 border border-blue-200 cursor-default" 
+                        : event?.status !== 'closed'
+                        ? "bg-zinc-50 text-zinc-300 border border-zinc-100 cursor-not-allowed"
                         : "bg-zinc-900 text-white shadow-xl hover:bg-primary active:scale-95 disabled:bg-zinc-100 disabled:text-zinc-400"
                   )}
               >
-                  {paymentLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : isCaptureDone ? "Funds Cleared" : "Execute Debits"}
+                  {paymentLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : event?.status !== 'closed' ? "Awaiting Closure" : isCaptureDone ? "Funds Cleared" : "Execute Debits"}
               </button>
               <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-zinc-50 rounded-full opacity-50"></div>
           </div>
@@ -361,7 +365,7 @@ export const EventShow = () => {
               
               <button 
                   onClick={async () => {
-                      if (formLoading || isReleaseDone) return;
+                      if (formLoading || isReleaseDone || event?.status !== 'closed') return;
                       if (!confirm("Release all remaining authorized deposits for this event?")) return;
                       setFormLoading(true);
                       try {
@@ -372,15 +376,17 @@ export const EventShow = () => {
                           } else toast.error(res.error);
                       } finally { setFormLoading(false); }
                   }}
-                  disabled={formLoading || !isCaptureDone || isReleaseDone}
+                  disabled={formLoading || !isCaptureDone || isReleaseDone || event?.status !== 'closed'}
                   className={cn(
                       "w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all relative z-10",
                       isReleaseDone 
                         ? "bg-white/10 text-primary border border-white/20 cursor-default" 
+                        : event?.status !== 'closed'
+                        ? "bg-zinc-50/10 text-zinc-400 border border-zinc-100/10 cursor-not-allowed"
                         : "bg-zinc-900 text-white shadow-xl hover:bg-rose-500 active:scale-95 disabled:bg-zinc-100 disabled:text-zinc-400"
                   )}
               >
-                  {formLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : isReleaseDone ? "Integrity Secured" : "Release Authorizations"}
+                  {formLoading ? <Loader2 size={14} className="animate-spin mx-auto" /> : event?.status !== 'closed' ? "Awaiting Closure" : isReleaseDone ? "Integrity Secured" : "Release Authorizations"}
               </button>
               <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-white/5 rounded-full opacity-50"></div>
           </div>
