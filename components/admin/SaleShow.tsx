@@ -4,7 +4,7 @@ import { useShow, useNavigation } from "@refinedev/core"
 import { ArrowLeft, User, Package, Calendar, Clock, CreditCard, CheckCircle2, XCircle, Printer, Truck, Loader2 } from "lucide-react"
 import { useParams } from "next/navigation"
 import { cn, formatEventDate } from "@/lib/utils"
-import { updateSaleStatus, refundSale } from "@/app/actions/sales"
+import { updateSaleStatus, refundSale, refundSaleItem } from "@/app/actions/sales"
 import { toast } from "sonner"
 import { useState } from "react"
 import Link from "next/link"
@@ -16,6 +16,7 @@ export const SaleShow = () => {
   const { list } = useNavigation()
   const [loading, setLoading] = useState(false)
   const [refunding, setRefunding] = useState(false)
+  const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({})
 
   const result = useShow({
     resource: "sales",
@@ -60,6 +61,23 @@ export const SaleShow = () => {
         toast.error("Refund failed: " + res.error)
     }
     setRefunding(false)
+  }
+
+  const handlePartialRefund = async (itemId: string, title: string) => {
+    if (!confirm(`Confirm partial refund for Lot: "${title}"? This will return the lot price + proportional fees to the customer.`)) return
+    
+    setLoadingItems(prev => ({ ...prev, [itemId]: true }))
+    try {
+        const res = await refundSaleItem(itemId)
+        if (res.success) {
+            toast.success(`Refund of $${res.amount} issued for ${title}`)
+            query?.refetch()
+        } else {
+            toast.error(res.error)
+        }
+    } finally {
+        setLoadingItems(prev => ({ ...prev, [itemId]: false }))
+    }
   }
 
   if (isLoading) return <div className="p-20 text-center text-zinc-400 font-bold uppercase tracking-widest text-[10px]">Loading Transaction Record...</div>
@@ -159,6 +177,7 @@ export const SaleShow = () => {
                                 <th className="px-8 py-4">Lot Detail</th>
                                 <th className="px-8 py-4 text-center">Lot #</th>
                                 <th className="px-8 py-4 text-right">Price</th>
+                                <th className="px-8 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-100">
@@ -169,11 +188,27 @@ export const SaleShow = () => {
                                             <div className="h-12 w-12 rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200 shrink-0">
                                                 {item.auction?.image_url && <img src={item.auction.image_url} className="h-full w-full object-cover" />}
                                             </div>
-                                            <p className="font-bold text-secondary uppercase leading-tight">{item.auction?.title}</p>
+                                            <div className="flex flex-col">
+                                                <p className="font-bold text-secondary uppercase leading-tight">{item.auction?.title}</p>
+                                                {item.status === 'refunded' && (
+                                                    <span className="text-[8px] font-black uppercase text-rose-500 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded w-fit mt-1">Item Refunded</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-center font-black text-secondary italic">#{item.auction?.lot_number || '---'}</td>
                                     <td className="px-8 py-6 text-right font-bold text-secondary tabular-nums italic">${Number(item.hammer_price).toLocaleString()}</td>
+                                    <td className="px-8 py-6 text-right">
+                                        {sale.status === 'paid' && item.status !== 'refunded' && (
+                                            <button 
+                                                disabled={loadingItems[item.id]}
+                                                onClick={() => handlePartialRefund(item.id, item.auction?.title)}
+                                                className="text-[9px] font-black uppercase tracking-widest text-rose-400 hover:text-rose-600 transition-colors disabled:opacity-50"
+                                            >
+                                                {loadingItems[item.id] ? "..." : "Refund Item"}
+                                            </button>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -212,10 +247,20 @@ export const SaleShow = () => {
                         <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Tax ({sale.tax_rate}%)</span>
                         <span className="font-bold tabular-nums text-white text-base">${Number(sale.tax_amount).toLocaleString()}</span>
                     </div>
+
+                    {Number(sale.refunded_amount) > 0 && (
+                        <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                            <span className="text-xs font-bold text-rose-400 uppercase tracking-widest">Total Refunded</span>
+                            <span className="font-bold tabular-nums text-rose-400 text-base">-${Number(sale.refunded_amount).toLocaleString()}</span>
+                        </div>
+                    )}
+
                     <div className="pt-6 border-t border-white/10 mt-6">
                         <div className="flex justify-between items-end">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">Total Collected</span>
-                            <span className="text-4xl font-black tabular-nums tracking-tighter text-white">${Number(sale.total_amount).toLocaleString()}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">Net Collected</span>
+                            <span className="text-4xl font-black tabular-nums tracking-tighter text-white">
+                                ${ (Number(sale.total_amount) - Number(sale.refunded_amount || 0)).toLocaleString() }
+                            </span>
                         </div>
                     </div>
                 </div>
