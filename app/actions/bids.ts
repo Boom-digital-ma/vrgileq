@@ -28,7 +28,7 @@ export async function placeBid({
 
   const { data: auction } = await supabase
     .from('auctions')
-    .select('title, winner_id, event_id, ends_at, current_price, min_increment, auction_events(start_at)')
+    .select('title, image_url, winner_id, event_id, ends_at, current_price, min_increment, auction_events(start_at)')
     .eq('id', auctionId)
     .single()
 
@@ -157,7 +157,8 @@ export async function placeBid({
                 bidderName: previousWinnerProfile?.full_name || 'Bidder',
                 auctionTitle: auction?.title || 'Industrial Item',
                 newAmount: updatedAuction?.current_price || finalAmount,
-                auctionUrl: `${siteUrl}/auctions/${auctionId}`
+                auctionUrl: `${siteUrl}/auctions/${auctionId}`,
+                imageUrl: auction?.image_url
             });
             console.log(`[EMAIL_SERVICE] Outbid email dispatched to ${previousWinnerEmail}`);
         } catch (emailErr) {

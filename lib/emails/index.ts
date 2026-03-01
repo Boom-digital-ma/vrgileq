@@ -91,17 +91,19 @@ export async function sendOutbidEmail({
   auctionTitle,
   newAmount,
   auctionUrl,
+  imageUrl,
 }: {
   to: string;
   bidderName: string;
   auctionTitle: string;
   newAmount: number;
   auctionUrl: string;
+  imageUrl?: string;
 }) {
   await sendResendEmail({
     to,
     subject: `Outbid alert: ${auctionTitle}`,
-    html: outbidTemplate(bidderName, auctionTitle, newAmount, auctionUrl),
+    html: outbidTemplate(bidderName, auctionTitle, newAmount, auctionUrl, imageUrl),
   });
 }
 

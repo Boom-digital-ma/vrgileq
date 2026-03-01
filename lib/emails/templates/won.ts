@@ -12,7 +12,7 @@ export const winningTemplate = (bidderName: string, auctionTitle: string, winnin
     .price-box { background-color: #F0FDFA; border: 1px solid #CCFBF1; border-radius: 16px; padding: 24px; margin: 24px 0; text-align: center; }
     .price-label { font-size: 10px; font-weight: 800; color: #049A9E; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
     .price-value { font-size: 32px; font-weight: 800; color: #0B2B53; margin: 0; }
-    .button { display: inline-block; background-color: #0B2B53; color: #ffffff; padding: 18px 36px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.3s ease; }
+    .button { display: inline-block; background-color: #0B2B53; color: #ffffff; padding: 18px 36px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.3s ease; box-shadow: 4px 4px 0px 0px #049A9E; }
     .lot-title { color: #0B2B53; font-weight: 700; }
   </style>
 </head>

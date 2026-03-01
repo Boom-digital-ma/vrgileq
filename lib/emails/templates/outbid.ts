@@ -1,4 +1,4 @@
-export const outbidTemplate = (bidderName: string, auctionTitle: string, newAmount: number, auctionUrl: string) => `
+export const outbidTemplate = (bidderName: string, auctionTitle: string, newAmount: number, auctionUrl: string, imageUrl?: string) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,8 +12,9 @@ export const outbidTemplate = (bidderName: string, auctionTitle: string, newAmou
     .price-box { background-color: #FFF1F2; border: 1px solid #FFE4E6; border-radius: 16px; padding: 24px; margin: 24px 0; text-align: center; }
     .price-label { font-size: 10px; font-weight: 800; color: #E11D48; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
     .price-value { font-size: 32px; font-weight: 800; color: #0B2B53; margin: 0; }
-    .button { display: inline-block; background-color: #049A9E; color: #ffffff; padding: 18px 36px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .button { display: inline-block; background-color: #049A9E; color: #ffffff; padding: 18px 36px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 4px 4px 0px 0px #0B2B53; }
     .lot-title { color: #0B2B53; font-weight: 700; }
+    .product-image { width: 100%; max-height: 300px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; border: 1px solid #E5E7EB; }
   </style>
 </head>
 <body>
@@ -24,6 +25,9 @@ export const outbidTemplate = (bidderName: string, auctionTitle: string, newAmou
     <div class="content">
       <h1 class="h1">Outbid Alert!</h1>
       <p>Attention <strong>${bidderName}</strong>,</p>
+      
+      ${imageUrl ? `<img src="${imageUrl}" alt="${auctionTitle}" class="product-image">` : ''}
+
       <p>You have been outbid on the following industrial asset. Your previous authorization has been superseded by a new high bid.</p>
       
       <p class="lot-title" style="margin-top: 24px; font-size: 18px;">${auctionTitle}</p>
