@@ -17,7 +17,7 @@ export const eventStartingTemplate = (userName: string, eventTitle: string, even
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/public_assets/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
+      <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
     </div>
     <h1 class="title" style="text-align: center; margin-top: 30px;">${titlePrefix}</h1>
     <p class="text">Hello ${userName},</p>

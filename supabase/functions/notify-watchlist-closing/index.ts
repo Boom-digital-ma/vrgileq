@@ -26,7 +26,7 @@ serve(async (req) => {
       .from("sales")
       .select(`
         id, hammer_price,
-        auction:auctions(title),
+        auction:auctions(title, image_url),
         winner:profiles(full_name, email)
       `)
       .eq("winning_notified", false)
@@ -43,7 +43,8 @@ serve(async (req) => {
             userName: winner.full_name || 'Valued Bidder',
             auctionTitle: auction.title,
             amount: sale.hammer_price,
-            invoiceUrl: `${SITE_URL}/invoices/${sale.id}`
+            invoiceUrl: `${SITE_URL}/invoices/${sale.id}`,
+            imageUrl: auction.image_url
           })
         })
         updateTasks.push({ id: sale.id, table: 'sales', field: 'winning_notified' })
@@ -159,7 +160,8 @@ function generateWinningHtml(params: {
   userName: string,
   auctionTitle: string,
   amount: number,
-  invoiceUrl: string
+  invoiceUrl: string,
+  imageUrl?: string
 }) {
   return `
     <!DOCTYPE html>
@@ -174,18 +176,21 @@ function generateWinningHtml(params: {
         .info-box { background-color: #f9f9f9; padding: 24px; border: 1px solid #eee; border-radius: 16px; margin: 24px 0; }
         .button { display: inline-block; background-color: #049A9E; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px; box-shadow: 4px 4px 0px 0px #0B2B53; }
         .footer { padding: 30px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #F3F4F6; }
+        .product-image { width: 100%; max-height: 300px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; border: 1px solid #E5E7EB; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/public_assets/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
+          <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
         </div>
         <div class="content">
           <h1 class="h1">YOU WON!</h1>
           <p>Hello ${params.userName},</p>
           <p>Congratulations! You are the official winner of the following industrial asset:</p>
           
+          ${params.imageUrl ? `<img src="${params.imageUrl}" alt="${params.auctionTitle}" class="product-image">` : ''}
+
           <div class="info-box">
             <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #0B2B53; text-transform: uppercase;">${params.auctionTitle}</h2>
             <p style="margin: 0; font-size: 16px;"><strong>Final Hammer Price:</strong> $${params.amount.toLocaleString()}</p>
@@ -234,7 +239,7 @@ function generateHtml(params: {
     <body>
       <div class="container">
         <div class="header">
-          <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/public_assets/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
+          <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
         </div>
         <div class="content">
           <h1 class="h1">${params.title}</h1>

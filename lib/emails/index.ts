@@ -135,16 +135,18 @@ export async function sendWinningEmail({
   auctionTitle,
   winningAmount,
   checkoutUrl,
+  imageUrl,
 }: {
   to: string;
   bidderName: string;
   auctionTitle: string;
   winningAmount: number;
   checkoutUrl: string;
+  imageUrl?: string;
 }) {
   await sendResendEmail({
     to,
     subject: `CONGRATULATIONS! You won: ${auctionTitle}`,
-    html: winningTemplate(bidderName, auctionTitle, winningAmount, checkoutUrl),
+    html: winningTemplate(bidderName, auctionTitle, winningAmount, checkoutUrl, imageUrl),
   });
 }

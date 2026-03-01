@@ -5,7 +5,7 @@ export const outbidTemplate = (bidderName: string, auctionTitle: string, newAmou
   <style>
     body { font-family: 'Plus Jakarta Sans', Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #F9FAFB; color: #464646; }
     .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #E5E7EB; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
-    .header { background-color: #0B2B53; padding: 40px; text-align: center; }
+    .header { background-color: #FFF; padding: 40px; text-align: center; }
     .content { padding: 40px; }
     .footer { padding: 30px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #F3F4F6; }
     .h1 { color: #E11D48; font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; margin-bottom: 16px; font-style: italic; }
@@ -20,7 +20,7 @@ export const outbidTemplate = (bidderName: string, auctionTitle: string, newAmou
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/public_assets/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
+      <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
     </div>
     <div class="content">
       <h1 class="h1">Outbid Alert!</h1>
