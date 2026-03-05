@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import AuctionGrid from '@/components/auction/AuctionGrid'
 import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, ChevronRight, SlidersHorizontal, MapPin, Package, Clock, Lock } from 'lucide-react'
@@ -36,9 +36,21 @@ export default async function EventPage({
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
+  
+  let userRole = 'client'
+  let userProfile = null
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single()
+    if (profile) {
+        userRole = profile.role
+        userProfile = profile
+    }
+  }
+  const isAdmin = userRole === 'admin'
+  const fetchClient = isAdmin ? createAdminClient() : supabase
 
   // 1. Fetch event details
-  const { data: event } = await supabase
+  const { data: event } = await fetchClient
     .from('auction_events')
     .select('*')
     .eq('id', id)
@@ -47,7 +59,7 @@ export default async function EventPage({
   if (!event) notFound()
 
   // 2. Fetch categories present in THIS event
-  const { data: eventCategories } = await supabase
+  const { data: eventCategories } = await fetchClient
     .from('auctions')
     .select('categories(id, name)')
     .eq('event_id', id)
@@ -58,7 +70,7 @@ export default async function EventPage({
     .sort((a, b) => a.name.localeCompare(b.name))
 
   // 3. Fetch lots
-  let query = supabase
+  let query = fetchClient
     .from('auctions')
     .select('*, categories(name), bids(count), auction_images(url), auction_events(location, start_at), lot_number', { count: 'exact' })
     .eq('event_id', id)
@@ -160,6 +172,14 @@ export default async function EventPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      
+      {/* ADMIN PREVIEW INDICATOR */}
+      {isAdmin && event.status === 'draft' && (
+          <div className="bg-secondary text-white py-2 text-center text-[10px] font-black uppercase tracking-[0.3em] border-b border-teal-500/30">
+              <span className="text-teal-400">Preview Mode:</span> This event is a draft and not visible to the public.
+          </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-6 py-12 lg:py-20">
         
         {/* REFINED HEADER SECTION */}

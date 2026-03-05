@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, User, LogOut, ChevronRight, Bell } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronRight, Bell, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
@@ -24,23 +24,26 @@ export default function Header() {
   const supabase = useMemo(() => createClient(), []);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('full_name').eq('id', userId).single();
+    const { data } = await supabase.from('profiles').select('full_name, role').eq('id', userId).single();
     if (data) setProfile(data);
   };
 
+  // 1. Initial Session & Auth Listener
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Initial Session Check
-    supabase.auth.getSession().then(({ data: { session } }: any) => {
-      if (!isMounted) return;
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) fetchProfile(currentUser.id);
-      setLoading(false);
-    });
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (isMounted) {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) fetchProfile(currentUser.id);
+        setLoading(false);
+      }
+    };
 
-    // 2. Listen for Auth Changes (Login/Logout)
+    checkSession();
+
     const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
       if (!isMounted) return;
       const currentUser = session?.user ?? null;
@@ -52,23 +55,39 @@ export default function Header() {
       }
     });
 
-    // 3. Listen for Profile Changes (Realtime)
-    let profileChannel: any;
-    if (user?.id) {
-        profileChannel = supabase
-            .channel(`public:profiles:id=eq.${user.id}`)
-            .on('postgres_changes', { 
-                event: 'UPDATE', 
-                schema: 'public', 
-                table: 'profiles', 
-                filter: `id=eq.${user.id}` 
-            }, (payload: any) => {
-                if (isMounted) setProfile(payload.new);
-            })
-            .subscribe();
-    }
+    return () => {
+      isMounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase]);
 
-    // 4. Fetch Site Settings (Announcements)
+  // 2. Realtime Profile Listener
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    let isMounted = true;
+    const profileChannel = supabase
+        .channel(`public:profiles:id=eq.${user.id}`)
+        .on('postgres_changes', { 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'profiles', 
+            filter: `id=eq.${user.id}` 
+        }, (payload: any) => {
+            if (isMounted) setProfile(payload.new);
+        })
+        .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(profileChannel);
+    };
+  }, [supabase, user?.id]);
+
+  // 3. Site Settings & Scroll
+  useEffect(() => {
+    let isMounted = true;
+
     const fetchSettings = async () => {
       const { data: settings } = await supabase
         .from('site_settings')
@@ -81,6 +100,7 @@ export default function Header() {
       if (settings?.announcement_text) setAnnouncementPopupText(settings.announcement_text);
       if (settings?.announcement_link) setAnnouncementLink(settings.announcement_link);
     };
+    
     fetchSettings();
 
     const handleScroll = () => {
@@ -90,8 +110,6 @@ export default function Header() {
 
     return () => {
       isMounted = false;
-      authListener.subscription.unsubscribe();
-      if (profileChannel) supabase.removeChannel(profileChannel);
       window.removeEventListener("scroll", handleScroll);
     };
   }, [supabase]);
@@ -106,11 +124,13 @@ export default function Header() {
     }
   };
 
+  const isAdmin = profile?.role === 'admin';
+
   return (
     <>
       {/* Grouped Sticky Container for Announcement + Menu */}
       <div className="sticky top-0 z-50 w-full print:hidden">
-        {/* Announcement Bar - Now inside the sticky wrapper */}
+        {/* Announcement Bar */}
         {announcement && (
             <div className="bg-secondary text-white py-2 px-6 border-b border-white/5 overflow-hidden">
                 <div className="mx-auto flex max-w-7xl items-center justify-center gap-4">
@@ -144,7 +164,7 @@ export default function Header() {
             </div>
         )}
 
-        {/* Main Navigation - Integrated with Backdrop Blur */}
+        {/* Main Navigation */}
         <header 
             suppressHydrationWarning
             className={cn(
@@ -167,44 +187,55 @@ export default function Header() {
                     />
                 </Link>
 
-                                            {/* Desktop Navigation */}
-                                            <nav className="hidden lg:flex items-center gap-1">
-                                                {[
-                                                    { name: 'Home', href: '/' },
-                                                    { name: 'Auctions', href: '/auctions' },
-                                                    { name: 'Process', href: '/how-it-works' },
-                                                    { name: 'Inventory', href: '/inventory' },
-                                                    { name: 'Journal', href: '/blog' },
-                                                    { name: 'Sellers', href: '/sellers' },
-                                                    { name: 'About', href: '/about' },
-                                                                    ].map((item) => {
-                                                                        const isActive = item.href === '/' 
-                                                                            ? pathname === '/' 
-                                                                            : pathname.startsWith(item.href) || (item.name === 'Auctions' && pathname.startsWith('/events'));
-                                                                        return (
-                                                                            <Link 
-                                                                                key={item.name} 
-                                                                                href={item.href} 
-                                                                                className={cn(
-                                                                                    "px-3 py-2 text-[10px] font-bold uppercase tracking-widest transition-all italic rounded-xl",
-                                                                                    isActive 
-                                                                                        ? "text-primary bg-primary/5" 
-                                                                                        : "text-zinc-500 hover:text-primary"
-                                                                                )}
-                                                                            >
-                                                                                {item.name}
-                                                                            </Link>
-                                                                        );
-                                                                    })}                                            </nav>                {/* Actions */}
+                {/* Desktop Navigation */}
+                <nav className="hidden lg:flex items-center gap-1">
+                    {[
+                        { name: 'Home', href: '/' },
+                        { name: 'Auctions', href: '/auctions' },
+                        { name: 'Process', href: '/how-it-works' },
+                        { name: 'Inventory', href: '/inventory' },
+                        { name: 'Journal', href: '/blog' },
+                        { name: 'Sellers', href: '/sellers' },
+                        { name: 'About', href: '/about' },
+                    ].map((item) => {
+                        const isActive = item.href === '/' 
+                            ? pathname === '/' 
+                            : pathname.startsWith(item.href) || (item.name === 'Auctions' && pathname.startsWith('/events'));
+                        return (
+                            <Link 
+                                key={item.name} 
+                                href={item.href} 
+                                className={cn(
+                                    "px-3 py-2 text-[10px] font-bold uppercase tracking-widest transition-all italic rounded-xl",
+                                    isActive 
+                                        ? "text-primary bg-primary/5" 
+                                        : "text-zinc-500 hover:text-primary"
+                                )}
+                            >
+                                {item.name}
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                {/* Actions */}
                 <div className="flex items-center gap-4">
                     {loading ? (
                         <div className="h-8 w-24 bg-zinc-50 animate-pulse rounded-lg" suppressHydrationWarning />
                     ) : user ? (
                         <div className="flex items-center gap-3" suppressHydrationWarning>
-                            <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-50 border border-zinc-100 hover:border-primary/20 transition-all group" suppressHydrationWarning>
-                                <User size={14} className="text-zinc-400 group-hover:text-primary" suppressHydrationWarning />
+                            <Link 
+                                href={isAdmin ? "/admin" : "/profile"} 
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-50 border border-zinc-100 hover:border-primary/20 transition-all group" 
+                                suppressHydrationWarning
+                            >
+                                {isAdmin ? (
+                                    <Shield size={14} className="text-zinc-400 group-hover:text-primary" suppressHydrationWarning />
+                                ) : (
+                                    <User size={14} className="text-zinc-400 group-hover:text-primary" suppressHydrationWarning />
+                                )}
                                 <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tight italic">
-                                    {profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Account'}
+                                    {isAdmin ? 'Console' : (profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Account')}
                                 </span>
                             </Link>
                             <button 
@@ -298,7 +329,13 @@ export default function Header() {
 
             <div className="pt-8 space-y-4">
               {user ? (
-                <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="w-full flex items-center justify-center py-4 rounded-xl font-bold bg-secondary text-white italic">My Account</Link>
+                <Link 
+                    href={isAdmin ? "/admin" : "/profile"} 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    className="w-full flex items-center justify-center py-4 rounded-xl font-bold bg-secondary text-white italic"
+                >
+                    {isAdmin ? "Admin Console" : "My Account"}
+                </Link>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <Link href="/auth/signin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center py-4 rounded-xl font-bold bg-zinc-50 text-secondary border border-zinc-100">Sign In</Link>
@@ -306,57 +343,58 @@ export default function Header() {
                 </div>
               )}
             </div>
-                                  </div>
-                              </div>
-                      
-                              {/* Announcement Popup Modal */}
-                              <AnnouncementModal 
-                                  isOpen={isAnnouncementPopupOpen} 
-                                  onClose={() => setIsAnnouncementPopupOpen(false)} 
-                                  title={announcement || "System Protocol Update"}
-                                  text={announcementPopupText || "No details provided for this announcement."}
-                              />
-                          </>
-                        );
-                      }          
-          function AnnouncementModal({ isOpen, onClose, title, text }: { isOpen: boolean, onClose: () => void, title: string, text: string }) {
-              if (!isOpen) return null;
-          
-              return (
-                  <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
-                      <div className="absolute inset-0 bg-secondary/40 backdrop-blur-md" onClick={onClose} />
-                      <div className="relative w-full max-w-lg bg-white rounded-[40px] shadow-2xl border border-zinc-100 p-10 animate-in fade-in zoom-in duration-300">
-                          <button 
-                              onClick={onClose}
-                              className="absolute top-8 right-8 text-zinc-400 hover:text-zinc-900 transition-colors"
-                          >
-                              <X size={20} />
-                          </button>
-                          
-                          <div className="flex items-center gap-3 mb-6">
-                              <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-                              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary italic">System Protocol</h2>
-                          </div>
-          
-                          <h3 className="text-2xl font-black text-secondary uppercase tracking-tight italic mb-6 leading-none">
-                              {title}
-                          </h3>
-          
-                          <div className="prose prose-zinc prose-sm">
-                              <p className="text-zinc-500 font-medium leading-relaxed italic whitespace-pre-wrap">
-                                  {text}
-                              </p>
-                          </div>
-          
-                          <div className="mt-10">
-                              <button 
-                                  onClick={onClose}
-                                  className="w-full bg-secondary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-primary transition-all shadow-lg shadow-secondary/10 italic"
-                              >
-                                  Acknowledge Protocol
-                              </button>
-                          </div>
-                      </div>
-                  </div>
-              );
-          }
+          </div>
+      </div>
+
+      {/* Announcement Popup Modal */}
+      <AnnouncementModal 
+          isOpen={isAnnouncementPopupOpen} 
+          onClose={() => setIsAnnouncementPopupOpen(false)} 
+          title={announcement || "System Protocol Update"}
+          text={announcementPopupText || "No details provided for this announcement."}
+      />
+    </>
+  );
+}
+
+function AnnouncementModal({ isOpen, onClose, title, text }: { isOpen: boolean, onClose: () => void, title: string, text: string }) {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-secondary/40 backdrop-blur-md" onClick={onClose} />
+            <div className="relative w-full max-w-lg bg-white rounded-[40px] shadow-2xl border border-zinc-100 p-10 animate-in fade-in zoom-in duration-300">
+                <button 
+                    onClick={onClose}
+                    className="absolute top-8 right-8 text-zinc-400 hover:text-zinc-900 transition-colors"
+                >
+                    <X size={20} />
+                </button>
+                
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary italic">System Protocol</h2>
+                </div>
+
+                <h3 className="text-2xl font-black text-secondary uppercase tracking-tight italic mb-6 leading-none">
+                    {title}
+                </h3>
+
+                <div className="prose prose-zinc prose-sm">
+                    <p className="text-zinc-500 font-medium leading-relaxed italic whitespace-pre-wrap">
+                        {text}
+                    </p>
+                </div>
+
+                <div className="mt-10">
+                    <button 
+                        onClick={onClose}
+                        className="w-full bg-secondary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-primary transition-all shadow-lg shadow-secondary/10 italic"
+                    >
+                        Acknowledge Protocol
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown } from "lucide-react";
+import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown, Edit3, Shield } from "lucide-react";
 import QuickViewModal from "./QuickViewModal";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { placeBid } from "@/app/actions/bids";
@@ -63,6 +63,8 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const supabase = createClient();
+
+  const isAdmin = user?.role === 'admin';
 
   // Reset image loading state when changing images
   useEffect(() => {
@@ -250,6 +252,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault(); e.stopPropagation();
+    if (isAdmin) { toast.error("Admin accounts cannot bid."); return; }
     if (!user) { router.push('/auth/signin'); return; }
 
     setLoadingBid(true);
@@ -271,7 +274,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
         
         if (isProxy) {
             toast.success("Max Bid Activated!", {
-                description: `System will bid for you up to $${bidAmount.toLocaleString()}.`
+                description: `System will bid for you up to $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}.`
             });
         } else {
             toast.success("Bid placed!");
@@ -371,6 +374,20 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                   <button onClick={handleNextImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowRight size={14} /></button>
               </div>
             </>
+          )}
+
+          {/* ADMIN QUICK EDIT */}
+          {isAdmin && (
+            <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
+                <Link 
+                    href={`/admin/auctions/edit/${product.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-secondary/90 backdrop-blur-md text-white p-3 rounded-2xl shadow-xl hover:bg-primary transition-all flex items-center gap-2"
+                >
+                    <Edit3 size={16} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest pr-1">Edit</span>
+                </Link>
+            </div>
           )}
         </div>
 
@@ -479,7 +496,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                     {userMaxBid && userMaxBid > realtimePrice && (
                         <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest" suppressHydrationWarning>
                             <Zap size={10} className="fill-current" /> 
-                            Proxy Active: ${userMaxBid.toLocaleString()}
+                            Proxy Active: ${mounted ? userMaxBid.toLocaleString() : userMaxBid.toString()}
                         </div>
                     )}
 
@@ -525,30 +542,39 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                 Starting Soon
             </button>
           ) : (
-            <form onSubmit={handleBid} className="flex gap-2">
-                <div className="relative flex-1 group/input">
-                    <label className="absolute -top-2 left-3 bg-white px-1.5 text-[8px] font-bold uppercase tracking-widest text-zinc-400 z-10 group-focus-within/input:text-primary transition-colors">
-                        Bid / Max Bid
-                    </label>
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">$</span>
-                    <input 
-                      type="number" 
-                      step="any"
-                      min={realtimePrice + (product.minIncrement || 1)} 
-                      value={bidAmount} 
-                      onChange={(e) => setBidAmount(Number(e.target.value))} 
-                      className="w-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-2.5 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 
-                    />
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={loadingBid} 
-                  className="bg-secondary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary transition-all active:scale-95 shadow-lg shadow-secondary/10 flex items-center gap-2"
-                >
-                  {loadingBid ? <Loader2 size={14} className="animate-spin" /> : <Gavel size={14} />} 
-                  Bid
-                </button>
-            </form>
+            <div className="flex flex-col gap-2">
+                {isAdmin && (
+                    <div className="flex items-center justify-center gap-2 py-3 bg-zinc-100 rounded-xl border-2 border-zinc-200 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                        <Shield size={14} /> Admin Mode
+                    </div>
+                )}
+                {!isAdmin && (
+                    <form onSubmit={handleBid} className="flex gap-2">
+                        <div className="relative flex-1 group/input">
+                            <label className="absolute -top-2 left-3 bg-white px-1.5 text-[8px] font-bold uppercase tracking-widest text-zinc-400 z-10 group-focus-within/input:text-primary transition-colors">
+                                Bid / Max Bid
+                            </label>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">$</span>
+                            <input 
+                            type="number" 
+                            step="any"
+                            min={realtimePrice + (product.minIncrement || 1)} 
+                            value={bidAmount} 
+                            onChange={(e) => setBidAmount(Number(e.target.value))} 
+                            className="w-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-2.5 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 
+                            />
+                        </div>
+                        <button 
+                        type="submit" 
+                        disabled={loadingBid} 
+                        className="bg-secondary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary transition-all active:scale-95 shadow-lg shadow-secondary/10 flex items-center gap-2"
+                        >
+                        {loadingBid ? <Loader2 size={14} className="animate-spin" /> : <Gavel size={14} />} 
+                        Bid
+                        </button>
+                    </form>
+                )}
+            </div>
           )}
         </div>
       </div>

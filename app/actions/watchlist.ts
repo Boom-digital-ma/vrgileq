@@ -19,14 +19,18 @@ export async function toggleWatchlist(auctionId: string) {
 
   if (existing) {
     await supabase.from('watchlist').delete().eq('id', existing.id)
+    revalidatePath('/auctions')
+    revalidatePath(`/auctions/${auctionId}`)
+    revalidatePath('/profile')
+    return { success: true, action: 'removed' }
   } else {
     await supabase.from('watchlist').insert({
       user_id: user.id,
       auction_id: auctionId
     })
+    revalidatePath('/auctions')
+    revalidatePath(`/auctions/${auctionId}`)
+    revalidatePath('/profile')
+    return { success: true, action: 'added' }
   }
-
-  revalidatePath('/auctions')
-  revalidatePath(`/auctions/${auctionId}`)
-  revalidatePath('/profile')
 }

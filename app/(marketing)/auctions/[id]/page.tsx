@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -19,8 +19,18 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 export default async function AuctionDetailPage({ params }: { params: { id: string } }) {
   const { id } = await params
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    isAdmin = profile?.role === 'admin'
+  }
 
-  const { data: lot } = await supabase
+  // If admin, use admin client to bypass RLS for previewing drafts
+  const fetchClient = isAdmin ? createAdminClient() : supabase
+
+  const { data: lot } = await fetchClient
     .from('auctions')
     .select(`
       *,
@@ -33,7 +43,12 @@ export default async function AuctionDetailPage({ params }: { params: { id: stri
 
   if (!lot) notFound()
 
-  const { data: bids } = await supabase
+  // For regular users, we still might want to check status if RLS doesn't handle it
+  if (!isAdmin && lot.status === 'draft') {
+    notFound()
+  }
+
+  const { data: bids } = await fetchClient
     .from('bids')
     .select('*')
     .eq('auction_id', id)

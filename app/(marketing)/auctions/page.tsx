@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Calendar, Gavel, MapPin, ArrowRight, Package, LayoutGrid, SlidersHorizontal, ChevronRight, Globe2, BarChart3, History } from 'lucide-react'
 import { cn, formatEventDate } from '@/lib/utils'
@@ -31,12 +31,25 @@ export default async function AuctionsPage({
   // Fetch all categories for the sidebar
   const { data: categories } = await supabase.from('categories').select('*').order('name')
   
-  // Fetch user once for the whole page
+  // Fetch user and profile for role check
   const { data: { user } } = await supabase.auth.getUser()
+  let userRole = 'client'
+  let userProfile = null
+
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single()
+    if (profile) {
+        userRole = profile.role
+        userProfile = profile
+    }
+  }
+
+  const isAdmin = userRole === 'admin'
+  const fetchClient = isAdmin ? createAdminClient() : supabase
 
   // 1. If searching or filtering by category, show Lots (Search Mode)
   if (q || category) {
-    let query = supabase
+    let query = fetchClient
         .from('auctions')
         .select(`
             *,
@@ -46,7 +59,11 @@ export default async function AuctionsPage({
             auction_events(id, location, ends_at, start_at),
             bids(count)
         `, { count: 'exact' })
-        .eq('status', 'live')
+    
+    // Admin sees everything, others see only live
+    if (!isAdmin) {
+        query = query.eq('status', 'live')
+    }
 
     if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
     if (category) query = query.eq('category_id', category)
@@ -104,6 +121,9 @@ export default async function AuctionsPage({
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="h-1 w-8 bg-primary rounded-full" />
                                 <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Search Catalog</span>
+                                {isAdmin && (
+                                    <span className="bg-secondary text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">Admin View</span>
+                                )}
                             </div>
                             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary italic font-display uppercase leading-none mb-4">
                                 {q ? `Results for "${q}"` : 'Filtered Assets'}
@@ -162,7 +182,9 @@ export default async function AuctionsPage({
                             <>
                                 <div className="flex items-center gap-3 mb-10 border-b border-zinc-100 pb-6">
                                     <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-                                    <span className="text-[11px] font-bold text-zinc-900 uppercase tracking-widest">Active Bidding • {count} results</span>
+                                    <span className="text-[11px] font-bold text-zinc-900 uppercase tracking-widest">
+                                        {isAdmin ? "Total Inventory" : "Active Bidding"} • {count} results
+                                    </span>
                                 </div>
 
                                 <AuctionGrid 
@@ -177,7 +199,8 @@ export default async function AuctionsPage({
                                             price: Number(lot.current_price),
                                             endsAt: lot.ends_at || lot.auction_events?.ends_at,
                                             startAt: lot.auction_events?.start_at,
-                                            image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",                                                images: [
+                                            image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
+                                            images: [
                                                 ...(lot.image_url ? [lot.image_url] : []),
                                                 ...(lot.auction_images?.map((i: any) => i.url) || [])
                                             ].filter((v, i, a) => a.indexOf(v) === i),
@@ -192,11 +215,11 @@ export default async function AuctionsPage({
                                             model: lot.model
                                         }
                                     }) || []} 
-                                    user={user}
+                                    user={userProfile ? { ...user, ...userProfile } : user}
                                     searchQuery={q}
                                     categoryId={category}
                                     initialTotalCount={count || 0}
-                                    status="live"
+                                    status={isAdmin ? ['live', 'draft', 'scheduled'] : 'live'}
                                 />
                             </>
                         ) : (
@@ -238,7 +261,7 @@ export default async function AuctionsPage({
                                             manufacturer: lot.manufacturer,
                                             model: lot.model
                                         }))}
-                                        user={user}
+                                        user={userProfile ? { ...user, ...userProfile } : user}
                                         searchQuery={q}
                                         categoryId={category}
                                         status={['sold', 'ended']}
@@ -259,8 +282,8 @@ export default async function AuctionsPage({
   const now = new Date().toISOString()
 
   // Pre-fetch counts to determine default tab if none or if current is empty
-  const { count: liveCount } = await supabase.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live')
-  const { count: upcomingCount } = await supabase.from('auction_events').select('*', { count: 'exact', head: true }).or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
+  const { count: liveCount } = await fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live')
+  const { count: upcomingCount } = await fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
   
   // Auto-fallback logic
   if (!filter || (filter === 'live' && !liveCount)) {
@@ -272,10 +295,13 @@ export default async function AuctionsPage({
   const from = (currentPage - 1) * PAGE_SIZE_EVENTS
   const to = from + PAGE_SIZE_EVENTS - 1
 
-  let eventQuery = supabase
+  let eventQuery = fetchClient
     .from('auction_events')
     .select('*', { count: 'exact' })
-    .neq('status', 'draft')
+  
+  if (!isAdmin) {
+    eventQuery = eventQuery.neq('status', 'draft')
+  }
 
   if (filter === 'live') {
     eventQuery = eventQuery.eq('status', 'live')
@@ -308,6 +334,9 @@ export default async function AuctionsPage({
                     <div className="flex items-center gap-3 mb-8">
                         <span className="h-[1px] w-10 bg-primary" />
                         <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">The New Player</span>
+                        {isAdmin && (
+                            <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border border-primary/30 ml-2">Admin View Active</span>
+                        )}
                     </div>
                     <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-white mb-8 leading-[0.85] font-display uppercase">
                         Industrial <br/> <span className="text-primary">Marketplace</span>.
@@ -435,18 +464,18 @@ export default async function AuctionsPage({
                   </div>
                 </div>
 
-                                  <div className="p-8 flex flex-col flex-1">
-                                  <div className="flex items-center gap-2 mb-4 text-zinc-400">
-                                      <Calendar size={14} className="text-primary" />
-                                      <span className="text-[10px] font-bold uppercase tracking-widest">
-                                          {isEnded 
-                                            ? 'Event Ended' 
-                                            : (isUpcoming 
-                                                ? `Starts ${formatEventDate(event.start_at)}` 
-                                                : `Ends ${formatEventDate(event.ends_at)}`)
-                                          }
-                                      </span>
-                                  </div>
+                <div className="p-8 flex flex-col flex-1">
+                    <div className="flex items-center gap-2 mb-4 text-zinc-400">
+                        <Calendar size={14} className="text-primary" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">
+                            {isEnded 
+                            ? 'Event Ended' 
+                            : (isUpcoming 
+                                ? `Starts ${formatEventDate(event.start_at)}` 
+                                : `Ends ${formatEventDate(event.ends_at)}`)
+                            }
+                        </span>
+                    </div>
                   <h2 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors italic font-display uppercase leading-tight h-14 line-clamp-2">
                     {event.title}
                   </h2>
@@ -541,7 +570,7 @@ function Pagination({
                 href={currentPage < totalPages ? buildUrl(currentPage + 1) : '#'}
                 className={cn(
                     "px-6 py-3 text-[10px] font-bold uppercase tracking-widest border border-zinc-200 rounded-2xl transition-all",
-                    currentPage === totalPages ? "opacity-30 soul-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95"
+                    currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "bg-white text-zinc-500 hover:border-primary hover:text-primary active:scale-95"
                 )}
             >
                 Next

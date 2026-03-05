@@ -44,13 +44,9 @@ export const LogisticsList = () => {
   const sales = tableQuery?.data?.data || []
   const isLoading = tableQuery?.isLoading
 
-  // Sort: prioritize those with slots, then by date
-  const sortedSales = [...sales].sort((a: any, b: any) => {
-    if (a.pickup_slot && !b.pickup_slot) return -1
-    if (!a.pickup_slot && b.pickup_slot) return 1
-    if (!a.pickup_slot && !b.pickup_slot) return 0
-    return new Date(a.pickup_slot.start_at).getTime() - new Date(b.pickup_slot.start_at).getTime()
-  })
+  // Use the sales directly from tableQuery which are already sorted by created_at desc via useTable sorters
+  // This satisfies the "most recent first" requirement.
+  const displaySales = sales;
 
   const handleCollected = async (id: string) => {
     if (!confirm("Confirm this lot has left the premises?")) return
@@ -84,16 +80,16 @@ export const LogisticsList = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white border border-zinc-200 p-6 rounded-[32px] shadow-sm italic">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Today's Appointments</p>
-            <p className="text-3xl font-black text-zinc-900">{sortedSales.filter((s: any) => s.pickup_slot?.start_at && isToday(new Date(s.pickup_slot.start_at))).length}</p>
+            <p className="text-3xl font-black text-zinc-900">{displaySales.filter((s: any) => s.pickup_slot?.start_at && isToday(new Date(s.pickup_slot.start_at))).length}</p>
         </div>
         <div className="bg-white border border-zinc-200 p-6 rounded-[32px] shadow-sm italic">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">Tomorrow</p>
-            <p className="text-3xl font-black text-zinc-900">{sortedSales.filter((s: any) => s.pickup_slot?.start_at && isTomorrow(new Date(s.pickup_slot.start_at))).length}</p>
+            <p className="text-3xl font-black text-zinc-900">{displaySales.filter((s: any) => s.pickup_slot?.start_at && isTomorrow(new Date(s.pickup_slot.start_at))).length}</p>
         </div>
         <div className="bg-zinc-900 p-6 rounded-[32px] shadow-xl shadow-zinc-200 text-white italic relative overflow-hidden border border-white/5">
             <div className="relative z-10">
                 <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-2">Awaiting Collection</p>
-                <p className="text-3xl font-black text-white">{sortedSales.filter((s: any) => !s.collected_at).length}</p>
+                <p className="text-3xl font-black text-white">{displaySales.filter((s: any) => !s.collected_at).length}</p>
             </div>
             <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-primary/10 blur-2xl rounded-full"></div>
         </div>
@@ -110,7 +106,7 @@ export const LogisticsList = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {sortedSales.map((sale: any) => {
+            {displaySales.map((sale: any) => {
               const isCollected = !!sale.collected_at;
               const slotDate = sale.pickup_slot?.start_at ? new Date(sale.pickup_slot.start_at) : null;
               const isValidDate = slotDate && !isNaN(slotDate.getTime());
@@ -195,7 +191,7 @@ export const LogisticsList = () => {
                 </tr>
               )
             })}
-            {sortedSales.length === 0 && (
+            {displaySales.length === 0 && (
                 <tr>
                     <td colSpan={4} className="py-24 text-center">
                         <p className="text-zinc-300 italic font-medium">No pickup appointments scheduled for the upcoming period.</p>

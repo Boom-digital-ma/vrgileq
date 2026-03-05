@@ -21,8 +21,13 @@ DECLARE
     v_ext_threshold_mins INTEGER;
     v_ext_duration_mins INTEGER;
     v_old_pi_id TEXT;
+    v_user_role user_role;
 BEGIN
-    -- 1. Fetch dynamic settings
+    -- 1. Fetch user role
+    SELECT role INTO v_user_role FROM profiles WHERE id = p_user_id;
+    IF v_user_role = 'admin' THEN RAISE EXCEPTION 'Admin accounts cannot place bids on the public marketplace'; END IF;
+
+    -- 2. Fetch dynamic settings
     SELECT auto_extend_threshold_mins, auto_extend_duration_mins 
     INTO v_ext_threshold_mins, v_ext_duration_mins
     FROM site_settings WHERE id = 'global';

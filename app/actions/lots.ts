@@ -170,8 +170,15 @@ export async function fetchLots({
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
+        let isAdmin = false
+        if (user) {
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+            isAdmin = profile?.role === 'admin'
+        }
 
-        let query = supabase
+        const fetchClient = isAdmin ? createAdminClient() : supabase
+
+        let query = fetchClient
             .from('auctions')
             .select(`
                 *,
@@ -185,9 +192,12 @@ export async function fetchLots({
         if (categoryId) query = query.eq('category_id', categoryId)
         if (searchQuery) query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
         
-        if (status) {
+        // Admin sees everything by default, others only live
+        if (status && !isAdmin) {
             if (Array.isArray(status)) query = query.in('status', status)
             else query = query.eq('status', status)
+        } else if (!status && !isAdmin) {
+            query = query.eq('status', 'live')
         }
 
         const from = (page - 1) * pageSize

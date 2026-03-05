@@ -12,7 +12,8 @@ import {
   Calendar,
   Settings,
   FileText,
-  Truck
+  Truck,
+  Globe
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -27,6 +28,7 @@ export const AdminSider = ({ isOpen, onClose }: { isOpen?: boolean, onClose?: ()
       label: "Main",
       items: [
         { label: "Overview", route: "/admin", icon: LayoutDashboard },
+        { label: "View Public Site", route: "/", icon: Globe },
       ]
     },
     {

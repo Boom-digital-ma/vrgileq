@@ -71,6 +71,8 @@ export const metadata: Metadata = {
   },
 };
 
+import AdminToolbar from "@/components/admin/AdminToolbar";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -79,6 +81,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${sansFont.variable} ${displayFont.variable} font-sans antialiased min-h-screen flex flex-col`}>
+        <AdminToolbar />
         {children}
         <Toaster position="top-center" richColors />
       </body>
