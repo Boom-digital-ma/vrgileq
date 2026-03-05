@@ -15,17 +15,17 @@ export default async function VerifyGatePass({ params }: VerifyGatePassProps) {
   const supabaseAdmin = createAdminClient()
   const supabaseAuth = await createClient()
 
-  // 1. Vérifier si l'utilisateur qui regarde la page est un Admin
+  // 1. Vérifier si l'utilisateur qui regarde la page est autorisé (Admin ou Logistics)
   const { data: { user: currentUser } } = await supabaseAuth.auth.getUser()
   
-  let isAdmin = false
+  let isAuthorized = false
   if (currentUser) {
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('id', currentUser.id)
       .single()
-    isAdmin = profile?.role === 'admin'
+    isAuthorized = profile?.role === 'admin' || profile?.role === 'logistics'
   }
 
   // 2. Récupérer les données de la vente
@@ -99,8 +99,8 @@ export default async function VerifyGatePass({ params }: VerifyGatePassProps) {
         </div>
 
         <div className="p-10 space-y-8">
-          {/* Admin Action Button */}
-          {isAdmin && isPaid && !isCollected && (
+          {/* Authorized Action Button */}
+          {isAuthorized && isPaid && !isCollected && (
             <form action={async () => {
               'use server'
               await markAsCollected(sale.id)
@@ -112,7 +112,7 @@ export default async function VerifyGatePass({ params }: VerifyGatePassProps) {
                 <Truck size={18} /> Confirm Collection & Exit
               </button>
               <p className="text-[9px] text-zinc-400 font-bold uppercase text-center mt-3 tracking-widest italic">
-                Authorized Admin: {currentUser?.email}
+                Authorized Staff: {currentUser?.email}
               </p>
             </form>
           )}
@@ -123,6 +123,14 @@ export default async function VerifyGatePass({ params }: VerifyGatePassProps) {
                    Asset has left the premises
                 </p>
              </div>
+          )}
+
+          {!isAuthorized && !isCollected && isPaid && (
+              <div className="bg-amber-50 border border-amber-100 p-6 rounded-3xl text-center">
+                <p className="text-amber-700 font-bold text-xs uppercase tracking-tight italic">
+                    Verification successful. Please present this screen to warehouse staff for release.
+                </p>
+              </div>
           )}
 
           {/* Quick Info */}
