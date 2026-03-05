@@ -58,6 +58,25 @@ export async function adminCreateUser(data: { email: string, password?: string, 
   return { success: true }
 }
 
+export async function adminUpdateUser(id: string, data: { full_name?: string, role?: string, is_verified?: boolean }) {
+  const adminClient = await createAdminClient()
+  
+  const { error } = await adminClient
+    .from('profiles')
+    .update({ 
+        full_name: data.full_name,
+        role: data.role as any,
+        is_verified: data.is_verified,
+        updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/users')
+  return { success: true }
+}
+
 export async function deleteAccount() {
   const supabase = await createClient()
   const adminClient = await createAdminClient()

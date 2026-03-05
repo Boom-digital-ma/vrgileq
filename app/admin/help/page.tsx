@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Gavel, Package, Shield, Truck, CreditCard, Tool, HelpCircle, ChevronRight, CheckCircle2 } from "lucide-react";
+import { BookOpen, Gavel, Package, Shield, Truck, CreditCard, Wrench, HelpCircle, ChevronRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AdminHelpPage() {

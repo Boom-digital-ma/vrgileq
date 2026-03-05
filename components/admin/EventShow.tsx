@@ -205,6 +205,27 @@ export const EventShow = () => {
     <div className="space-y-8 font-sans text-zinc-900 pb-20">
       {/* Header Section */}
       <div className="flex flex-col gap-6">
+          {/* PICKUP REMINDER ALERT */}
+          {pickupCount === 0 && event?.status !== 'closed' && (
+              <button 
+                onClick={() => setIsPickupOpen(true)}
+                className="w-full bg-rose-50 border-2 border-rose-100 p-4 rounded-[24px] flex items-center justify-between group hover:bg-rose-100 transition-all animate-in fade-in slide-in-from-top-4 duration-500"
+              >
+                  <div className="flex items-center gap-4">
+                      <div className="bg-rose-500 text-white p-2.5 rounded-xl shadow-lg shadow-rose-500/20 group-hover:scale-110 transition-transform">
+                          <Calendar size={20} />
+                      </div>
+                      <div className="text-left">
+                          <p className="text-xs font-black uppercase tracking-widest text-rose-600 leading-none mb-1">Action Required: Logistics Protocol</p>
+                          <p className="text-sm font-bold text-rose-900 uppercase italic tracking-tighter">No pickup slots have been generated for this event yet.</p>
+                      </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-rose-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md group-hover:bg-rose-600 transition-all">
+                      Generate Slots Now <Zap size={14} className="fill-current" />
+                  </div>
+              </button>
+          )}
+
           <div className="flex items-center gap-4">
               <Link href="/admin/events" className="p-2.5 bg-white border border-zinc-200 rounded-2xl hover:bg-zinc-50 transition-all text-zinc-400 shadow-sm"><ArrowLeft size={20} /></Link>
               <div>
