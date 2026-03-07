@@ -251,7 +251,8 @@ export async function fetchLots({
                 userMaxBid: userBid?.max_amount,
                 userCurrentBid: userBid?.amount,
                 manufacturer: lot.manufacturer,
-                model: lot.model
+                model: lot.model,
+                status: lot.status
             }
         }) || []
 

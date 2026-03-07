@@ -233,9 +233,10 @@ export default async function EventPage({
                     </div>
                     <div>
                         <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase">Event Catalog</h2>
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{count} Assets available</p>
-                    </div>
-                </div>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">
+                           {count === 0 ? "Awaiting Catalog Deployment" : `${count} Assets currently in protocol`}
+                        </p>
+                    </div>                </div>
 
                 <nav className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
                     <Link 

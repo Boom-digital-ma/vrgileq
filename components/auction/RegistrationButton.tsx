@@ -37,6 +37,7 @@ export default function RegistrationButton({
   const [currentStep, setCurrentStep] = useState<RegistrationStep>('idle')
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   
   // Profile Form State
   const [profileData, setProfileData] = useState({
@@ -74,6 +75,7 @@ export default function RegistrationButton({
                 setStatus(regRes)
                 setCards(cardsRes)
                 setProfile(profileRes.data)
+                setIsAdmin(profileRes.data?.role === 'admin')
                 
                 if (profileRes.data) {
                     setProfileData({
@@ -181,6 +183,20 @@ export default function RegistrationButton({
         <div>
             <p className="font-bold uppercase text-[10px] tracking-wider leading-none">Authorization Active</p>
             <p className="text-[10px] font-medium opacity-70 uppercase mt-1">Ready for Bidding Room</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isAdmin) {
+    return (
+      <div className="bg-zinc-900 border border-white/10 p-5 rounded-3xl flex items-center gap-4 text-white italic shadow-xl">
+        <div className="bg-white/10 p-2 rounded-full backdrop-blur-md">
+            <User size={20} className="text-primary" />
+        </div>
+        <div>
+            <p className="font-bold uppercase text-[10px] tracking-wider leading-none">Admin Mode</p>
+            <p className="text-[10px] font-medium opacity-50 uppercase mt-1 italic">Protocol Access Only</p>
         </div>
       </div>
     )

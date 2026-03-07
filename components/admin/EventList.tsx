@@ -180,15 +180,18 @@ export const EventList = () => {
                 <div className="flex justify-between items-start mb-4">
                     {(() => {
                         const now = new Date();
-                        const isEnded = event.status === 'closed' || (event.status !== 'live' && new Date(event.ends_at) <= now);
+                        const isEnded = event.status === 'closed' || (event.status !== 'live' && event.status !== 'draft' && new Date(event.ends_at) <= now);
                         const isUpcoming = event.status === 'scheduled' || (event.status === 'live' && new Date(event.start_at) > now);
-                        const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
+                        
+                        let displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
+                        if (event.status === 'draft') displayStatus = 'draft';
                         
                         return (
                             <span className={cn(
                                 "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
                                 displayStatus === 'live' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : 
                                 displayStatus === 'closed' ? "bg-zinc-900 text-white border-zinc-900 shadow-sm" :
+                                displayStatus === 'draft' ? "bg-amber-50 text-amber-600 border-amber-200" :
                                 "bg-zinc-50 text-zinc-400 border-zinc-100"
                             )}>{displayStatus}</span>
                         );

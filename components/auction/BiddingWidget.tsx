@@ -257,7 +257,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           </Link>
       )}
 
-      {isWinning && (
+      {isWinning && isStarted && !isEnded && (
           <div className="mb-8 bg-emerald-500 rounded-[24px] p-6 text-white shadow-xl shadow-emerald-500/20">
               <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -274,7 +274,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           </div>
       )}
 
-      {isOutbid && (
+      {isOutbid && isStarted && !isEnded && (
           <div className="mb-8 bg-rose-500 rounded-[24px] p-6 text-white shadow-xl shadow-rose-500/20 animate-pulse">
               <div className="flex items-center gap-4">
                   <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md"><Zap className="h-6 w-6" /></div>
@@ -285,7 +285,6 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
               </div>
           </div>
       )}
-
       <div className="flex items-center justify-between mb-10">
         <div>
           <div className={cn("text-[9px] font-bold uppercase tracking-[0.3em]", isUrgent ? "text-rose-500" : "text-zinc-400")}>

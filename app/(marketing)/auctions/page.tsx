@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default async function AuctionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string, category?: string, page?: string, filter?: 'live' | 'upcoming' | 'past' }>
+  searchParams: Promise<{ q?: string, category?: string, page?: string, filter?: 'live' | 'upcoming' | 'past' | 'draft' }>
 }) {
   const supabase = await createClient()
   const params = await searchParams
@@ -212,7 +212,8 @@ export default async function AuctionsPage({
                                             userCurrentBid: userBid?.amount,
                                             winner_id: lot.winner_id,
                                             manufacturer: lot.manufacturer,
-                                            model: lot.model
+                                            model: lot.model,
+                                            status: lot.status
                                         }
                                     }) || []} 
                                     user={userProfile ? { ...user, ...userProfile } : user}
@@ -259,7 +260,8 @@ export default async function AuctionsPage({
                                             minIncrement: Number(lot.min_increment),
                                             winner_id: lot.winner_id,
                                             manufacturer: lot.manufacturer,
-                                            model: lot.model
+                                            model: lot.model,
+                                            status: lot.status
                                         }))}
                                         user={userProfile ? { ...user, ...userProfile } : user}
                                         searchQuery={q}
@@ -284,11 +286,15 @@ export default async function AuctionsPage({
   // Pre-fetch counts to determine default tab if none or if current is empty
   const { count: liveCount } = await fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live')
   const { count: upcomingCount } = await fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
+  const { count: draftCount } = isAdmin 
+    ? await fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'draft')
+    : { count: 0 }
   
   // Auto-fallback logic
   if (!filter || (filter === 'live' && !liveCount)) {
     if (liveCount) filter = 'live'
     else if (upcomingCount) filter = 'upcoming'
+    else if (draftCount && isAdmin) filter = 'draft'
     else filter = 'past'
   }
 
@@ -309,10 +315,12 @@ export default async function AuctionsPage({
     eventQuery = eventQuery.or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
   } else if (filter === 'past') {
     eventQuery = eventQuery.eq('status', 'closed')
+  } else if (filter === 'draft' && isAdmin) {
+    eventQuery = eventQuery.eq('status', 'draft')
   }
 
   const { data: events, count: eventCount } = await eventQuery
-    .order(filter === 'past' ? 'ends_at' : 'start_at', { ascending: filter === 'past' ? false : true })
+    .order(filter === 'past' ? 'ends_at' : (filter === 'draft' ? 'created_at' : 'start_at'), { ascending: filter === 'past' || filter === 'draft' ? false : true })
     .range(from, to)
 
   const totalEventPages = Math.ceil((eventCount || 0) / PAGE_SIZE_EVENTS)
@@ -321,6 +329,7 @@ export default async function AuctionsPage({
   const tabs = [
     { id: 'live', label: 'Live Now', available: !!liveCount },
     { id: 'upcoming', label: 'Upcoming', available: !!upcomingCount },
+    ...(isAdmin ? [{ id: 'draft', label: 'Drafts (Admin)', available: !!draftCount }] : []),
     { id: 'past', label: 'Recent Archives', available: true }
   ]
 
@@ -430,9 +439,11 @@ export default async function AuctionsPage({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
           {events?.map((event) => {
             const now = new Date();
-            const isEnded = event.status === 'closed' || (event.status !== 'live' && new Date(event.ends_at) <= now);
+            const isEnded = event.status === 'closed' || (event.status !== 'live' && event.status !== 'draft' && new Date(event.ends_at) <= now);
             const isUpcoming = event.status === 'scheduled' || (event.status === 'live' && new Date(event.start_at) > now);
-            const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
+            
+            let displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
+            if (event.status === 'draft') displayStatus = 'draft';
 
             return (
               <Link 

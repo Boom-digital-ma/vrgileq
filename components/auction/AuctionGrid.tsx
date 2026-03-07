@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AuctionCard, { Product } from "./AuctionCard";
 import { createClient } from "@/lib/supabase/client";
 import { fetchLots } from "@/app/actions/lots";
-import { Loader2 } from "lucide-react";
+import { Loader2, PackageSearch } from "lucide-react";
 
 interface AuctionGridProps {
   products: Product[];
@@ -178,16 +178,28 @@ export default function AuctionGrid({
 
   return (
     <div className="flex flex-col gap-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {items.map((product) => (
-                <AuctionCard 
-                    key={product.id} 
-                    product={product} 
-                    user={user} 
-                    disableRealtime={true} 
-                />
-            ))}
-        </div>
+        {items.length === 0 ? (
+            <div className="py-32 flex flex-col items-center justify-center text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm px-10">
+                <div className="bg-zinc-50 p-6 rounded-[32px] mb-8 border border-zinc-100/50">
+                    <PackageSearch size={48} className="text-zinc-200" />
+                </div>
+                <h3 className="text-2xl font-bold text-secondary font-display uppercase italic mb-3">Inventory Pending</h3>
+                <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest max-w-md leading-relaxed">
+                    Our technical team is currently verifying and listing assets for this protocol. <br/> Please check back shortly for the full catalog deployment.
+                </p>
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {items.map((product) => (
+                    <AuctionCard 
+                        key={product.id} 
+                        product={product} 
+                        user={user} 
+                        disableRealtime={true} 
+                    />
+                ))}
+            </div>
+        )}
 
         {/* Sentinel element for intersection observer */}
         <div ref={observerTarget} className="w-full h-20 flex items-center justify-center">

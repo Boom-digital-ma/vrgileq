@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown, Edit3, Shield } from "lucide-react";
+import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown, Edit3, Shield, FileText } from "lucide-react";
 import QuickViewModal from "./QuickViewModal";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { placeBid } from "@/app/actions/bids";
@@ -34,6 +34,7 @@ export interface Product {
   userMaxBid?: number;
   userCurrentBid?: number;
   winner_id?: string;
+  status?: string;
 }
 
 export default function AuctionCard({ product, user, disableRealtime = false }: { product: Product, user: any, disableRealtime?: boolean }) {
@@ -52,8 +53,9 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
   const [userMaxBid, setUserMaxBid] = useState(product.userMaxBid);
   const [userCurrentBid, setUserCurrentBid] = useState(product.userCurrentBid);
   const [winnerId, setWinnerId] = useState(product.winner_id);
-  const [isStarted, setIsStarted] = useState(!product.startAt || new Date(product.startAt) <= new Date());
-  const [isEnded, setIsEnded] = useState(new Date(product.endsAt) <= new Date());
+  const [isStarted, setIsStarted] = useState(product.status !== 'draft' && (!product.startAt || new Date(product.startAt) <= new Date()));
+  const [isEnded, setIsEnded] = useState(product.status === 'sold' || product.status === 'ended' || new Date(product.endsAt) <= new Date());
+  const isDraft = product.status === 'draft';
   const [isUrgent, setIsUrgent] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -376,9 +378,9 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             </>
           )}
 
-          {/* ADMIN QUICK EDIT */}
-          {isAdmin && (
-            <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
+          {/* ADMIN QUICK EDIT & DRAFT BADGE */}
+          <div className="absolute top-6 right-6 flex flex-col items-end gap-2 z-20">
+              {isAdmin && (
                 <Link 
                     href={`/admin/auctions/edit/${product.id}`}
                     onClick={(e) => e.stopPropagation()}
@@ -387,8 +389,14 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                     <Edit3 size={16} />
                     <span className="text-[10px] font-bold uppercase tracking-widest pr-1">Edit</span>
                 </Link>
-            </div>
-          )}
+              )}
+              {isDraft && (
+                  <div className="bg-amber-500/90 backdrop-blur-md text-white px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2 border border-amber-400">
+                      <FileText size={14} className="animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Draft Mode</span>
+                  </div>
+              )}
+          </div>
         </div>
 
         {/* Content Container */}
@@ -501,13 +509,12 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                     )}
 
                     {/* Outbid Status - Positioned at the bottom */}
-                    {isOutbid && (
+                    {isOutbid && !isEnded && (
                         <div className="flex items-center gap-1.5 text-rose-600 animate-pulse">
                             <AlertCircle size={12} />
                             <span className="text-[9px] font-black uppercase tracking-widest leading-none">Someone outbid you!</span>
                         </div>
-                    )}
-                </div>
+                    )}                </div>
               </div>
             </div>
             <button 
@@ -525,6 +532,14 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                 <LogIn size={16} className="group-hover:translate-x-1 transition-transform" />
                 Login to Bid
             </Link>
+          ) : isDraft ? (
+            <button 
+              disabled
+              className="w-full bg-amber-50 border-2 border-amber-200 text-amber-500 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
+            >
+                <FileText size={16} />
+                Draft Mode
+            </button>
           ) : isEnded ? (
             <button 
               disabled
