@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useShow, useInvalidate, useNavigation } from "@refinedev/core"
-import { ArrowLeft, Save, Loader2, Plus, Image as ImageIcon, FileSpreadsheet, CheckCircle2, AlertCircle } from "lucide-react"
+import { ArrowLeft, Save, Loader2, Plus, Image as ImageIcon, FileSpreadsheet, CheckCircle2, AlertCircle, Zap } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -175,11 +175,12 @@ export const AdvancedInventoryLoader = () => {
         </div>
         {!importLoading && (
             <button 
-                /* onClick={startSync} */
-                disabled={!selectedFiles.excel}
-                className="bg-zinc-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:bg-primary transition-all active:scale-95 disabled:opacity-20"
+                onClick={startSync}
+                disabled={!selectedFiles.excel || importLoading}
+                className="bg-zinc-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:bg-primary transition-all active:scale-95 disabled:opacity-20 flex items-center gap-3"
             >
-                Push to Live Server (Disabled for Debug)
+                {importLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap size={16} className="text-primary" />}
+                {importLoading ? "Syncing Protocol..." : "Execute Sync Protocol"}
             </button>
         )}
       </div>
