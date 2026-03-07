@@ -6,7 +6,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { eventStartingTemplate } from '../../../lib/emails/templates/event-starting.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const FROM_EMAIL = 'Virginia Liquidation <concierge@boom-digital.ma>'
+const FROM_EMAIL = 'Virginia Liquidation <noreplay@virginialiquidation.com>'
 
 Deno.serve(async (req) => {
   try {

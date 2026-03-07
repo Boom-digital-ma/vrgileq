@@ -2,7 +2,7 @@ import { outbidTemplate } from './templates/outbid';
 import { winningTemplate } from './templates/won';
 import { closingSoonTemplate } from './templates/closing-soon';
 
-const FROM_EMAIL = process.env.NEXT_PUBLIC_RESEND_FROM || 'Virginia Liquidation <concierge@boom-digital.ma>';
+const FROM_EMAIL = process.env.NEXT_PUBLIC_RESEND_FROM || 'Virginia Liquidation <noreplay@virginialiquidation.com>';
 
 async function sendResendEmail({
   to,
