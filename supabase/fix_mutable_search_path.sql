@@ -8,7 +8,8 @@ ALTER FUNCTION public.is_admin() SET search_path = public;
 
 -- 2. Bidding Engine
 -- We use signatures because functions might be overloaded
-ALTER FUNCTION public.place_bid_secure(uuid, uuid, decimal, text) SET search_path = public;
+ALTER FUNCTION public.place_bid_secure(uuid, uuid, numeric, text, numeric) SET search_path = public;
+ALTER FUNCTION public.place_bid_secure(uuid, uuid, numeric, text) SET search_path = public;
 ALTER FUNCTION public.handle_outbid_notification() SET search_path = public;
 
 -- 3. Auctions & Events Status Management

@@ -11,6 +11,7 @@ const SITE_URL = Deno.env.get("SITE_URL") || "https://virginialiquidation.vercel
 const FROM_EMAIL = "Virginia Liquidation <noreplay@virginialiquidation.com>"
 
 serve(async (req) => {
+  console.log(">>> NOTIFY-WATCHLIST-CLOSING STARTING <<<")
   try {
     const results = {
       live_notifications: 0,
@@ -21,6 +22,7 @@ serve(async (req) => {
     const batchEmails: any[] = []
     const updateTasks: any[] = []
 
+    console.log("Checking pending sales...")
     // --- 1. PREPARE WINNING NOTIFICATIONS (NEW) ---
     const { data: pendingSales } = await supabaseAdmin
       .from("sales")
@@ -34,7 +36,7 @@ serve(async (req) => {
 
     for (const sale of (pendingSales || [])) {
       const { winner, auction } = sale as any
-      if (winner?.email) {
+      if (winner?.email && auction) {
         batchEmails.push({
           from: FROM_EMAIL,
           to: winner.email,
@@ -42,7 +44,7 @@ serve(async (req) => {
           html: generateWinningHtml({
             userName: winner.full_name || 'Valued Bidder',
             auctionTitle: auction.title,
-            amount: sale.hammer_price,
+            amount: Number(sale.hammer_price || 0),
             invoiceUrl: `${SITE_URL}/invoices/${sale.id}`,
             imageUrl: auction.image_url
           })
@@ -51,6 +53,7 @@ serve(async (req) => {
       }
     }
 
+    console.log("Checking live items...")
     // --- 2. PREPARE LIVE NOTIFICATIONS ---
     const { data: liveItems } = await supabaseAdmin
       .from("watchlist")
@@ -65,7 +68,7 @@ serve(async (req) => {
 
     for (const item of (liveItems || [])) {
       const { profiles: user, auctions: auction } = item as any
-      if (user.email) {
+      if (user?.email && auction) {
         batchEmails.push({
           from: FROM_EMAIL,
           to: user.email,
@@ -74,7 +77,7 @@ serve(async (req) => {
             title: "Bidding is Now Open!",
             message: `The industrial asset you are watching is now officially open for bidding.`,
             auctionTitle: auction.title,
-            currentPrice: auction.current_price,
+            currentPrice: Number(auction.current_price || 0),
             buttonText: "Go to Bidding Room",
             auctionUrl: `${SITE_URL}/auctions/${item.auction_id}`
           })
@@ -98,7 +101,7 @@ serve(async (req) => {
 
     for (const item of (closingItems || [])) {
       const { profiles: user, auctions: auction } = item as any
-      if (user.email) {
+      if (user?.email && auction) {
         const diffMins = Math.round((new Date(auction.ends_at).getTime() - Date.now()) / (1000 * 60))
         batchEmails.push({
           from: FROM_EMAIL,
@@ -108,7 +111,7 @@ serve(async (req) => {
             title: "Final Authorization Alert",
             message: `Current protocol closing in approximately ${diffMins} minutes.`,
             auctionTitle: auction.title,
-            currentPrice: auction.current_price,
+            currentPrice: Number(auction.current_price || 0),
             buttonText: "Place Final Bid",
             auctionUrl: `${SITE_URL}/auctions/${item.auction_id}`,
             isUrgent: true
@@ -118,6 +121,7 @@ serve(async (req) => {
       }
     }
 
+    console.log(`Preparing to send ${batchEmails.length} emails...`)
     // --- 4. EXECUTE BATCH SENDING ---
     if (batchEmails.length > 0) {
       for (let i = 0; i < batchEmails.length; i += 100) {
@@ -149,6 +153,7 @@ serve(async (req) => {
     })
 
   } catch (error: any) {
+    console.error("CRITICAL ERROR in notify-watchlist-closing:", error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -193,7 +198,7 @@ function generateWinningHtml(params: {
 
           <div class="info-box">
             <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #0B2B53; text-transform: uppercase;">${params.auctionTitle}</h2>
-            <p style="margin: 0; font-size: 16px;"><strong>Final Hammer Price:</strong> $${params.amount.toLocaleString()}</p>
+            <p style="margin: 0; font-size: 16px;"><strong>Final Hammer Price:</strong> $${(params.amount || 0).toLocaleString()}</p>
           </div>
 
           <p>Please review your invoice and prepare for pickup scheduling.</p>
@@ -202,7 +207,7 @@ function generateWinningHtml(params: {
             <a href="${params.invoiceUrl}" class="button">View My Invoice</a>
           </div>
         </div>
-        <div className="footer">
+        <div class="footer">
           <p>© 2026 Virginia Liquidation. All rights reserved.</p>
           <p>Industrial B2B Auction Solutions • Richmond, VA</p>
         </div>
@@ -247,14 +252,14 @@ function generateHtml(params: {
           
           <div class="info-box">
             <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #049A9E; text-transform: uppercase;">${params.auctionTitle}</h2>
-            <p style="margin: 0; font-size: 14px;"><strong>Current Price:</strong> $${params.currentPrice.toLocaleString()}</p>
+            <p style="margin: 0; font-size: 14px;"><strong>Current Price:</strong> $${(params.currentPrice || 0).toLocaleString()}</p>
           </div>
 
           <div style="margin: 32px 0; text-align: center;">
             <a href="${params.auctionUrl}" class="button">${params.buttonText}</a>
           </div>
         </div>
-        <div className="footer">
+        <div class="footer">
           <p>© 2026 Virginia Liquidation. All rights reserved.</p>
           <p>Industrial B2B Auction Solutions • Richmond, VA</p>
         </div>
