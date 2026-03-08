@@ -73,15 +73,49 @@ export const metadata: Metadata = {
 };
 
 import AdminToolbar from "@/components/admin/AdminToolbar";
+import { createClient } from "@/lib/supabase/server";
+import Script from "next/script";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: settings } = await supabase
+    .from('site_settings')
+    .select('gtm_id')
+    .eq('id', 'global')
+    .maybeSingle();
+
+  const gtmId = settings?.gtm_id;
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {gtmId && (
+          <Script id="google-tag-manager" strategy="afterInteractive">
+            {`
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','${gtmId}');
+            `}
+          </Script>
+        )}
+      </head>
       <body className={`${sansFont.variable} ${displayFont.variable} font-sans antialiased min-h-screen flex flex-col`}>
+        {gtmId && (
+          <noscript>
+            <iframe 
+              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+              height="0" 
+              width="0" 
+              style={{ display: 'none', visibility: 'hidden' }}
+            />
+          </noscript>
+        )}
         <AdminToolbar />
         {children}
         <Toaster position="top-center" richColors />

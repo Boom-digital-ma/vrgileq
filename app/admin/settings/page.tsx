@@ -73,6 +73,7 @@ export default function SettingsPage() {
             fields: [
                 { label: "Public Support Email", name: "support_email", type: "email", defaultValue: settings.support_email },
                 { label: "Contact Phone", name: "support_phone", type: "text", defaultValue: settings.support_phone },
+                { label: "Google Tag Manager ID", name: "gtm_id", type: "text", placeholder: "e.g. GTM-XXXXXXX", defaultValue: settings.gtm_id },
                 { label: "Global Header Announcement", name: "global_announcement", type: "text", placeholder: "e.g. System Maintenance tonight at 10 PM", defaultValue: settings.global_announcement },
                 { label: "Announcement Details Link", name: "announcement_link", type: "text", placeholder: "e.g. /guides/maintenance or https://...", defaultValue: settings.announcement_link },
                 { label: "Announcement Details (Popup Text)", name: "announcement_text", type: "text", placeholder: "If text is provided, 'Details' will open a popup instead of following the link.", defaultValue: settings.announcement_text },
