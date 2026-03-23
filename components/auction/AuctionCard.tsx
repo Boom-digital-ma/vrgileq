@@ -348,25 +348,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           )}
           
           <div className="absolute top-6 left-6 flex items-center gap-2 z-10 pointer-events-none">
-            {mounted && isStarted && timeLeft !== "Auction Ended" && (
-              <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
-                  <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                  </span>
-                  Live
-              </div>
-            )}
-            {mounted && !isStarted && (
-              <div className="bg-blue-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in duration-500">
-                  Upcoming
-              </div>
-            )}
-            {mounted && isStarted && timeLeft === "Auction Ended" && (
-              <div className="bg-zinc-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-zinc-500/20 animate-in fade-in zoom-in duration-500">
-                  Ended
-              </div>
-            )}
+            {/* Status badges removed as requested */}
           </div>
 
           {allImages.length > 1 && (
@@ -408,13 +390,17 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
 
         {/* Content Container */}
         <div className="flex flex-1 flex-col p-6 border-t border-zinc-100">
-          <div className="flex justify-between items-start mb-3">
-            <div className="flex items-center gap-2">
-                <div className="bg-primary/10 p-1.5 rounded-lg flex items-center gap-2">
-                    <Building2 className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-[10px] font-black text-primary uppercase tracking-widest border-l border-primary/20 pl-2">#{product.lotNumber || product.id.slice(0,4)}</span>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-col gap-2.5">
+                {/* Lot ID Badge */}
+                <div className="inline-flex w-fit bg-secondary text-white px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm">
+                    #{product.lotNumber || product.id.slice(0,4)}
                 </div>
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[100px]">{product.supplier}</span>
+                {/* Category with Icon */}
+                <div className="flex items-center gap-1.5 text-zinc-400">
+                    <Building2 className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[150px]">{product.supplier}</span>
+                </div>
             </div>
             <div className="flex gap-1">
                 <button 
