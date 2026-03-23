@@ -481,17 +481,8 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             </button>
           </div>
 
-          <div className="mt-auto pt-5 border-t border-zinc-100 flex items-center justify-between mb-6">
+          <div className="mt-auto pt-5 border-t border-zinc-100 flex items-center justify-between mb-4">
             <div className="space-y-3">
-              {/* Timer back in content area - LARGER & STATIC RED */}
-              <div className={cn(
-                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 font-black uppercase tracking-wider transition-all duration-500",
-                  "bg-rose-50 border-rose-200 text-rose-600 shadow-sm"
-              )}>
-                <Timer size={14} />
-                <span className="text-[11px] tabular-nums">{mounted ? timeLeft : "---"}</span>
-              </div>
-
               <div>
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1 italic leading-none">Current Price</p>
                 <div className="text-2xl font-bold text-secondary tabular-nums font-display leading-none" suppressHydrationWarning>
@@ -536,41 +527,52 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             </div>
           </div>
 
+          {/* Timer positioned above the action button */}
+          <div className="mb-4">
+              <div className={cn(
+                  "inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 font-black uppercase tracking-wider transition-all duration-500",
+                  "bg-rose-50 border-rose-200 text-rose-600 shadow-sm w-full justify-center"
+              )}>
+                <Timer size={16} />
+                <span className="text-xs tabular-nums">{mounted ? timeLeft : "---"}</span>
+              </div>
+          </div>
+
           {/* Conditional Bidding / Login UI */}
           {!user ? (
-            <Link href="/auth/signin" className="w-full bg-primary/10 border-2 border-primary/20 text-primary py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group shadow-sm">
-                <LogIn size={16} className="group-hover:translate-x-1 transition-transform" />
+            <Link href="/auth/signin" className="w-full bg-primary/10 border-2 border-primary/20 text-primary py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group shadow-sm">
+                <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
                 Login to Bid
             </Link>
           ) : isDraft ? (
             <button 
               disabled
-              className="w-full bg-amber-50 border-2 border-amber-200 text-amber-500 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
+              className="w-full bg-amber-50 border-2 border-amber-200 text-amber-500 py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
             >
-                <FileText size={16} />
+                <FileText size={18} />
                 Draft Mode
             </button>
           ) : isEnded ? (
             <button 
               disabled
-              className="w-full bg-zinc-100 border-2 border-zinc-200 text-zinc-400 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
+              className="w-full bg-zinc-100 border-2 border-zinc-200 text-zinc-400 py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
             >
-                <Lock size={16} />
+                <Lock size={18} />
                 Bidding Closed
             </button>
           ) : !isStarted ? (
             <button 
               disabled
-              className="w-full bg-zinc-50 border-2 border-zinc-100 text-zinc-400 py-3 rounded-xl font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default text-[10px]"
+              className="w-full bg-zinc-50 border-2 border-zinc-100 text-zinc-400 py-4 rounded-xl font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default text-[10px]"
             >
-                <Clock size={16} />
+                <Clock size={18} />
                 Starting Soon
             </button>
           ) : (
             <div className="flex flex-col gap-2">
                 {isAdmin && (
-                    <div className="flex items-center justify-center gap-2 py-3 bg-zinc-100 rounded-xl border-2 border-zinc-200 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
-                        <Shield size={14} /> Admin Mode
+                    <div className="flex items-center justify-center gap-2 py-4 bg-zinc-100 rounded-xl border-2 border-zinc-200 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                        <Shield size={16} /> Admin Mode
                     </div>
                 )}
                 {!isAdmin && (
@@ -586,15 +588,15 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                             min={realtimePrice + (product.minIncrement || 1)} 
                             value={bidAmount} 
                             onChange={(e) => setBidAmount(Number(e.target.value))} 
-                            className="w-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-2.5 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 
+                            className="w-full h-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-3 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 
                             />
                         </div>
                         <button 
                         type="submit" 
                         disabled={loadingBid} 
-                        className="bg-secondary text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-primary transition-all active:scale-95 shadow-lg shadow-secondary/10 flex items-center gap-2"
+                        className="bg-secondary text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary transition-all active:scale-95 shadow-lg shadow-secondary/10 flex items-center gap-2"
                         >
-                        {loadingBid ? <Loader2 size={14} className="animate-spin" /> : <Gavel size={14} />} 
+                        {loadingBid ? <Loader2 size={16} className="animate-spin" /> : <Gavel size={16} />} 
                         Bid
                         </button>
                     </form>
