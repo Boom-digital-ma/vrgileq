@@ -81,13 +81,11 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
 
   const galleryContent = !hideMainGallery ? (
     <div className="flex flex-col gap-6">
-      {/* Main Image with Hover Zoom */}
+      {/* Main Image with Zoom Button */}
       <div 
         ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
         onClick={() => { if (isOpen === undefined) setInternalShowLightbox(true); else if (onClose) setInternalShowLightbox(true); }}
-        className="relative aspect-[4/3] w-full overflow-hidden rounded-[32px] bg-zinc-50 border border-zinc-100 cursor-zoom-in group shadow-xl shadow-black/5"
+        className="relative aspect-[4/3] w-full overflow-hidden rounded-[32px] bg-zinc-50 border border-zinc-100 cursor-pointer group shadow-xl shadow-black/5"
       >
         <Image
           src={currentImage}
@@ -98,14 +96,15 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
             imageLoading ? "blur-xl opacity-0 scale-105" : "blur-0 opacity-100 scale-100"
           )}
           onLoad={() => setImageLoading(false)}
-          style={zoomStyle.display === 'block' ? { transform: zoomStyle.transform, transformOrigin: zoomStyle.transformOrigin } : {}}
           priority
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
         />
 
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <div className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30 text-white shadow-2xl scale-75 group-hover:scale-100 transition-transform">
+        {/* ZOOM OVERLAY BUTTON */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
+            <div className="bg-white/90 backdrop-blur-xl p-4 rounded-full border border-white/40 text-secondary shadow-2xl scale-90 group-hover:scale-100 transition-all hover:bg-primary hover:text-white flex items-center gap-2">
                 <Maximize2 size={24} />
+                <span className="text-xs font-black uppercase tracking-widest pr-1">Zoom Asset</span>
             </div>
         </div>
 
