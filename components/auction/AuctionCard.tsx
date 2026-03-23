@@ -314,7 +314,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
               alt={`${product.title} ${product.manufacturer ? `by ${product.manufacturer}` : ''} ${product.model ? `(${product.model})` : ''} - Virginia Liquidation`}
               fill
               className={cn(
-                "object-cover transition-all duration-700 group-hover:scale-105",
+                "object-cover transition-all duration-700",
                 imageLoading ? "opacity-0 blur-lg" : "opacity-100 blur-0"
               )}
               onLoad={() => setImageLoading(false)}
@@ -381,12 +381,13 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           )}
 
           {/* ZOOM OVERLAY BUTTON */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-30 pointer-events-none">
+          <div className="absolute inset-0 bg-black/0 flex items-center justify-center opacity-0 group-hover:opacity-100 z-30 pointer-events-none transition-all duration-300">
               <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowLightbox(true); }}
-                className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white shadow-2xl scale-75 group-hover:scale-100 transition-transform hover:bg-primary/50 pointer-events-auto cursor-pointer"
+                className="bg-white/90 backdrop-blur-xl p-4 rounded-full border border-white/40 text-secondary shadow-2xl scale-90 group-hover:scale-100 transition-all hover:bg-primary hover:text-white pointer-events-auto cursor-pointer flex items-center gap-2"
               >
                   <Maximize2 size={20} />
+                  <span className="text-[10px] font-black uppercase tracking-widest pr-1">Zoom</span>
               </button>
           </div>
 
