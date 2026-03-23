@@ -2,32 +2,55 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ImageGalleryProps {
   images: string[];
   title?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
+  hideMainGallery?: boolean;
 }
 
 const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=1200";
 
-export default function ImageGallery({ images, title = "Auction Lot" }: ImageGalleryProps) {
+export default function ImageGallery({ images, title = "Auction Lot", isOpen, onClose, hideMainGallery = false }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [internalShowLightbox, setInternalShowLightbox] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  const showLightbox = isOpen !== undefined ? isOpen : internalShowLightbox;
+  
+  const closeLightbox = () => {
+    if (onClose) onClose();
+    else setInternalShowLightbox(false);
+  };
+
   const [zoomStyle, setZoomStyle] = useState({ display: 'none', transformOrigin: '0% 0%', transform: 'scale(1)' });
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Reset loading state when changing images
-  useState(() => {
-    setImageLoading(true);
-  });
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   useEffect(() => {
     setImageLoading(true);
   }, [selectedIndex]);
+
+  // Prevent scroll when lightbox is open
+  useEffect(() => {
+    if (showLightbox) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [showLightbox]);
 
   const validImages = images && images.length > 0 && images[0] !== "" 
     ? images 
@@ -35,25 +58,11 @@ export default function ImageGallery({ images, title = "Auction Lot" }: ImageGal
 
   const currentImage = validImages[selectedIndex] || PLACEHOLDER_IMAGE;
 
-  // Handle Swiping
-  const minSwipeDistance = 50;
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    if (Math.abs(distance) < minSwipeDistance) return;
-    if (distance > 0) setSelectedIndex((prev) => (prev + 1) % validImages.length);
-    else setSelectedIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
-  };
+  const nextImage = () => setSelectedIndex((prev) => (prev + 1) % validImages.length);
+  const prevImage = () => setSelectedIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || showLightbox) return;
     
     const { left, top, width, height } = containerRef.current.getBoundingClientRect();
     const x = ((e.pageX - left - window.scrollX) / width) * 100;
@@ -70,21 +79,19 @@ export default function ImageGallery({ images, title = "Auction Lot" }: ImageGal
     setZoomStyle({ display: 'none', transformOrigin: '0% 0%', transform: 'scale(1)' });
   };
 
-  return (
+  const galleryContent = !hideMainGallery ? (
     <div className="flex flex-col gap-6">
-      {/* Main Image with Zoom */}
+      {/* Main Image with Hover Zoom */}
       <div 
         ref={containerRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        onClick={() => { if (isOpen === undefined) setInternalShowLightbox(true); else if (onClose) setInternalShowLightbox(true); }}
         className="relative aspect-[4/3] w-full overflow-hidden rounded-[32px] bg-zinc-50 border border-zinc-100 cursor-zoom-in group shadow-xl shadow-black/5"
       >
         <Image
           src={currentImage}
-          alt={`${title} - Main Image - Virginia Liquidation`}
+          alt={`${title} - Main Image`}
           fill
           className={cn(
             "object-cover transition-all duration-300 ease-out",
@@ -96,28 +103,18 @@ export default function ImageGallery({ images, title = "Auction Lot" }: ImageGal
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
         />
 
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <div className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30 text-white shadow-2xl scale-75 group-hover:scale-100 transition-transform">
+                <Maximize2 size={24} />
+            </div>
+        </div>
+
         {imageLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-zinc-50/50 backdrop-blur-sm z-10">
             <Loader2 className="h-10 w-10 text-primary animate-spin" />
           </div>
         )}
         
-        {/* Pagination Dots for Mobile Swiping */}
-        {validImages.length > 1 && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none md:hidden">
-                {validImages.map((_, i) => (
-                    <div 
-                        key={i} 
-                        className={cn(
-                            "h-1 rounded-full transition-all duration-300",
-                            i === selectedIndex ? "w-4 bg-primary" : "w-1 bg-white/60"
-                        )} 
-                    />
-                ))}
-            </div>
-        )}
-
-        {/* Counter Overlay */}
         {validImages.length > 1 && (
             <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-[10px] font-bold text-secondary shadow-sm transition-opacity group-hover:opacity-0">
                 {selectedIndex + 1} / {validImages.length}
@@ -125,7 +122,6 @@ export default function ImageGallery({ images, title = "Auction Lot" }: ImageGal
         )}
       </div>
       
-      {/* Thumbnails */}
       {validImages.length > 1 && (
         <div className="grid grid-cols-5 gap-4 px-2">
             {validImages.map((image, index) => (
@@ -141,7 +137,7 @@ export default function ImageGallery({ images, title = "Auction Lot" }: ImageGal
             >
                 <Image
                     src={image || PLACEHOLDER_IMAGE}
-                    alt={`${title} - Thumbnail ${index + 1} - Virginia Liquidation`}
+                    alt={`${title} - Thumbnail ${index + 1}`}
                     fill
                     className="object-cover"
                     sizes="100px"
@@ -151,5 +147,105 @@ export default function ImageGallery({ images, title = "Auction Lot" }: ImageGal
         </div>
       )}
     </div>
+  ) : null;
+
+  const lightboxContent = mounted ? createPortal(
+    <AnimatePresence>
+      {showLightbox && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] bg-secondary/95 backdrop-blur-2xl flex flex-col items-center justify-center p-4 md:p-12"
+          onClick={closeLightbox}
+        >
+          {/* Header / Controls */}
+          <div className="absolute top-8 left-8 right-8 flex items-center justify-between text-white z-[110]" onClick={e => e.stopPropagation()}>
+            <div className="flex flex-col">
+              <h3 className="text-sm font-bold tracking-tight uppercase opacity-60">Visual Inspection</h3>
+              <p className="text-lg font-black italic uppercase tracking-tighter">{title}</p>
+            </div>
+            <button 
+              onClick={closeLightbox}
+              className="p-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full transition-all group active:scale-90"
+            >
+              <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+            </button>
+          </div>
+
+          {/* Main Lightbox Content */}
+          <div className="relative w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedIndex}
+                initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.9, x: -20 }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="relative w-full h-[70vh] md:h-[80vh]"
+              >
+                <Image
+                  src={validImages[selectedIndex]}
+                  alt={title}
+                  fill
+                  className="object-contain"
+                  priority
+                  sizes="100vw"
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation Arrows */}
+            {validImages.length > 1 && (
+              <>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                  className="absolute left-0 p-6 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                >
+                  <ChevronLeft size={48} strokeWidth={1} />
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                  className="absolute right-0 p-6 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                >
+                  <ChevronRight size={48} strokeWidth={1} />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Footer / Thumbnails in Lightbox */}
+          {validImages.length > 1 && (
+            <div className="flex gap-4 mt-8 max-w-full overflow-x-auto pb-4 no-scrollbar" onClick={e => e.stopPropagation()}>
+              {validImages.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedIndex(i)}
+                  className={cn(
+                    "relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 transition-all border-2",
+                    selectedIndex === i ? "border-primary scale-110 shadow-2xl" : "border-white/10 opacity-40"
+                  )}
+                >
+                  <Image src={img} alt="" fill className="object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Pagination Counter */}
+          <div className="absolute bottom-12 text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
+            Image {selectedIndex + 1} of {validImages.length}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
+  ) : null;
+
+  return (
+    <>
+      {galleryContent}
+      {lightboxContent}
+    </>
   );
 }

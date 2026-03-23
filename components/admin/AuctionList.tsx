@@ -1,12 +1,17 @@
 'use client'
 
 import { useTable, useNavigation, useDelete, useForm, useSelect } from "@refinedev/core"
-import { Edit, Trash2, Plus, Loader2, Package, Search, Save, Filter, Gavel, Eye, ArrowLeft } from "lucide-react"
+import { Edit, Trash2, Plus, Loader2, Package, Search, Save, Filter, Gavel, Eye, ArrowLeft, Copy, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import { Modal, ConfirmModal } from "./Modal"
+import { duplicateLot } from "@/app/actions/lots"
+import { toast } from "sonner"
 
 export const AuctionList = () => {
+  const { list, show, edit } = useNavigation()
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null)
+  
   const result = useTable({
     resource: "auctions",
     meta: { select: "*, auction_events(title), bids(id)" },
@@ -17,7 +22,17 @@ export const AuctionList = () => {
   const auctions = tableQuery?.data?.data || []
   const isLoading = tableQuery?.isLoading
 
-  const { show } = useNavigation()
+  const handleDuplicate = async (id: string) => {
+    setIsDuplicating(id)
+    const res = await duplicateLot(id)
+    if (res.success) {
+      toast.success("Lot duplicated as draft!")
+      edit("auctions", res.id!)
+    } else {
+      toast.error(res.error || "Failed to duplicate")
+    }
+    setIsDuplicating(null)
+  }
   const { 
     current = 1,
     setCurrent,
@@ -174,6 +189,13 @@ export const AuctionList = () => {
                   <td className="px-6 py-5 text-right font-sans">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => show("auctions", auction.id)} className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"><Eye size={18} /></button>
+                        <button 
+                            onClick={() => handleDuplicate(auction.id)} 
+                            disabled={isDuplicating === auction.id}
+                            className="p-2 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                        >
+                            {isDuplicating === auction.id ? <Loader2 size={18} className="animate-spin" /> : <Copy size={18} />}
+                        </button>
                         <button onClick={() => handleEditClick(auction.id)} className="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors"><Edit size={18} /></button>
                         <button onClick={() => handleDeleteClick(auction.id)} className="p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 size={18} /></button>
                     </div>
@@ -258,30 +280,69 @@ export const AuctionList = () => {
       </Modal>
 
       <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Update Auction Details">
-        <form 
-            onSubmit={(e) => { e.preventDefault(); const d = Object.fromEntries(new FormData(e.currentTarget)); editForm.onFinish(d); }} 
-            className="p-8 space-y-6 font-sans"
-        >
-            <div className="space-y-4">
-                <div>
-                    <label className={labelClasses}>Asset Title</label>
-                    <input name="title" defaultValue={(editForm as any).queryResult?.data?.data?.title} required className={inputClasses} />
-                </div>
-                <div>
-                    <label className={labelClasses}>Status</label>
-                    <select name="status" defaultValue={(editForm as any).queryResult?.data?.data?.status} className={inputClasses}>
-                        <option value="draft">Draft</option>
-                        <option value="live">Live</option>
-                        <option value="sold">Sold</option>
-                    </select>
-                </div>
-            </div>
-            <div className="flex justify-end pt-4 font-sans">
-                <button disabled={editForm.formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2">
-                    {editForm.formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Update Changes</>}
-                </button>
-            </div>
-        </form>
+        {(() => {
+          const auction = (editForm as any).queryResult?.data?.data
+          const isClosed = auction?.status === 'sold' || auction?.status === 'ended'
+          
+          return (
+            <form 
+                onSubmit={(e) => { 
+                    e.preventDefault(); 
+                    if (isClosed) {
+                        toast.error("Closed lots cannot be edited directly. Please duplicate it instead.");
+                        return;
+                    }
+                    const d = Object.fromEntries(new FormData(e.currentTarget)); 
+                    editForm.onFinish(d); 
+                }} 
+                className="p-8 space-y-6 font-sans"
+            >
+                {isClosed && (
+                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 mb-6">
+                        <AlertCircle className="text-amber-600 mt-0.5" size={18} />
+                        <div className="flex-1">
+                            <p className="text-xs font-bold text-amber-900 uppercase tracking-tight">Locked Asset</p>
+                            <p className="text-[10px] text-amber-700/80 leading-relaxed mt-1">
+                                This lot is closed and cannot be modified. Duplicate it to create a new editable draft.
+                            </p>
+                            <button 
+                                type="button"
+                                onClick={() => handleDuplicate(auction.id)}
+                                disabled={isDuplicating === auction.id}
+                                className="mt-3 inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                            >
+                                {isDuplicating === auction.id ? <Loader2 size={12} className="animate-spin" /> : <Copy size={12} />}
+                                Duplicate as Draft
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                <fieldset disabled={isClosed} className={cn("space-y-4", isClosed && "opacity-50")}>
+                    <div>
+                        <label className={labelClasses}>Asset Title</label>
+                        <input name="title" defaultValue={auction?.title} required className={inputClasses} />
+                    </div>
+                    <div>
+                        <label className={labelClasses}>Status</label>
+                        <select name="status" defaultValue={auction?.status} className={inputClasses}>
+                            <option value="draft">Draft</option>
+                            <option value="live">Live</option>
+                            <option value="sold">Sold</option>
+                        </select>
+                    </div>
+                </fieldset>
+
+                {!isClosed && (
+                    <div className="flex justify-end pt-4 font-sans">
+                        <button disabled={editForm.formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2">
+                            {editForm.formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Update Changes</>}
+                        </button>
+                    </div>
+                )}
+            </form>
+          )
+        })()}
       </Modal>
 
       <ConfirmModal 

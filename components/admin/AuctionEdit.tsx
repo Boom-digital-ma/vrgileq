@@ -48,6 +48,7 @@ export const AuctionEdit = () => {
       ...data,
       current_price: Number(data.current_price),
       min_increment: Number(data.min_increment),
+      lot_number: data.lot_number ? Number(data.lot_number) : null,
     })
   }
 
@@ -129,6 +130,11 @@ export const AuctionEdit = () => {
                         <option value="ended">ENDED</option>
                         <option value="sold">SOLD</option>
                     </select>
+                </div>
+
+                <div>
+                    <label className={labelClasses}>Lot Number</label>
+                    <input name="lot_number" type="number" defaultValue={auction?.lot_number} className={inputClasses} placeholder="Optional" />
                 </div>
 
                 <div>

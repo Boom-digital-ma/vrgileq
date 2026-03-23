@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown, Edit3, Shield, FileText } from "lucide-react";
+import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown, Edit3, Shield, FileText, Maximize2 } from "lucide-react";
 import QuickViewModal from "./QuickViewModal";
+import ImageGallery from "./ImageGallery";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { placeBid } from "@/app/actions/bids";
 import { checkRegistration } from "@/app/actions/registrations";
@@ -61,6 +62,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showLightbox, setShowLightbox] = useState(false);
   const router = useRouter();
   
   const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
@@ -378,6 +380,16 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
             </>
           )}
 
+          {/* ZOOM OVERLAY BUTTON */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none lg:pointer-events-auto">
+              <button 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowLightbox(true); }}
+                className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white shadow-2xl scale-75 group-hover:scale-100 transition-transform hover:bg-primary/50"
+              >
+                  <Maximize2 size={20} />
+              </button>
+          </div>
+
           {/* ADMIN QUICK EDIT & DRAFT BADGE */}
           <div className="absolute top-6 right-6 flex flex-col items-end gap-2 z-20">
               {isAdmin && (
@@ -595,6 +607,14 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
       </div>
 
       <QuickViewModal product={product} isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} initialBid={bidAmount} onlyHistory={true} />
+      
+      <ImageGallery 
+        images={allImages} 
+        title={product.title} 
+        isOpen={showLightbox} 
+        onClose={() => setShowLightbox(false)}
+        hideMainGallery={true}
+      />
     </>
   );
 }

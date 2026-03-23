@@ -34,6 +34,7 @@ export async function duplicateLot(lotId: string) {
       ...clonedData,
       title: `${original.title} (COPY)`,
       status: 'draft',
+      lot_number: null, // Reset lot number to avoid unique constraint conflict
       current_price: original.start_price || 0, // Reset to start price
       ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default 7 days
     }

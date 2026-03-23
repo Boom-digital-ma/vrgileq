@@ -1,17 +1,33 @@
 'use client'
 
 import { useTable, useNavigation, useDelete, useForm, useList } from "@refinedev/core"
-import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save, Gavel, ArrowLeft } from "lucide-react"
+import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save, Gavel, ArrowLeft, Copy, AlertCircle } from "lucide-react"
 import { cn, formatEventDate } from "@/lib/utils"
 import { useState } from "react"
 import { Modal, ConfirmModal } from "./Modal"
 import { ImageUpload } from "./ImageUpload"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
+import { duplicateEvent } from "@/app/actions/events"
 
 export const EventList = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'live' | 'upcoming' | 'closed'>('all')
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null)
   const now = new Date().toISOString()
+
+  const { show, edit } = useNavigation()
+
+  const handleDuplicate = async (id: string) => {
+    setIsDuplicating(id)
+    const res = await duplicateEvent(id)
+    if (res.success) {
+      toast.success("Event and all lots duplicated as drafts!")
+      edit("auction_events", res.id!)
+    } else {
+      toast.error(res.error || "Failed to duplicate")
+    }
+    setIsDuplicating(null)
+  }
 
   const result = useTable({
     resource: "auction_events",
@@ -52,7 +68,6 @@ export const EventList = () => {
   const events = tableQuery?.data?.data || []
   const isLoading = tableQuery?.isLoading
 
-  const { show } = useNavigation()
   const { mutate: deleteRecord } = useDelete()
 
   // --- ÉTATS DES MODALES ---
@@ -197,6 +212,14 @@ export const EventList = () => {
                         );
                     })()}
                     <div className="flex gap-1">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleDuplicate(event.id); }} 
+                            disabled={isDuplicating === event.id}
+                            className="p-2 hover:bg-primary/10 rounded-xl transition-colors text-zinc-400 hover:text-primary"
+                            title="Duplicate Event & Lots"
+                        >
+                            {isDuplicating === event.id ? <Loader2 size={18} className="animate-spin" /> : <Copy size={18} />}
+                        </button>
                         <button onClick={() => handleEditClick(event)} className="p-2 hover:bg-zinc-50 rounded-xl transition-colors text-zinc-400 hover:text-zinc-900"><Edit size={18} /></button>
                         <button onClick={() => show("auction_events", event.id)} className="p-2 hover:bg-zinc-50 rounded-xl transition-colors text-zinc-400 hover:text-zinc-900"><Eye size={18} /></button>
                         <button onClick={() => handleDeleteClick(event.id)} className="p-2 hover:bg-rose-50 rounded-xl transition-colors text-zinc-300 hover:text-rose-600"><Trash2 size={18} /></button>
@@ -247,34 +270,80 @@ export const EventList = () => {
       </Modal>
 
       <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Update Event Details">
-        <form onSubmit={handleEditSubmit} className="p-8 space-y-6 font-sans text-zinc-900">
-            <ImageUpload onUpload={setUploadedImages} defaultValues={uploadedImages} key={uploadedImages.join(',')} />
-            <div className="space-y-4">
-                <div><label className={labelClasses}>Event Title</label><input name="title" defaultValue={editData?.title} key={editData?.title} required className={inputClasses} /></div>
-                <div><label className={labelClasses}>Description</label><textarea name="description" defaultValue={editData?.description} key={editData?.description} rows={2} className={cn(inputClasses, "h-auto py-3 resize-none")} /></div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                    <div><label className={labelClasses}>Location</label><input name="location" defaultValue={editData?.location} key={editData?.location} placeholder="e.g. Alexandria, VA" className={inputClasses} /></div>
-                    <div>
-                        <label className={labelClasses}>Status</label>
-                        <select name="status" defaultValue={editData?.status} key={editData?.status} className={inputClasses}>
-                            <option value="draft">Draft</option>
-                            <option value="scheduled">Scheduled</option>
-                            <option value="live">Live</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                    </div>
-                </div>
+        {(() => {
+            const isClosed = editData?.status === 'closed';
+            
+            return (
+                <form 
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        if (isClosed) {
+                            toast.error("Closed events cannot be edited directly. Please duplicate it instead.");
+                            return;
+                        }
+                        handleEditSubmit(e);
+                    }} 
+                    className="p-8 space-y-6 font-sans text-zinc-900"
+                >
+                    {isClosed && (
+                        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 mb-6">
+                            <AlertCircle className="text-amber-600 mt-0.5" size={18} />
+                            <div className="flex-1">
+                                <p className="text-xs font-bold text-amber-900 uppercase tracking-tight">Archived Event</p>
+                                <p className="text-[10px] text-amber-700/80 leading-relaxed mt-1 font-medium">
+                                    This event is closed and its configuration is locked to maintain historical integrity. Duplicate it to create a new editable draft with all its lots.
+                                </p>
+                                <button 
+                                    type="button"
+                                    onClick={() => handleDuplicate(selectedId!)}
+                                    disabled={isDuplicating === selectedId}
+                                    className="mt-3 inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all"
+                                >
+                                    {isDuplicating === selectedId ? <Loader2 size={12} className="animate-spin" /> : <Copy size={12} />}
+                                    Duplicate Event & Lots
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div><label className={labelClasses}>Start Date</label><input name="start_at" type="datetime-local" defaultValue={editData?.start_at ? new Date(editData.start_at).toISOString().slice(0,16) : ''} key={editData?.start_at} className={inputClasses} /></div>
-                    <div><label className={labelClasses}>End Date</label><input name="ends_at" type="datetime-local" defaultValue={editData?.ends_at ? new Date(editData.ends_at).toISOString().slice(0,16) : ''} key={editData?.ends_at} required className={inputClasses} /></div>
-                </div>
+                    <fieldset disabled={isClosed} className={cn("space-y-4", isClosed && "opacity-50 pointer-events-none")}>
+                        <ImageUpload onUpload={setUploadedImages} defaultValues={uploadedImages} key={uploadedImages.join(',')} />
+                        <div className="space-y-4">
+                            <div><label className={labelClasses}>Event Title</label><input name="title" defaultValue={editData?.title} key={editData?.title} required className={inputClasses} /></div>
+                            <div><label className={labelClasses}>Description</label><textarea name="description" defaultValue={editData?.description} key={editData?.description} rows={2} className={cn(inputClasses, "h-auto py-3 resize-none")} /></div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className={labelClasses}>Location</label><input name="location" defaultValue={editData?.location} key={editData?.location} placeholder="e.g. Alexandria, VA" className={inputClasses} /></div>
+                                <div>
+                                    <label className={labelClasses}>Status</label>
+                                    <select name="status" defaultValue={editData?.status} key={editData?.status} className={inputClasses}>
+                                        <option value="draft">Draft</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="live">Live</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                <div><label className={labelClasses}>Deposit Amount ($)</label><input name="deposit_amount" type="number" defaultValue={editData?.deposit_amount} key={editData?.deposit_amount} className={inputClasses} /></div>
-            </div>
-            <div className="flex justify-end pt-4 font-sans"><button disabled={editForm.formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2">{editForm.formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Update Event</>}</button></div>
-        </form>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className={labelClasses}>Start Date</label><input name="start_at" type="datetime-local" defaultValue={editData?.start_at ? new Date(editData.start_at).toISOString().slice(0,16) : ''} key={editData?.start_at} className={inputClasses} /></div>
+                                <div><label className={labelClasses}>End Date</label><input name="ends_at" type="datetime-local" defaultValue={editData?.ends_at ? new Date(editData.ends_at).toISOString().slice(0,16) : ''} key={editData?.ends_at} required className={inputClasses} /></div>
+                            </div>
+
+                            <div><label className={labelClasses}>Deposit Amount ($)</label><input name="deposit_amount" type="number" defaultValue={editData?.deposit_amount} key={editData?.deposit_amount} className={inputClasses} /></div>
+                        </div>
+                    </fieldset>
+
+                    {!isClosed && (
+                        <div className="flex justify-end pt-4 font-sans">
+                            <button disabled={editForm.formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2">
+                                {editForm.formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Update Event</>}
+                            </button>
+                        </div>
+                    )}
+                </form>
+            );
+        })()}
       </Modal>
 
       <ConfirmModal 
