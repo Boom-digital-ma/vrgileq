@@ -410,10 +410,11 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
         <div className="flex flex-1 flex-col p-6 border-t border-zinc-100">
           <div className="flex justify-between items-start mb-3">
             <div className="flex items-center gap-2">
-                <div className="bg-primary/10 p-1.5 rounded-lg">
+                <div className="bg-primary/10 p-1.5 rounded-lg flex items-center gap-2">
                     <Building2 className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[10px] font-black text-primary uppercase tracking-widest border-l border-primary/20 pl-2">#{product.lotNumber || product.id.slice(0,4)}</span>
                 </div>
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[120px]">{product.supplier}</span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[100px]">{product.supplier}</span>
             </div>
             <div className="flex gap-1">
                 <button 
@@ -525,9 +526,6 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
               </div>
             </div>
             <div className="flex items-center gap-3">
-                <div className="bg-zinc-100 text-secondary px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-zinc-200 shadow-sm italic">
-                    #{product.lotNumber || product.id.slice(0,4)}
-                </div>
                 <button 
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsHistoryModalOpen(true); }}
                     className="flex flex-col items-end group/bids"

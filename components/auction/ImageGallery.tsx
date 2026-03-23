@@ -147,34 +147,26 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-white/95 flex flex-col items-center justify-center p-4 md:p-12"
+          className="fixed inset-0 z-[9999] bg-secondary/40 backdrop-blur-sm flex items-center justify-center p-4 md:p-12"
           onClick={closeLightbox}
         >
-          {/* Header / Controls */}
-          <div className="absolute top-8 left-8 right-8 flex items-center justify-between text-secondary z-[110]" onClick={e => e.stopPropagation()}>
-            <div className="flex flex-col">
-              <h3 className="text-sm font-bold tracking-tight uppercase opacity-60">Visual Inspection</h3>
-              <p className="text-lg font-black italic uppercase tracking-tighter">{title}</p>
-            </div>
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative max-w-5xl w-full bg-white rounded-[32px] overflow-hidden shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Close Button directly on modal */}
             <button 
               onClick={closeLightbox}
-              className="p-4 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 rounded-full transition-all group active:scale-90 text-secondary"
+              className="absolute top-6 right-6 z-[110] p-2 bg-white/80 backdrop-blur-md border border-zinc-200 rounded-full text-zinc-400 hover:text-secondary transition-all shadow-sm group"
             >
-              <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+              <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
             </button>
-          </div>
 
-          {/* Main Lightbox Content */}
-          <div className="relative w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={selectedIndex}
-                initial={{ opacity: 0, scale: 0.9, x: 20 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.9, x: -20 }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="relative w-full h-[70vh] md:h-[80vh]"
-              >
+            {/* Main Image */}
+            <div className="relative aspect-[4/3] w-full bg-zinc-50">
                 <Image
                   src={validImages[selectedIndex]}
                   alt={title}
@@ -183,32 +175,20 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
                   priority
                   sizes="100vw"
                 />
-              </motion.div>
-            </AnimatePresence>
+            </div>
 
-            {/* Navigation Arrows */}
-            {validImages.length > 1 && (
-              <>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                  className="absolute left-4 md:left-10 p-4 text-zinc-400 hover:text-secondary hover:bg-zinc-100 rounded-full transition-all"
-                >
-                  <ChevronLeft size={48} strokeWidth={1} />
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                  className="absolute right-4 md:right-10 p-4 text-zinc-400 hover:text-secondary hover:bg-zinc-100 rounded-full transition-all"
-                >
-                  <ChevronRight size={48} strokeWidth={1} />
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Pagination Counter */}
-          <div className="absolute bottom-12 text-zinc-400 text-[10px] font-black uppercase tracking-[0.2em]">
-            Image {selectedIndex + 1} of {validImages.length}
-          </div>
+            {/* Mini Footer / Info */}
+            <div className="px-8 py-4 bg-white border-t border-zinc-100 flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 italic">{title}</span>
+                {validImages.length > 1 && (
+                    <div className="flex items-center gap-4">
+                        <button onClick={prevImage} className="p-2 hover:bg-zinc-50 rounded-full text-zinc-400 hover:text-primary transition-colors"><ChevronLeft size={20} /></button>
+                        <span className="text-[9px] font-bold text-zinc-400 uppercase tabular-nums">{selectedIndex + 1} / {validImages.length}</span>
+                        <button onClick={nextImage} className="p-2 hover:bg-zinc-50 rounded-full text-zinc-400 hover:text-primary transition-colors"><ChevronRight size={20} /></button>
+                    </div>
+                )}
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>,
