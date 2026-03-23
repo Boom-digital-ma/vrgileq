@@ -381,10 +381,10 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           )}
 
           {/* ZOOM OVERLAY BUTTON */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none lg:pointer-events-auto">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
               <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowLightbox(true); }}
-                className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white shadow-2xl scale-75 group-hover:scale-100 transition-transform hover:bg-primary/50"
+                className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white shadow-2xl scale-75 group-hover:scale-100 transition-transform hover:bg-primary/50 pointer-events-auto cursor-pointer"
               >
                   <Maximize2 size={20} />
               </button>
