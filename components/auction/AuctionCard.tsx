@@ -373,15 +373,15 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
               </div>
 
               {/* Navigation Arrows */}
-              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 opacity-0 group-hover:opacity-100 lg:group-hover:opacity-100 transition-all duration-300 z-20">
-                  <button onClick={handlePrevImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowLeft size={14} /></button>
-                  <button onClick={handleNextImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100"><ArrowRight size={14} /></button>
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 opacity-0 group-hover:opacity-100 lg:group-hover:opacity-100 transition-all duration-300 z-20 pointer-events-none">
+                  <button onClick={handlePrevImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100 pointer-events-auto"><ArrowLeft size={14} /></button>
+                  <button onClick={handleNextImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100 pointer-events-auto"><ArrowRight size={14} /></button>
               </div>
             </>
           )}
 
           {/* ZOOM OVERLAY BUTTON */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-30 pointer-events-none">
               <button 
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowLightbox(true); }}
                 className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white shadow-2xl scale-75 group-hover:scale-100 transition-transform hover:bg-primary/50 pointer-events-auto cursor-pointer"
