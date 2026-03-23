@@ -348,10 +348,6 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           )}
           
           <div className="absolute top-6 left-6 flex items-center gap-2 z-10 pointer-events-none">
-            <div className="bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm border border-white/20">
-              #{product.lotNumber || product.id.slice(0,4)}
-            </div>
-            
             {mounted && isStarted && timeLeft !== "Auction Ended" && (
               <div className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 animate-in fade-in zoom-in duration-500">
                   <span className="relative flex h-2 w-2">
@@ -528,13 +524,18 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                     )}                </div>
               </div>
             </div>
-            <button 
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsHistoryModalOpen(true); }}
-                className="flex flex-col items-end group/bids"
-            >
-              <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg group-hover/bids:bg-primary group-hover/bids:text-white transition-all">{realtimeBidCount} Bids</span>
-              <span className="text-[8px] font-bold text-zinc-300 uppercase mt-1">History →</span>
-            </button>
+            <div className="flex items-center gap-3">
+                <div className="bg-zinc-100 text-secondary px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-zinc-200 shadow-sm italic">
+                    #{product.lotNumber || product.id.slice(0,4)}
+                </div>
+                <button 
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsHistoryModalOpen(true); }}
+                    className="flex flex-col items-end group/bids"
+                >
+                <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg group-hover/bids:bg-primary group-hover/bids:text-white transition-all">{realtimeBidCount} Bids</span>
+                <span className="text-[8px] font-bold text-zinc-300 uppercase mt-1">History →</span>
+                </button>
+            </div>
           </div>
 
           {/* Conditional Bidding / Login UI */}
