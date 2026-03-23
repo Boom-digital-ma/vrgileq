@@ -2,9 +2,7 @@
   "security": {
     "enablePermanentToolApproval": true
   },
-  "tools": {
-    "approvalMode": "auto_edit"
-  },
+  "tools": {},
   "general": {
     "defaultApprovalMode": "auto_edit"
   }

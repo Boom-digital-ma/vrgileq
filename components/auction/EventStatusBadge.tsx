@@ -13,10 +13,11 @@ interface EventStatusBadgeProps {
 
 export default function EventStatusBadge({ initialStatus, startAt, endsAt, eventId }: EventStatusBadgeProps) {
   const [status, setStatus] = useState(initialStatus);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
+    setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 1000);
 
     const channel = supabase
@@ -37,8 +38,8 @@ export default function EventStatusBadge({ initialStatus, startAt, endsAt, event
     };
   }, [eventId, supabase]);
 
-  const isEnded = status === 'closed' || (status !== 'live' && new Date(endsAt) <= now);
-  const isUpcoming = status === 'scheduled' || (status === 'live' && new Date(startAt) > now);
+  const isEnded = now && (status === 'closed' || (status !== 'live' && new Date(endsAt) <= now));
+  const isUpcoming = now && (status === 'scheduled' || (status === 'live' && new Date(startAt) > now));
   const displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
   const isLive = displayStatus === 'live';
 

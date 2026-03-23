@@ -114,7 +114,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
     ...secondaryImages
   ].filter((url, index, self) => url && self.indexOf(url) === index);
 
-  const [isStarted, setIsStarted] = useState(!lot.auction_events?.start_at || new Date(lot.auction_events.start_at) <= new Date());
+  const [isStarted, setIsStarted] = useState(!lot.auction_events?.start_at);
   const isLive = lot.status === 'live' && isStarted && !isAuctionEnded;
   const isUpcoming = !isStarted && !isAuctionEnded;
 

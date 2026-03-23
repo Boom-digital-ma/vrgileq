@@ -35,8 +35,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [isWatched, setIsWatched] = useState(false);
   const [loadingWatch, setLoadingWatch] = useState(false);
   const [settings, setSettings] = useState<any>(null);
-  const [isStarted, setIsStarted] = useState(!startAt || startAt <= new Date());
-  const [isEnded, setIsEnded] = useState(realtimeEndsAt <= new Date());
+  const [isStarted, setIsStarted] = useState(!startAt);
+  const [isEnded, setIsEnded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   

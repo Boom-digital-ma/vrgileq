@@ -17,11 +17,12 @@ interface ProtocolCardsProps {
 }
 
 export default function ProtocolCards({ event }: ProtocolCardsProps) {
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
   const [status, setStatus] = useState(event.status);
   const supabase = createClient();
 
   useEffect(() => {
+    setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 1000);
 
     const channel = supabase
@@ -42,8 +43,8 @@ export default function ProtocolCards({ event }: ProtocolCardsProps) {
     };
   }, [event.id, supabase]);
 
-  const isEnded = status === 'closed' || (status !== 'live' && new Date(event.ends_at) <= now);
-  const isUpcoming = status === 'scheduled' || (status === 'live' && new Date(event.start_at) > now);
+  const isEnded = !!(now && (status === 'closed' || (status !== 'live' && new Date(event.ends_at) <= now)));
+  const isUpcoming = !!(now && (status === 'scheduled' || (status === 'live' && new Date(event.start_at) > now)));
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-20">

@@ -10,15 +10,16 @@ interface EventCardStatusProps {
 }
 
 export default function EventCardStatus({ startAt, endsAt, status }: EventCardStatusProps) {
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const isEnded = status === 'closed' || (status !== 'live' && new Date(endsAt) <= now);
-  const isUpcoming = status === 'scheduled' || (status === 'live' && new Date(startAt) > now);
+  const isEnded = now && (status === 'closed' || (status !== 'live' && new Date(endsAt) <= now));
+  const isUpcoming = now && (status === 'scheduled' || (status === 'live' && new Date(startAt) > now));
 
   if (isEnded) {
     return (

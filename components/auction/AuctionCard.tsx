@@ -53,8 +53,8 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
   const [userMaxBid, setUserMaxBid] = useState(product.userMaxBid);
   const [userCurrentBid, setUserCurrentBid] = useState(product.userCurrentBid);
   const [winnerId, setWinnerId] = useState(product.winner_id);
-  const [isStarted, setIsStarted] = useState(product.status !== 'draft' && (!product.startAt || new Date(product.startAt) <= new Date()));
-  const [isEnded, setIsEnded] = useState(product.status === 'sold' || product.status === 'ended' || new Date(product.endsAt) <= new Date());
+  const [isStarted, setIsStarted] = useState(product.status !== 'draft' && !product.startAt);
+  const [isEnded, setIsEnded] = useState(product.status === 'sold' || product.status === 'ended');
   const isDraft = product.status === 'draft';
   const [isUrgent, setIsUrgent] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
