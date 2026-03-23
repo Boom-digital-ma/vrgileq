@@ -14,7 +14,7 @@ import { releaseEventDeposits, processEventPayments } from "@/app/actions/paymen
 import { generateEventInvoicesAction } from "@/app/actions/sales"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
-import { formatEventDate } from "@/lib/utils"
+import { formatEventDate, formatDateForInput } from "@/lib/utils"
 
 export const EventShow = () => {
   const params = useParams()
@@ -668,15 +668,8 @@ export const EventShow = () => {
                         <div><label className={labelClasses}>Start Price ($)</label><input name="start_price" type="number" defaultValue={editLotData.start_price} className={inputClasses} /></div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
+                        <div><label className={labelClasses}>Closing Date</label><input name="ends_at" type="datetime-local" defaultValue={formatDateForInput(editLotData.ends_at)} className={inputClasses} /></div>
                         <div><label className={labelClasses}>Min. Increment ($)</label><input name="min_increment" type="number" defaultValue={editLotData.min_increment} className={inputClasses} /></div>
-                        <div><label className={labelClasses}>Status</label>
-                            <select name="status" defaultValue={editLotData.status} className={inputClasses}>
-                                <option value="draft">Draft</option>
-                                <option value="live">Live</option>
-                                <option value="sold">Sold</option>
-                                <option value="ended">Ended</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
                 <div className="flex justify-end pt-4 font-sans text-zinc-900"><button disabled={formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">{formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Update Item</>}</button></div>

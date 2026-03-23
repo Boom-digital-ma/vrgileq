@@ -12,7 +12,7 @@ import { checkRegistration } from "@/app/actions/registrations";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { cn, getOptimizedImageUrl, formatEventDate } from "@/lib/utils";
+import { cn, getOptimizedImageUrl, formatEventDate, calculateNextIncrement } from "@/lib/utils";
 
 export interface Product {
   id: string;
@@ -39,7 +39,8 @@ export interface Product {
 }
 
 export default function AuctionCard({ product, user, disableRealtime = false }: { product: Product, user: any, disableRealtime?: boolean }) {
-  const [bidAmount, setBidAmount] = useState<number>(product.price + (product.minIncrement || 100));
+  const initialIncrement = calculateNextIncrement(product.price);
+  const [bidAmount, setBidAmount] = useState<number>(product.price + initialIncrement);
   const [mounted, setMounted] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
@@ -116,6 +117,10 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
     setUserMaxBid(product.userMaxBid);
     setUserCurrentBid(product.userCurrentBid);
     setWinnerId(product.winner_id);
+    
+    // Also update bid amount recommendation
+    const nextInc = calculateNextIncrement(product.price);
+    setBidAmount(product.price + nextInc);
   }, [product.price, product.bidCount, product.endsAt, product.userMaxBid, product.userCurrentBid, product.winner_id]);
 
   // 1. Timer Effect
@@ -584,7 +589,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
                             <input 
                             type="number" 
                             step="any"
-                            min={realtimePrice + (product.minIncrement || 1)} 
+                            min={realtimePrice + calculateNextIncrement(realtimePrice)} 
                             value={bidAmount} 
                             onChange={(e) => setBidAmount(Number(e.target.value))} 
                             className="w-full h-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-3 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 

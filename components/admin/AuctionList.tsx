@@ -2,7 +2,7 @@
 
 import { useTable, useNavigation, useDelete, useForm, useSelect } from "@refinedev/core"
 import { Edit, Trash2, Plus, Loader2, Package, Search, Save, Filter, Gavel, Eye, ArrowLeft, Copy, AlertCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatDateForInput } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import { Modal, ConfirmModal } from "./Modal"
 import { duplicateLot } from "@/app/actions/lots"

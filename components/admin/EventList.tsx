@@ -2,7 +2,7 @@
 
 import { useTable, useNavigation, useDelete, useForm, useList } from "@refinedev/core"
 import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save, Gavel, ArrowLeft, Copy, AlertCircle } from "lucide-react"
-import { cn, formatEventDate } from "@/lib/utils"
+import { cn, formatEventDate, formatDateForInput } from "@/lib/utils"
 import { useState } from "react"
 import { Modal, ConfirmModal } from "./Modal"
 import { ImageUpload } from "./ImageUpload"
@@ -326,8 +326,8 @@ export const EventList = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className={labelClasses}>Start Date</label><input name="start_at" type="datetime-local" defaultValue={editData?.start_at ? new Date(editData.start_at).toISOString().slice(0,16) : ''} key={editData?.start_at} className={inputClasses} /></div>
-                                <div><label className={labelClasses}>End Date</label><input name="ends_at" type="datetime-local" defaultValue={editData?.ends_at ? new Date(editData.ends_at).toISOString().slice(0,16) : ''} key={editData?.ends_at} required className={inputClasses} /></div>
+                                <div><label className={labelClasses}>Start Date</label><input name="start_at" type="datetime-local" defaultValue={formatDateForInput(editData?.start_at)} key={editData?.start_at} className={inputClasses} /></div>
+                                <div><label className={labelClasses}>End Date</label><input name="ends_at" type="datetime-local" defaultValue={formatDateForInput(editData?.ends_at)} key={editData?.ends_at} required className={inputClasses} /></div>
                             </div>
 
                             <div><label className={labelClasses}>Deposit Amount ($)</label><input name="deposit_amount" type="number" defaultValue={editData?.deposit_amount} key={editData?.deposit_amount} className={inputClasses} /></div>

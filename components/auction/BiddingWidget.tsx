@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn, formatEventDate, calculateNextIncrement } from "@/lib/utils";
 
 interface BiddingWidgetProps {
   auctionId: string;
@@ -28,7 +28,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [realtimePrice, setRealtimePrice] = useState(initialPrice);
   const [realtimeBids, setRealtimeBids] = useState(bids);
   const [realtimeEndsAt, setRealtimeEndsAt] = useState(endsAt);
-  const [bidAmount, setBidAmount] = useState<number>(initialPrice + minIncrement);
+  const [bidAmount, setBidAmount] = useState<number>(initialPrice + calculateNextIncrement(initialPrice));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -108,9 +108,10 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         { event: 'UPDATE', schema: 'public', table: 'auctions', filter: `id=eq.${auctionId}` },
         (payload: any) => {
           if (isMounted) {
-            setRealtimePrice(Number(payload.new.current_price));
+            const newPrice = Number(payload.new.current_price);
+            setRealtimePrice(newPrice);
             setRealtimeEndsAt(new Date(payload.new.ends_at));
-            setBidAmount(Number(payload.new.current_price) + Number(payload.new.min_increment));
+            setBidAmount(newPrice + calculateNextIncrement(newPrice));
           }
         }
       )
@@ -214,7 +215,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
   const premiumPercent = settings?.buyers_premium || 15;
   const taxRate = settings?.tax_rate || 0;
-  const currentHammer = bidAmount > (realtimePrice + minIncrement) ? (realtimePrice + minIncrement) : bidAmount;
+  const nextRequiredInc = calculateNextIncrement(realtimePrice);
+  const currentHammer = bidAmount > (realtimePrice + nextRequiredInc) ? (realtimePrice + nextRequiredInc) : bidAmount;
   const premiumAmount = currentHammer * (premiumPercent / 100);
   const taxAmount = (currentHammer + premiumAmount) * (taxRate / 100);
   const totalAuth = currentHammer + premiumAmount + taxAmount;
@@ -309,7 +311,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2 italic">Next Min Bid</div>
           <div className="text-3xl font-bold text-secondary/40 font-display italic tracking-tight" suppressHydrationWarning>
-            ${mounted ? (realtimePrice + minIncrement).toLocaleString() : (realtimePrice + minIncrement).toString()}
+            ${mounted ? (realtimePrice + calculateNextIncrement(realtimePrice)).toLocaleString() : (realtimePrice + calculateNextIncrement(realtimePrice)).toString()}
           </div>
         </div>
       </div>
@@ -322,7 +324,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           <div className="relative">
             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 text-xl font-bold font-display">$</span>
             <input
-              type="number" step="any" disabled={isAdmin} min={realtimePrice + minIncrement}
+              type="number" step="any" disabled={isAdmin} min={realtimePrice + calculateNextIncrement(realtimePrice)}
               value={bidAmount} onChange={(e) => setBidAmount(Number(e.target.value))}
               className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-5 pl-10 pr-6 text-2xl font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all font-display italic outline-none disabled:opacity-50"
             />

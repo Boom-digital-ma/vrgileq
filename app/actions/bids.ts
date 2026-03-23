@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { sendOutbidEmail } from '@/lib/emails'
+import { calculateNextIncrement } from '@/lib/utils'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-01-28.clover',
@@ -49,10 +50,11 @@ export async function placeBid({
 
   // RULE 2: Auto-Proxy Logic
   // Any amount above minRequiredBid is treated as a potential proxy/max bid by the SQL engine
-  const minRequiredBid = Number(auction.current_price) + Number(auction.min_increment);
+  const dynamicIncrement = calculateNextIncrement(Number(auction.current_price));
+  const minRequiredBid = Number(auction.current_price) + dynamicIncrement;
   
   if (amount < minRequiredBid) {
-    throw new Error(`Minimum bid required is $${minRequiredBid}`);
+    throw new Error(`Minimum bid required is $${minRequiredBid.toLocaleString()}`);
   }
 
   // We send the full amount as both the bid and the max_amount

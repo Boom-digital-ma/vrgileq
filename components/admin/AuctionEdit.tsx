@@ -2,7 +2,7 @@
 
 import { useForm, useSelect, useNavigation } from "@refinedev/core"
 import { ArrowLeft, Save, Loader2, Copy, AlertCircle, ExternalLink } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatDateForInput } from "@/lib/utils"
 import { duplicateLot } from "@/app/actions/lots"
 import { toast } from "sonner"
 import { useState } from "react"
@@ -50,12 +50,6 @@ export const AuctionEdit = () => {
       min_increment: Number(data.min_increment),
       lot_number: data.lot_number ? Number(data.lot_number) : null,
     })
-  }
-
-  const formatDateForInput = (dateString?: string) => {
-    if (!dateString) return ""
-    const date = new Date(dateString)
-    return date.toISOString().slice(0, 16)
   }
 
   const inputClasses = "w-full border border-zinc-200 p-3 rounded-lg text-sm outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-zinc-900 placeholder:text-zinc-300 shadow-sm"
