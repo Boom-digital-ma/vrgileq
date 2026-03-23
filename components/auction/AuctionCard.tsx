@@ -54,7 +54,15 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
   const [userMaxBid, setUserMaxBid] = useState(product.userMaxBid);
   const [userCurrentBid, setUserCurrentBid] = useState(product.userCurrentBid);
   const [winnerId, setWinnerId] = useState(product.winner_id);
-  const [isStarted, setIsStarted] = useState(product.status !== 'draft' && !product.startAt);
+  
+  // Refined start logic: If not draft, check if current time is past startAt
+  const getIsStarted = () => {
+    if (product.status === 'draft') return false;
+    if (!product.startAt) return true;
+    return new Date(product.startAt).getTime() <= new Date().getTime();
+  };
+
+  const [isStarted, setIsStarted] = useState(getIsStarted());
   const [isEnded, setIsEnded] = useState(product.status === 'sold' || product.status === 'ended');
   const isDraft = product.status === 'draft';
   const [isUrgent, setIsUrgent] = useState(false);
@@ -120,8 +128,11 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
       const startTime = product.startAt ? new Date(product.startAt).getTime() : 0;
       const endTime = new Date(realtimeEndsAt).getTime();
       
-      const started = !product.startAt || startTime <= now;
-      const ended = endTime <= now;
+      // An auction is started if its status is not draft AND (there's no start date OR we've passed it)
+      const started = product.status !== 'draft' && (!product.startAt || startTime <= now);
+      
+      // An auction is ended if its status is sold/ended OR we've passed the end time
+      const ended = product.status === 'sold' || product.status === 'ended' || endTime <= now;
 
       if (isTimerMounted) {
         setIsStarted(started);
@@ -129,7 +140,7 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
         setIsUrgent(started && !ended && (endTime - now) < 24 * 60 * 60 * 1000);
       }
 
-      if (!started && product.startAt) {
+      if (!started && product.status !== 'draft' && product.startAt) {
         return `Starts ${formatEventDate(product.startAt)}`;
       }
 
