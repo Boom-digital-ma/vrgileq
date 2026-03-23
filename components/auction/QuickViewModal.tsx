@@ -23,6 +23,7 @@ interface QuickViewModalProps {
     model?: string;
     description?: string;
     minIncrement?: number;
+    category?: string;
   };
   isOpen: boolean;
   onClose: () => void;
@@ -189,8 +190,11 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
                 <Image src={product.image} alt={product.title} fill className="object-cover" sizes="80px" />
               </div>
               <div className="min-w-0 pr-10 italic">
-                <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Lot #{product.id.slice(0,4)}</span>
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <div className="flex items-center gap-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">{product.category || 'Asset'}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-300">#{product.id.slice(0,4)}</span>
+                    </div>
                     <div className="h-1 w-1 bg-zinc-200 rounded-full" />
                     <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{product.supplier}</span>
                 </div>
@@ -200,8 +204,10 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
           ) : (
             <>
               <Image src={product.image} alt={product.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
-              <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border border-white/20 shadow-sm italic">
-                Lot #{product.id.slice(0,4)}
+              <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md text-secondary px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border border-white/20 shadow-sm italic flex items-center gap-2">
+                <span className="text-primary font-black">{product.category || 'Asset'}</span>
+                <span className="text-zinc-300">•</span>
+                <span>#{product.id.slice(0,4)}</span>
               </div>
             </>
           )}

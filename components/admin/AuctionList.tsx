@@ -14,7 +14,7 @@ export const AuctionList = () => {
   
   const result = useTable({
     resource: "auctions",
-    meta: { select: "*, auction_events(title), bids(id)" },
+    meta: { select: "*, auction_events(title), bids(id), categories(name)" },
     pagination: { pageSize: 10 }
   })
 
@@ -169,7 +169,11 @@ export const AuctionList = () => {
                   <td className="px-6 py-5">
                     <div className="flex flex-col">
                         <span className="font-bold text-zinc-900 text-base">{auction.title}</span>
-                        <span className="text-[10px] text-zinc-400 font-mono italic uppercase">#{auction.id.slice(0,8)}</span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] text-primary font-black uppercase tracking-widest">{auction.categories?.name || 'No Category'}</span>
+                            <span className="text-[10px] text-zinc-300">•</span>
+                            <span className="text-[10px] text-zinc-400 font-mono italic uppercase">#{auction.id.slice(0,8)}</span>
+                        </div>
                     </div>
                   </td>
                   <td className="px-6 py-5">

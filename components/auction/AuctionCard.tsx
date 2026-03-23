@@ -303,12 +303,13 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
       )}>
         {/* Media Container */}
         <div 
-          className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100"
+          className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100 cursor-pointer"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
+          onClick={() => setShowLightbox(true)}
         >
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 group/media">
             <Image
               src={getOptimizedImageUrl(allImages[currentImageIndex], { width: 600 })}
               alt={`${product.title} ${product.manufacturer ? `by ${product.manufacturer}` : ''} ${product.model ? `(${product.model})` : ''} - Virginia Liquidation`}
@@ -321,6 +322,23 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
               priority={false}
             />
+
+            {allImages.length > 1 && (
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 opacity-0 group-hover/media:opacity-100 transition-all duration-300 z-20 pointer-events-none">
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); handlePrevImage(e); }} 
+                        className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100 pointer-events-auto"
+                    >
+                        <ArrowLeft size={14} />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); handleNextImage(e); }} 
+                        className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100 pointer-events-auto"
+                    >
+                        <ArrowRight size={14} />
+                    </button>
+                </div>
+            )}
           </div>
 
           {imageLoading && (
@@ -356,40 +374,20 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
           </div>
 
           {allImages.length > 1 && (
-            <>
-              {/* Pagination Dots */}
-              <div className="absolute bottom-4 left-1/2 -translate-y-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
+            <div className="absolute bottom-4 left-1/2 -translate-y-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
                 {allImages.map((_, i) => (
-                  <div 
+                    <div 
                     key={i} 
                     className={cn(
-                      "h-1 rounded-full transition-all duration-300",
-                      i === currentImageIndex 
+                        "h-1 rounded-full transition-all duration-300",
+                        i === currentImageIndex 
                         ? "w-4 bg-primary shadow-sm" 
                         : "w-1 bg-white/60 shadow-sm"
                     )} 
-                  />
+                    />
                 ))}
-              </div>
-
-              {/* Navigation Arrows */}
-              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 opacity-0 group-hover:opacity-100 lg:group-hover:opacity-100 transition-all duration-300 z-20 pointer-events-none">
-                  <button onClick={handlePrevImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100 pointer-events-auto"><ArrowLeft size={14} /></button>
-                  <button onClick={handleNextImage} className="bg-white/90 backdrop-blur-md p-2 rounded-full text-secondary hover:bg-primary hover:text-white transition-all shadow-lg shadow-black/5 border border-zinc-100 pointer-events-auto"><ArrowRight size={14} /></button>
-              </div>
-            </>
+            </div>
           )}
-
-          {/* ZOOM OVERLAY BUTTON */}
-          <div className="absolute inset-0 bg-black/0 flex items-center justify-center opacity-0 group-hover:opacity-100 z-30 pointer-events-none transition-all duration-300">
-              <button 
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowLightbox(true); }}
-                className="bg-white/90 backdrop-blur-xl p-4 rounded-full border border-white/40 text-secondary shadow-2xl scale-90 group-hover:scale-100 transition-all hover:bg-primary hover:text-white pointer-events-auto cursor-pointer flex items-center gap-2"
-              >
-                  <Maximize2 size={20} />
-                  <span className="text-[10px] font-black uppercase tracking-widest pr-1">Zoom</span>
-              </button>
-          </div>
 
           {/* ADMIN QUICK EDIT & DRAFT BADGE */}
           <div className="absolute top-6 right-6 flex flex-col items-end gap-2 z-20">
@@ -607,7 +605,13 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
         </div>
       </div>
 
-      <QuickViewModal product={product} isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} initialBid={bidAmount} onlyHistory={true} />
+      <QuickViewModal 
+        product={{ ...product, category: product.supplier }} 
+        isOpen={isHistoryModalOpen} 
+        onClose={() => setIsHistoryModalOpen(false)} 
+        initialBid={bidAmount} 
+        onlyHistory={true} 
+      />
       
       <ImageGallery 
         images={allImages} 

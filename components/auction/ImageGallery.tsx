@@ -100,14 +100,6 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
         />
 
-        {/* ZOOM OVERLAY BUTTON */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
-            <div className="bg-white/90 backdrop-blur-xl p-4 rounded-full border border-white/40 text-secondary shadow-2xl scale-90 group-hover:scale-100 transition-all hover:bg-primary hover:text-white flex items-center gap-2">
-                <Maximize2 size={24} />
-                <span className="text-xs font-black uppercase tracking-widest pr-1">Zoom Asset</span>
-            </div>
-        </div>
-
         {imageLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-zinc-50/50 backdrop-blur-sm z-10">
             <Loader2 className="h-10 w-10 text-primary animate-spin" />
@@ -115,7 +107,7 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
         )}
         
         {validImages.length > 1 && (
-            <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-[10px] font-bold text-secondary shadow-sm transition-opacity group-hover:opacity-0">
+            <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-[10px] font-bold text-secondary shadow-sm">
                 {selectedIndex + 1} / {validImages.length}
             </div>
         )}
