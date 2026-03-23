@@ -3,6 +3,68 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+export async function duplicateLot(lotId: string) {
+  try {
+    const adminSupabase = createAdminClient()
+
+    // 1. Fetch original lot
+    const { data: original, error: fetchError } = await adminSupabase
+      .from('auctions')
+      .select('*, auction_images(url, is_main)')
+      .eq('id', lotId)
+      .single()
+
+    if (fetchError) throw fetchError
+
+    // 2. Prepare new lot payload (cloning relevant fields)
+    const { 
+        id: _, 
+        created_at: __, 
+        updated_at: ___, 
+        winner_id: ____, 
+        winning_notified: _____, 
+        status: ______, 
+        current_price: _______, 
+        bid_count: ________,
+        auction_images: originalImages,
+        ...clonedData 
+    } = original
+
+    const newLotPayload = {
+      ...clonedData,
+      title: `${original.title} (COPY)`,
+      status: 'draft',
+      current_price: original.start_price || 0, // Reset to start price
+      ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default 7 days
+    }
+
+    // 3. Insert new lot
+    const { data: newLot, error: insertError } = await adminSupabase
+      .from('auctions')
+      .insert(newLotPayload)
+      .select()
+      .single()
+
+    if (insertError) throw insertError
+
+    // 4. Clone Images
+    if (originalImages && originalImages.length > 0) {
+      const imagesToInsert = originalImages.map((img: any) => ({
+        auction_id: newLot.id,
+        url: img.url,
+        is_main: img.is_main
+      }))
+      await adminSupabase.from('auction_images').insert(imagesToInsert)
+    }
+
+    revalidatePath('/admin/auctions')
+    return { success: true, id: newLot.id }
+  } catch (err: any) {
+    console.error("DUPLICATION ERROR:", err)
+    return { error: err.message || "Failed to duplicate lot" }
+  }
+}
+
 export async function adminUpsertLot(data: any, lotId?: string) {
   try {
     const adminSupabase = createAdminClient()
