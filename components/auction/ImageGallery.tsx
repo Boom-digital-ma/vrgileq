@@ -156,18 +156,18 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-secondary/70 backdrop-blur-xl flex flex-col items-center justify-center p-4 md:p-12"
+          className="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-md flex flex-col items-center justify-center p-4 md:p-12"
           onClick={closeLightbox}
         >
           {/* Header / Controls */}
-          <div className="absolute top-8 left-8 right-8 flex items-center justify-between text-white z-[110]" onClick={e => e.stopPropagation()}>
+          <div className="absolute top-8 left-8 right-8 flex items-center justify-between text-secondary z-[110]" onClick={e => e.stopPropagation()}>
             <div className="flex flex-col">
               <h3 className="text-sm font-bold tracking-tight uppercase opacity-60">Visual Inspection</h3>
               <p className="text-lg font-black italic uppercase tracking-tighter">{title}</p>
             </div>
             <button 
               onClick={closeLightbox}
-              className="p-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full transition-all group active:scale-90"
+              className="p-4 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 rounded-full transition-all group active:scale-90 text-secondary"
             >
               <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
             </button>
@@ -200,13 +200,13 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
               <>
                 <button 
                   onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                  className="absolute left-10 p-4 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                  className="absolute left-4 md:left-10 p-4 text-zinc-400 hover:text-secondary hover:bg-zinc-100 rounded-full transition-all"
                 >
                   <ChevronLeft size={48} strokeWidth={1} />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                  className="absolute right-10 p-4 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                  className="absolute right-4 md:right-10 p-4 text-zinc-400 hover:text-secondary hover:bg-zinc-100 rounded-full transition-all"
                 >
                   <ChevronRight size={48} strokeWidth={1} />
                 </button>
@@ -215,7 +215,7 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
           </div>
 
           {/* Pagination Counter */}
-          <div className="absolute bottom-12 text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
+          <div className="absolute bottom-12 text-zinc-400 text-[10px] font-black uppercase tracking-[0.2em]">
             Image {selectedIndex + 1} of {validImages.length}
           </div>
         </motion.div>
