@@ -185,14 +185,13 @@ export default async function EventPage({
         
         {/* REFINED HEADER SECTION */}
         <div className="space-y-12 mb-16">
-            <div className="flex flex-col lg:flex-row gap-12 lg:items-center">
-                {/* Visual Assets (Image Gallery) */}
-                <div className="w-full lg:w-1/3 shrink-0">
-                    <ImageGallery 
-                        images={event.image_url ? [event.image_url] : []} 
-                        title={event.title} 
-                    />
-                </div>
+            <div className="flex flex-col md:flex-row gap-10 items-start">
+                {/* Thumbnail */}
+                {event.image_url && (
+                    <div className="relative h-32 w-32 md:h-48 md:w-48 rounded-[40px] overflow-hidden border border-zinc-200 shadow-2xl shrink-0">
+                        <Image src={event.image_url} alt={event.title} fill className="object-cover" />
+                    </div>
+                )}
                 
                 <div className="flex-1 space-y-6">
                     <div className="flex items-center gap-3">

@@ -156,7 +156,7 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-secondary/95 backdrop-blur-2xl flex flex-col items-center justify-center p-4 md:p-12"
+          className="fixed inset-0 z-[9999] bg-secondary/70 backdrop-blur-xl flex flex-col items-center justify-center p-4 md:p-12"
           onClick={closeLightbox}
         >
           {/* Header / Controls */}
@@ -200,37 +200,19 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
               <>
                 <button 
                   onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                  className="absolute left-0 p-6 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                  className="absolute left-10 p-4 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
                 >
                   <ChevronLeft size={48} strokeWidth={1} />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                  className="absolute right-0 p-6 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                  className="absolute right-10 p-4 text-white/40 hover:text-white hover:bg-white/5 rounded-full transition-all"
                 >
                   <ChevronRight size={48} strokeWidth={1} />
                 </button>
               </>
             )}
           </div>
-
-          {/* Footer / Thumbnails in Lightbox */}
-          {validImages.length > 1 && (
-            <div className="flex gap-4 mt-8 max-w-full overflow-x-auto pb-4 no-scrollbar" onClick={e => e.stopPropagation()}>
-              {validImages.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedIndex(i)}
-                  className={cn(
-                    "relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 transition-all border-2",
-                    selectedIndex === i ? "border-primary scale-110 shadow-2xl" : "border-white/10 opacity-40"
-                  )}
-                >
-                  <Image src={img} alt="" fill className="object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* Pagination Counter */}
           <div className="absolute bottom-12 text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
