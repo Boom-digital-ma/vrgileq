@@ -147,7 +147,7 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-secondary/40 backdrop-blur-sm flex items-center justify-center p-4 md:p-12"
+          className="fixed inset-0 z-[9999] bg-secondary/60 flex items-center justify-center p-4 md:p-12"
           onClick={closeLightbox}
         >
           <motion.div 
@@ -160,7 +160,7 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
             {/* Close Button directly on modal */}
             <button 
               onClick={closeLightbox}
-              className="absolute top-6 right-6 z-[110] p-2 bg-white/80 backdrop-blur-md border border-zinc-200 rounded-full text-zinc-400 hover:text-secondary transition-all shadow-sm group"
+              className="absolute top-6 right-6 z-[110] p-2 bg-white border border-zinc-200 rounded-full text-zinc-400 hover:text-secondary transition-all shadow-sm group"
             >
               <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
             </button>

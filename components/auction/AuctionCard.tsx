@@ -391,17 +391,19 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
         {/* Content Container */}
         <div className="flex flex-1 flex-col p-6 border-t border-zinc-100">
           <div className="flex justify-between items-start mb-4">
-            <div className="flex flex-col gap-2.5">
-                {/* Lot ID Badge */}
-                <div className="inline-flex w-fit bg-secondary text-white px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm">
+            <div className="flex flex-col gap-2">
+                {/* Lot ID - Alone */}
+                <div className="w-fit bg-zinc-900 text-white px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm">
                     #{product.lotNumber || product.id.slice(0,4)}
                 </div>
-                {/* Category with Icon */}
+                
+                {/* Category with SVG Icon */}
                 <div className="flex items-center gap-1.5 text-zinc-400">
                     <Building2 className="h-3.5 w-3.5 text-primary" />
                     <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[150px]">{product.supplier}</span>
                 </div>
             </div>
+            
             <div className="flex gap-1">
                 <button 
                     onClick={handleToggleWatch} 
