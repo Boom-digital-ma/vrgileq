@@ -132,7 +132,7 @@ export default function Header() {
       <div className="sticky top-0 z-50 w-full print:hidden">
         {/* Announcement Bar */}
         {announcement && (
-            <div className="bg-secondary text-white py-2 px-6 border-b border-white/5 overflow-hidden">
+            <div className="bg-secondary text-white py-1.5 px-6 border-b border-white/5 overflow-hidden">
                 <div className="mx-auto flex max-w-7xl items-center justify-center gap-4">
                     <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/70 italic flex items-center gap-2">
                         <span className="h-1 w-1 bg-primary rounded-full animate-pulse" />
@@ -190,13 +190,11 @@ export default function Header() {
                 {/* Desktop Navigation */}
                 <nav className="hidden lg:flex items-center gap-1">
                     {[
-                        { name: 'Home', href: '/' },
-                        { name: 'Auctions', href: '/auctions' },
-                        { name: 'Process', href: '/how-it-works' },
-                        { name: 'Inventory', href: '/inventory' },
-                        { name: 'Journal', href: '/blog' },
-                        { name: 'Sellers', href: '/sellers' },
+                        { name: 'Auctions', href: '/' },
+                        { name: 'How it works', href: '/how-it-works' },
+                        { name: 'Blog', href: '/blog' },
                         { name: 'About', href: '/about' },
+                        { name: 'Contact us', href: '/contact' },
                     ].map((item) => {
                         const isActive = item.href === '/' 
                             ? pathname === '/' 
@@ -298,13 +296,11 @@ export default function Header() {
 
             <nav className="flex flex-col gap-1 mb-auto">
               {[
-                { name: 'Home', href: '/' },
-                { name: 'Auctions', href: '/auctions' },
-                { name: 'Process', href: '/how-it-works' },
-                { name: 'Inventory', href: '/inventory' },
-                { name: 'Journal', href: '/blog' },
-                { name: 'Sellers', href: '/sellers' },
+                { name: 'Auctions', href: '/' },
+                { name: 'How it works', href: '/inventory' },
+                { name: 'Blog', href: '/blog' },
                 { name: 'About', href: '/about' },
+                { name: 'Contact us', href: '/contact' },
               ].map((item) => {
                 const isActive = item.href === '/' 
                     ? pathname === '/' 

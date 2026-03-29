@@ -29,27 +29,25 @@ export default function PickupInformationPage() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
       {/* Page Header */}
-      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-            <div className="flex flex-col items-center text-center">
-                <div className="flex items-center justify-center gap-3 mb-8">
-                    <div className="h-[1px] w-10 bg-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Warehouse Logistics</span>
-                    <div className="h-[1px] w-10 bg-primary" />
-                </div>
-                <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
-                    Local <br/> <span className="text-primary">Pickup</span>.
-                </h1>
-                <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
-                    Centralized collection protocol at our Beltsville, Maryland facility.
-                </p>
+      <section className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden italic">
+        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="h-[1px] w-6 bg-primary" />
+                <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Warehouse Logistics</span>
+                <div className="h-[1px] w-6 bg-primary" />
             </div>
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-secondary leading-none font-display uppercase mb-6">
+                Local <br/> <span className="text-primary">Pickup</span>.
+            </h1>
+            <p className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg font-medium leading-relaxed uppercase">
+                Centralized collection protocol at our Beltsville, Maryland facility.
+            </p>
         </div>
-        <div className="absolute top-0 right-0 h-full w-1/3 bg-primary/5 blur-[120px] rounded-full translate-x-1/2" />
+        <div className="absolute top-0 right-0 h-full w-1/3 bg-primary/5 blur-[100px] rounded-full translate-x-1/2" />
       </section>
 
       {/* Location Section */}
-      <section className="py-24 px-6">
+      <section className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 items-stretch">
                 {/* Map/Address Card */}
@@ -154,40 +152,50 @@ export default function PickupInformationPage() {
       </section>
 
       {/* Critical Requirements Section */}
-      <section className="py-24 px-6">
+      <section className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
-            <div className="bg-primary/5 rounded-[48px] border border-primary/10 p-12 md:p-20 italic relative overflow-hidden">
-                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div className="bg-primary/5 rounded-[32px] border border-primary/10 p-10 md:p-14 italic relative overflow-hidden">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <h2 className="text-4xl md:text-5xl font-bold text-secondary font-display uppercase italic leading-none mb-10">
+                        <h2 className="text-3xl md:text-4xl font-bold text-secondary font-display uppercase italic leading-none mb-8">
                             Required for <br/> <span className="text-primary">Authorization</span>.
                         </h2>
-                        <ul className="space-y-6">
+                        <ul className="space-y-4">
                             {[
                                 "Valid Government Issued Identification",
                                 "Digital or Printed Gate Pass (QR Code)",
                                 "Confirmation of fully cleared funds",
                                 "Appropriate vehicle for asset transport"
                             ].map((item, i) => (
-                                <li key={i} className="flex items-center gap-4 text-zinc-600 font-bold uppercase tracking-tight text-sm">
-                                    <UserCheck className="text-primary shrink-0" size={20} />
+                                <li key={i} className="flex items-center gap-3 text-zinc-600 font-bold uppercase tracking-tight text-xs">
+                                    <UserCheck className="text-primary shrink-0" size={18} />
                                     {item}
                                 </li>
                             ))}
                         </ul>
                     </div>
-                    <div className="p-10 bg-white rounded-[40px] border border-zinc-100 shadow-xl italic">
-                        <h4 className="text-xl font-bold text-secondary uppercase mb-6">Loading Policy</h4>
-                        <p className="text-zinc-400 text-sm leading-relaxed uppercase mb-8">
+                    <div className="p-8 bg-white rounded-[24px] border border-zinc-100 shadow-lg italic">
+                        <h4 className="text-lg font-bold text-secondary uppercase mb-4">Loading Policy</h4>
+                        <p className="text-zinc-400 text-xs leading-relaxed uppercase mb-6">
                             Virginia Liquidation does not provide tie-downs, blankets, or packing materials. Buyers are responsible for securing all loads in compliance with Maryland DOT regulations.
                         </p>
-                        <div className="pt-8 border-t border-zinc-50 flex items-center justify-between">
-                            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Facility Code</span>
+                        <div className="pt-6 border-t border-zinc-50 flex items-center justify-between">
+                            <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest">Facility Code</span>
                             <span className="text-xs font-mono font-bold text-secondary">MD-BLTS-01</span>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="py-16 px-6 bg-zinc-50 border-t border-zinc-100">
+        <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-xl font-bold text-secondary font-display uppercase italic mb-6">Planning a Large Pickup?</h2>
+            <button className="inline-block bg-primary text-white px-10 py-5 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-secondary transition-all shadow-xl shadow-primary/10 italic">
+                Contact Facility Manager
+            </button>
         </div>
       </section>
     </div>

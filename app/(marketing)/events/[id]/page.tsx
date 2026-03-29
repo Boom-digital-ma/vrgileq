@@ -181,21 +181,22 @@ export default async function EventPage({
           </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-6 py-12 lg:py-20">
+      <div className="max-w-7xl mx-auto px-6 py-10 md:py-14">
         
         {/* REFINED HEADER SECTION */}
-        <div className="space-y-12 mb-16">
-            <div className="flex flex-col md:flex-row gap-10 items-start">
+        <div className="space-y-10 mb-14">
+            <div className="flex flex-col md:flex-row gap-8 items-start">
                 {/* Thumbnail */}
                 {event.image_url && (
-                    <div className="relative h-32 w-32 md:h-48 md:w-48 rounded-[40px] overflow-hidden border border-zinc-200 shadow-2xl shrink-0">
-                        <Image src={event.image_url} alt={event.title} fill className="object-cover" />
+                    <div className="relative h-48 w-48 md:h-72 md:w-72 rounded-[32px] overflow-hidden border border-zinc-200 shadow-2xl shrink-0 group">
+                        <Image src={event.image_url} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[32px]" />
                     </div>
                 )}
                 
-                <div className="flex-1 space-y-6">
-                    <div className="flex items-center gap-3">
-                        <div className="h-1 w-8 bg-primary rounded-full" />
+                <div className="flex-1 space-y-5">
+                    <div className="flex items-center gap-2">
+                        <div className="h-[1px] w-6 bg-primary" />
                         <EventStatusBadge 
                             eventId={event.id}
                             initialStatus={event.status}
@@ -206,12 +207,22 @@ export default async function EventPage({
                             <EventReminderButton eventId={event.id} startAt={event.start_at} isUpcoming={isUpcoming} variant="page" />
                         )}
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-secondary leading-tight font-display uppercase">
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-secondary leading-[1.1] font-display uppercase italic">
                         {event.title}
                     </h1>
-                    <p className="text-zinc-500 font-medium text-lg leading-relaxed max-w-4xl">
+                    <p className="text-zinc-500 font-bold text-sm md:text-base leading-relaxed max-w-2xl uppercase tracking-tight">
                         {event.description}
                     </p>
+                    <div className="flex flex-wrap gap-4 pt-4">
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-white px-4 py-2 rounded-xl border border-zinc-100 italic">
+                            <MapPin size={14} className="text-primary" />
+                            {event.location}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-white px-4 py-2 rounded-xl border border-zinc-100 italic">
+                            <Clock size={14} className="text-primary" />
+                            Official Protocol
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

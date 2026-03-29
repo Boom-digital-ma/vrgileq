@@ -24,7 +24,7 @@ export default function HeroSlider() {
   }, [nextSlide]);
 
   return (
-    <section className="relative h-[700px] md:h-[850px] w-full bg-secondary overflow-hidden">
+    <section className="relative h-[500px] md:h-[600px] w-full bg-secondary overflow-hidden">
       {SLIDES.map((slide, index) => (
         <div
           key={slide.id}
@@ -59,7 +59,7 @@ export default function HeroSlider() {
                 </span>
               </div>
               
-              <h1 className="mb-8 text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl leading-[0.9] text-white font-display italic uppercase">
+              <h1 className="mb-8 text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl leading-[0.9] text-white font-display italic uppercase">
                 {slide.title.split(' ').map((word, i) => (
                     <span key={i} className={i === 1 ? "text-primary block" : "block"}>{word}</span>
                 ))}
@@ -81,7 +81,7 @@ export default function HeroSlider() {
                   href="/contact" 
                   className="bg-white/5 backdrop-blur-md text-white border border-white/10 px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-white/10"
                 >
-                  View Corporate Family
+                  Contact Us
                 </Link>
               </div>
             </div>

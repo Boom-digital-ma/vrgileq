@@ -7,7 +7,7 @@ export default function Footer() {
     <footer className="mt-20 print:hidden">
       {/* SaaS Premium High-Contrast Banner */}
       <div className="bg-secondary text-white overflow-hidden relative">
-        <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="mx-auto max-w-7xl px-6 py-10 md:py-12 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
                 <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20" suppressHydrationWarning>
                     <ShieldCheck size={32} className="text-primary" suppressHydrationWarning />
@@ -62,10 +62,10 @@ export default function Footer() {
                 <div>
                     <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Auction Guide</h4>
                     <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-50">
-                        <Link href="/how-it-works" className="text-zinc-500 hover:text-primary transition-colors uppercase">Process</Link>
-                        <Link href="/inventory" className="text-zinc-500 hover:text-primary transition-colors uppercase">Inventory</Link>
+                        <Link href="/how-it-works" className="text-zinc-500 hover:text-primary transition-colors uppercase">How it works</Link>
                         <Link href="/pickup-information" className="text-zinc-500 hover:text-primary transition-colors uppercase">Local Pickup</Link>
-                        <Link href="/blog" className="text-zinc-500 hover:text-primary transition-colors uppercase">Journal</Link>
+                        <Link href="/blog" className="text-zinc-500 hover:text-primary transition-colors uppercase">Blog</Link>
+                        <Link href="/contact" className="text-zinc-500 hover:text-primary transition-colors uppercase">Contact Us</Link>
                     </nav>
                 </div>
 
@@ -74,8 +74,7 @@ export default function Footer() {
                     <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Institutional</h4>
                     <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-50">
                         <Link href="/about" className="text-zinc-500 hover:text-primary transition-colors uppercase">Our Mission</Link>
-                        <Link href="/sellers" className="text-zinc-500 hover:text-primary transition-colors uppercase">Sell With Us</Link>
-                        <Link href="/terms" className="text-zinc-500 hover:text-primary transition-colors uppercase">Bidding Terms</Link>
+                        <Link href="/terms" className="text-zinc-500 hover:text-primary transition-colors uppercase">General Terms</Link>
                         <Link href="/privacy" className="text-zinc-500 hover:text-primary transition-colors uppercase">Privacy Protocol</Link>
                     </nav>
                 </div>
@@ -84,18 +83,18 @@ export default function Footer() {
                 <div>
                     <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Direct Registry</h4>
                     <div className="space-y-6">
-                        <a href="tel:2405550123" className="flex items-center gap-4 group">
+                        <a href="tel:7038691965" className="flex items-center gap-4 group">
                             <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-all">
                                 <Phone className="w-4 h-4 text-zinc-400 group-hover:text-primary" />
                             </div>
-                            <span className="text-[13px] font-bold text-zinc-500 tracking-tighter uppercase italic">(240) 555-0123</span>
+                            <span className="text-[13px] font-bold text-zinc-500 tracking-wider italic">703-869-1965</span>
                         </a>
-                        <div className="flex items-center gap-4 group">
-                            <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100">
-                                <Mail className="w-4 h-4 text-zinc-400" />
+                        <a href="mailto:support@virginialiquidation.com" className="flex items-center gap-4 group">
+                            <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-all">
+                                <Mail className="w-4 h-4 text-zinc-400 group-hover:text-primary" />
                             </div>
-                            <span className="text-[13px] font-bold text-zinc-500 lowercase italic">concierge@vrgileq.com</span>
-                        </div>
+                            <span className="text-[13px] font-bold text-zinc-500 lowercase italic">support@virginialiquidation.com</span>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -181,3 +181,20 @@ export async function logout() {
   revalidatePath('/', 'layout')
   redirect('/')
 }
+
+export async function resendOTP(email: string, type: 'signup' | 'recovery') {
+  const supabase = await createClient()
+  
+  if (type === 'recovery') {
+    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    if (error) return { error: error.message }
+    return { success: true }
+  }
+
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email: email,
+  })
+  if (error) return { error: error.message }
+  return { success: true }
+}

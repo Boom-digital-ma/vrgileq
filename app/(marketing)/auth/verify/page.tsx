@@ -1,15 +1,17 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { verifyOTP } from '@/app/actions/auth'
+import { verifyOTP, resendOTP } from '@/app/actions/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ShieldCheck, Loader2, AlertCircle, ArrowLeft } from 'lucide-react'
+import { ShieldCheck, Loader2, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 function VerifyContent() {
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -19,6 +21,7 @@ function VerifyContent() {
   async function handleSubmit(formData: FormData) {
     setLoading(true)
     setError(null)
+    setSuccess(null)
     const otp = formData.get('otp') as string
     const result = await verifyOTP(email, otp, type)
     if (result?.error) {
@@ -31,6 +34,19 @@ function VerifyContent() {
         window.location.href = '/auctions?verified=true'
       }
     }
+  }
+
+  async function handleResend() {
+    setResending(true)
+    setError(null)
+    setSuccess(null)
+    const result = await resendOTP(email, type)
+    if (result?.error) {
+      setError(result.error)
+    } else {
+      setSuccess("Code renvoyé avec succès !")
+    }
+    setResending(false)
   }
 
   return (
@@ -48,9 +64,16 @@ function VerifyContent() {
         </div>
 
         {error && (
-          <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-bold uppercase flex items-center gap-3">
+          <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-bold uppercase flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-8 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-600 text-[10px] font-bold uppercase flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            {success}
           </div>
         )}
 
@@ -76,7 +99,14 @@ function VerifyContent() {
 
         <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
             <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-300">
-                Didn't receive the code? <button className="text-primary hover:text-secondary transition-colors underline underline-offset-4 decoration-primary/20">Resend Protocol</button>
+                Didn't receive the code? <button 
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resending}
+                  className="text-primary hover:text-secondary transition-colors underline underline-offset-4 decoration-primary/20 disabled:opacity-50"
+                >
+                  {resending ? "Sending..." : "Resend code"}
+                </button>
             </p>
         </div>
 

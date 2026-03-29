@@ -30,25 +30,25 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
       {/* SaaS Premium Header */}
-      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
+      <section className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden italic">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="flex items-center justify-center gap-3 mb-8">
-                <div className="h-[1px] w-10 bg-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Inquiry Gateway</span>
-                <div className="h-[1px] w-10 bg-primary" />
+            <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="h-[1px] w-6 bg-primary" />
+                <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Inquiry Gateway</span>
+                <div className="h-[1px] w-6 bg-primary" />
             </div>
-            <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-secondary leading-none font-display uppercase mb-6">
                 Reach <br/> <span className="text-primary">Contact</span>.
             </h1>
-            <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
+            <p className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg font-medium leading-relaxed uppercase">
                 Technical support and strategic consulting for Northern Virginia's premier industrial marketplace.
             </p>
         </div>
-        <div className="absolute -top-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
+        <div className="absolute -top-24 -left-24 h-64 w-64 bg-primary/5 blur-[100px] rounded-full" />
       </section>
 
       {/* Main Grid: Form & Info */}
-      <section className="py-24 px-6">
+      <section className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 items-start">
                 

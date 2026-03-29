@@ -39,7 +39,7 @@ export default function BuyersPage() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
       {/* SaaS Premium Header */}
-      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
+      <section className="bg-white border-b border-zinc-100 pt-16 pb-12 relative overflow-hidden italic">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <div className="flex items-center justify-center gap-3 mb-8">
                 <div className="h-[1px] w-10 bg-primary" />
@@ -82,7 +82,7 @@ export default function BuyersPage() {
       {/* Referral Banner - High Contrast SaaS CTA */}
       <section className="px-6 py-12">
         <div className="max-w-7xl mx-auto">
-            <div className="bg-secondary rounded-[48px] p-12 md:p-20 text-white relative overflow-hidden italic shadow-2xl shadow-secondary/20">
+            <div className="bg-secondary rounded-[48px] p-10 md:p-14 text-white relative overflow-hidden italic shadow-2xl shadow-secondary/20">
                 <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 items-center">
                     <div>
                         <h2 className="text-4xl md:text-5xl font-bold tracking-tight uppercase font-display leading-[0.9] mb-8">

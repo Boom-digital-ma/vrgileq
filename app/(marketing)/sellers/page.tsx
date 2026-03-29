@@ -21,7 +21,7 @@ export default function SellersPage() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
       {/* SaaS Premium Header */}
-      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
+      <section className="bg-white border-b border-zinc-100 pt-16 pb-12 relative overflow-hidden italic">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <div className="flex items-center justify-center gap-3 mb-8">
                 <div className="h-[1px] w-10 bg-primary" />
@@ -73,7 +73,7 @@ export default function SellersPage() {
       {/* Corporate Reach - Modern SaaS Banner */}
       <section className="px-6 pb-24">
         <div className="max-w-7xl mx-auto">
-            <div className="bg-secondary rounded-[48px] p-12 md:p-20 text-white relative overflow-hidden italic shadow-2xl shadow-secondary/20">
+            <div className="bg-secondary rounded-[48px] p-10 md:p-14 text-white relative overflow-hidden italic shadow-2xl shadow-secondary/20">
                 <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-16">
                     <div className="max-w-2xl">
                         <div className="flex items-center gap-3 mb-8">

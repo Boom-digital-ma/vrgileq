@@ -54,7 +54,7 @@ export default function SignUpPage() {
             return
         }
         if (formData.password !== formData.confirmPassword) {
-            setError("Security codes do not match.")
+            setError("Passwords do not match.")
             return
         }
         const phoneRegex = /[+]?[0-9\s\-()]{10,20}/
@@ -65,7 +65,7 @@ export default function SignUpPage() {
     }
     if (step === 2) {
         if (!formData.address || !formData.city || !formData.zip) {
-            setError("Physical location details are required for logistics.")
+            setError("Address details are required for invoicing.")
             return
         }
     }
@@ -77,27 +77,37 @@ export default function SignUpPage() {
     setStep(s => (s > 1 ? (s - 1) as any : s))
   }
 
-  async function handleFinalSignup() {
-    if (!acceptedTerms) {
-        setError("You must accept the terms and conditions.")
-        return
-    }
+  const skipPayment = () => {
+    updateForm({ paymentMethodId: '' })
+    nextStep()
+  }
+
+  const handleFinalSignup = async () => {
     setLoading(true)
     setError(null)
-    const finalData = new FormData()
-    Object.entries(formData).forEach(([key, value]) => {
-        if (key !== 'firstName' && key !== 'lastName') {
-            finalData.append(key, value as string)
-        }
-    })
-    finalData.append('fullName', `${formData.firstName} ${formData.lastName}`.trim())
-    
-    const result = await signup(finalData, formData.paymentMethodId)
-    if (result?.error) {
-      setError(result.error)
+
+    const fd = new FormData()
+    fd.append('email', formData.email)
+    fd.append('password', formData.password)
+    fd.append('fullName', `${formData.firstName} ${formData.lastName}`)
+    fd.append('phone', formData.phone)
+    fd.append('address', formData.address)
+    fd.append('city', formData.city)
+    fd.append('state', formData.state)
+    fd.append('zip', formData.zip)
+    fd.append('country', formData.country)
+
+    try {
+      const res = await signup(fd, formData.paymentMethodId)
+      if (res.error) {
+        setError(res.error)
+      } else {
+        router.push(`/auth/verify?email=${encodeURIComponent(formData.email)}&type=signup`)
+      }
+    } catch (err: any) {
+      setError("Critical network or system failure. Please retry.")
+    } finally {
       setLoading(false)
-    } else {
-      router.push(`/auth/verify?email=${encodeURIComponent(formData.email)}&type=signup`)
     }
   }
 
@@ -166,17 +176,17 @@ export default function SignUpPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className={labelClasses}>Security Code</label>
+                    <label className={labelClasses}>Password</label>
                     <input type="password" value={formData.password} onChange={e => updateForm({ password: e.target.value })} className={inputClasses} placeholder="••••••••" />
                 </div>
                 <div className="space-y-2">
-                    <label className={labelClasses}>Confirm Code</label>
+                    <label className={labelClasses}>Confirm Password</label>
                     <input type="password" value={formData.confirmPassword} onChange={e => updateForm({ confirmPassword: e.target.value })} className={inputClasses} placeholder="••••••••" />
                 </div>
               </div>
 
               <button onClick={nextStep} className="w-full bg-secondary text-white py-5 sm:py-6 rounded-3xl font-bold text-[11px] sm:text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-xl shadow-secondary/10 flex items-center justify-center gap-3">
-                Next: Physical Location <ArrowRight size={18} />
+                Next: Address Details <ArrowRight size={18} />
               </button>
             </div>
           </div>
@@ -190,8 +200,8 @@ export default function SignUpPage() {
                     <MapPin size={24} className="sm:size-7" />
                 </div>
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Location</h1>
-                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Tax & Logistics Compliance</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Address</h1>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Required for Invoicing</p>
                 </div>
             </div>
 
@@ -217,11 +227,11 @@ export default function SignUpPage() {
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className={labelClasses}>City Hub</label>
+                    <label className={labelClasses}>City</label>
                     <input type="text" value={formData.city} onChange={e => updateForm({ city: e.target.value })} className={inputClasses} placeholder="CITY" />
                 </div>
                 <div className="space-y-2">
-                    <label className={labelClasses}>ZIP Identifier</label>
+                    <label className={labelClasses}>Zip Code</label>
                     <input type="text" value={formData.zip} onChange={e => updateForm({ zip: e.target.value })} className={inputClasses} placeholder="ZIP CODE" />
                 </div>
               </div>
@@ -266,9 +276,14 @@ export default function SignUpPage() {
                 )}
             </div>
 
-            <button onClick={prevStep} className="w-full text-zinc-300 hover:text-primary py-2 font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3">
-                <ArrowLeft size={14} /> Back to Location
-            </button>
+            <div className="flex flex-col gap-4">
+              <button onClick={skipPayment} className="w-full bg-zinc-50 border-2 border-zinc-100 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest text-zinc-400 hover:bg-white hover:text-secondary transition-all">
+                  Skip for later
+              </button>
+              <button onClick={prevStep} className="w-full text-zinc-300 hover:text-primary py-2 font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3">
+                  <ArrowLeft size={14} /> Back to Address
+              </button>
+            </div>
           </div>
         )}
 
@@ -281,17 +296,60 @@ export default function SignUpPage() {
                 </div>
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Agreements</h1>
-                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Final Master Protocol</p>
                 </div>
             </div>
 
-            <div className="bg-zinc-50 border border-zinc-100 p-6 sm:p-8 rounded-[32px] mb-8 h-48 sm:h-64 overflow-y-auto font-medium text-[11px] text-zinc-400 leading-relaxed uppercase shadow-inner italic">
-                <h4 className="font-bold text-secondary mb-6 border-b border-zinc-200 pb-2">Master Bidding Agreement</h4>
-                <p className="mb-6">1. ELIGIBILITY: You must be 18 years of age or older to participate in auctions. Every registration is a legal commitment to comply with industrial regulations.</p>
-                <p className="mb-6">2. BIDDING PROTOCOL: Every bid is a legally binding contract. Successful bidders are mandated to complete the acquisition process.</p>
-                <p className="mb-6">3. FINANCIALS: A buyer's premium is applied to the hammer price. Transactions are processed immediately upon event closure.</p>
-                <p className="mb-6">4. ASSET CONDITION: All items are sold "as-is". Technical assessment reports are provided for verification but do not constitute warranties.</p>
-                <p>By executing the signature below (checkbox), you acknowledge full comprehension of these technical and legal protocols.</p>
+            <div className="bg-zinc-50 border border-zinc-100 p-6 sm:p-8 rounded-[32px] mb-8 h-48 sm:h-64 overflow-y-auto font-medium text-[11px] text-zinc-400 leading-relaxed uppercase shadow-inner italic whitespace-pre-wrap">
+1. Acceptance of Terms
+By placing a bid on VirginiaLiquidation.com, you agree to:
+- Pay for all items won
+- Comply with Auction Terms & Conditions
+- Follow all payment and pickup instructions
+
+2. Binding Agreement
+A successful bid constitutes a legally binding contract between you and VirginiaLiquidation.com.
+You are responsible for all bids placed under your account.
+
+3. Payment Terms
+Payment must be made via credit card at the end of the auction.
+Items will not be released until payment is completed.
+Failure to pay may result in account suspension, legal action, and loss of future bidding privileges.
+
+4. Item Condition & As-Is Sale
+Items are sold “as-is, where-is”.
+Photos and descriptions provide accurate information to the best of our knowledge.
+No warranty, express or implied, is provided.
+
+5. Pickup Obligations
+Schedule your pickup within the invoice timeframe.
+Bring ID and payment card.
+Third-party pickups require copies of ID and payment card.
+Failure to pick up on time may result in forfeiture of the item.
+
+6. Returns & Refund Policy
+Refunds are only available at the discretion of VirginiaLiquidation.com management.
+Requests must be made within 48 hours of pickup.
+Refund is limited to the purchase price only.
+
+7. Indemnification
+Users agree to indemnify and hold harmless VirginiaLiquidation.com, its affiliates, and employees against any claims arising from:
+- Breach of these Terms
+- Misuse of the Website
+- Violation of applicable laws
+
+8. Legal Compliance
+You agree to abide by all local, state, and federal laws regarding auctions, bidding, and resale.
+Virginia law governs all disputes.
+Jurisdiction: Fairfax County state courts or Eastern District of Virginia – Alexandria Division.
+
+9. Amendment & Updates
+VirginiaLiquidation.com may update these Terms at any time.
+Continued use of the Website or participation in auctions constitutes acceptance.
+
+10. Contact & Support
+Email: support@virginialiquidation.com
+Phone: 7038691965
+Resources for first-time bidders and FAQs are available on the Website.
             </div>
 
             <label className={cn(
@@ -324,7 +382,7 @@ export default function SignUpPage() {
         )}
 
         <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10 font-sans">
-            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-300">Virginia Liquidation • Industrial Governance active</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-300">Virginia Liquidation</p>
         </div>
 
         {/* Decorative background element */}

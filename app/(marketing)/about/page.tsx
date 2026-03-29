@@ -13,112 +13,131 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
       {/* SaaS Premium Header */}
-      <section className="bg-white border-b border-zinc-100 pt-24 pb-20 relative overflow-hidden italic">
+      <section className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden italic">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="flex items-center justify-center gap-3 mb-8">
-                <div className="h-[1px] w-10 bg-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Trusted Local Partner</span>
-                <div className="h-[1px] w-10 bg-primary" />
+            <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="h-[1px] w-6 bg-primary" />
+                <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Trusted Local Partner</span>
+                <div className="h-[1px] w-6 bg-primary" />
             </div>
-            <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-secondary leading-none font-display uppercase mb-6">
                 Serving the <br/> <span className="text-primary">DMV</span>.
             </h1>
-            <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
+            <p className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg font-medium leading-relaxed uppercase">
                 Virginia Liquidation was built to serve the Maryland–DC–Virginia community with a better liquidation buying experience.
             </p>
         </div>
-        <div className="absolute -bottom-24 -left-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
+        <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-primary/5 blur-[100px] rounded-full" />
       </section>
 
-      {/* Philosophy Section */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-20 items-start">
-                <div className="lg:sticky lg:top-32">
-                    <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/20">
-                        <ShieldCheck size={24} />
-                    </div>
-                    <h2 className="text-4xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none mb-6">Local <br/>Expertise.</h2>
-                    <p className="text-zinc-400 font-medium text-sm leading-relaxed uppercase mb-8">
-                        We are based in Beltsville, Maryland and proudly serve buyers from across the DMV region.
-                    </p>
-                    <div className="flex flex-col gap-4">
-                        {[
-                            { label: "Location", val: "Beltsville, MD" },
-                            { label: "Region", val: "Greater DMV Area" },
-                            { label: "Status", val: "Authorized Local Auctions" },
-                        ].map((stat, i) => (
-                            <div key={i} className="flex justify-between items-center py-3 border-b border-zinc-100">
-                                <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">{stat.label}</span>
-                                <span className="text-xs font-bold text-secondary uppercase italic">{stat.val}</span>
+      {/* Refined Content UI */}
+      <section className="py-16 px-6 bg-white relative overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col gap-12 font-sans antialiased italic">
+                {/* Our Mission - Compact Layout */}
+                <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-secondary/5 rounded-[40px] blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                    <div className="relative bg-white p-10 md:p-14 rounded-[32px] border border-zinc-100 shadow-sm flex flex-col lg:flex-row gap-12 items-start">
+                        <div className="lg:w-1/3">
+                            <div className="h-12 w-12 bg-primary text-white rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-primary/10 rotate-3">
+                                <ShieldCheck size={28} />
                             </div>
-                        ))}
+                            <h2 className="text-3xl md:text-4xl font-black text-secondary uppercase font-display leading-tight tracking-tighter">
+                                Our <br/><span className="text-primary italic">Mission.</span>
+                            </h2>
+                        </div>
+                        <div className="lg:w-2/3 space-y-6">
+                            <div className="text-zinc-500 text-base md:text-lg font-bold leading-relaxed uppercase space-y-4">
+                                <p className="text-secondary">Our mission is simple: to make liquidation buying easier, more transparent, and more affordable for everyone.</p>
+                                <p>We help homeowners, resellers, and contractors save significantly compared to retail prices while giving high-quality products a second life—reducing waste and supporting a more sustainable, environmentally responsible marketplace.</p>
+                                <p>Transparency is the backbone of everything we do. Every item is clearly listed, accurately described, and fully visible before you bid, so you can buy with confidence.</p>
+                                <p>With organized local pickup and a streamlined auction process, we make it easy to find value, reduce costs, and shop smarter.</p>
+                                <div className="pt-6 border-t border-zinc-50">
+                                    <p className="text-primary font-black text-xl tracking-tighter">👉 Start bidding today and discover better deals with zero surprises.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="space-y-16">
-                    <div className="p-10 md:p-16 bg-white rounded-[48px] border border-zinc-100 shadow-sm italic group hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500">
-                        <h3 className="text-2xl font-bold text-secondary font-display uppercase mb-8">Our Simple Mission</h3>
-                        <p className="text-zinc-500 text-lg leading-relaxed uppercase font-medium">
-                            Our mission is simple: Make liquidation buying easier, safer, and more profitable. Whether you're a homeowner looking for a deal or a reseller sourcing inventory, our platform gives you transparent listings and organized local pickup.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="p-10 bg-white border border-zinc-100 rounded-[40px] italic group hover:border-primary/20 transition-all shadow-sm">
-                            <Zap className="text-primary mb-6" size={32} />
-                            <h4 className="text-xl font-bold font-display uppercase text-secondary mb-4">The Advantage</h4>
-                            <p className="text-sm text-zinc-400 leading-relaxed uppercase">
+                {/* Team & Advantage - Compact Split Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-sans">
+                    {/* The Advantage */}
+                    <div className="bg-secondary p-10 md:p-12 rounded-[32px] text-white flex flex-col h-full relative overflow-hidden group">
+                        <div className="relative z-10">
+                            <div className="h-12 w-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-primary mb-8 border border-white/10 group-hover:rotate-6 transition-transform duration-500">
+                                <Zap size={24} />
+                            </div>
+                            <h3 className="text-2xl font-black uppercase font-display mb-6 italic tracking-tight">The Advantage</h3>
+                            <p className="text-base text-white/60 font-medium leading-relaxed uppercase mb-8">
                                 Our platform leverages modern SaaS architecture to provide instant bidding, real-time tracking, and secure Stripe-backed transactions.
                             </p>
+                            <div className="flex items-center gap-3 text-primary text-[9px] font-black uppercase tracking-[0.2em]">
+                                <div className="h-[1px] w-6 bg-primary rounded-full" />
+                                <span>Technology Powered</span>
+                            </div>
                         </div>
-                        <div className="p-10 bg-white border border-zinc-100 rounded-[40px] italic group hover:border-primary/20 transition-all shadow-sm">
-                            <Users className="text-primary mb-6" size={32} />
-                            <h4 className="text-xl font-bold font-display uppercase text-secondary mb-4">Dedicated Team</h4>
-                            <p className="text-sm text-zinc-400 leading-relaxed uppercase">
-                                Our team of specialists handles everything from lot identification to rigging supervision and logistics coordination.
-                            </p>
+                        <div className="absolute -bottom-24 -right-24 h-48 w-48 bg-primary/10 blur-[80px] rounded-full group-hover:bg-primary/20 transition-all duration-700" />
+                    </div>
+
+                    {/* Dedicated Team */}
+                    <div className="bg-zinc-50 p-10 md:p-12 rounded-[32px] border border-zinc-100 flex flex-col h-full group hover:bg-white hover:shadow-xl hover:shadow-secondary/5 transition-all duration-700">
+                        <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-8 border border-primary/20 group-hover:-rotate-3 transition-transform duration-500">
+                            <Users size={24} />
+                        </div>
+                        <h3 className="text-2xl font-black uppercase font-display text-secondary mb-6 italic tracking-tight leading-tight">Our Team, Supporting You Every Step</h3>
+                        
+                        <div className="space-y-4 text-[11px] font-bold text-zinc-400 uppercase leading-relaxed mb-auto">
+                            <p className="text-secondary/70">Our team of specialists is dedicated to supporting you before, during, and after every auction.</p>
+                            <div className="grid grid-cols-1 gap-3">
+                                {[
+                                    { label: "Before", desc: "We carefully identify, inspect, and list every item with clear descriptions." },
+                                    { label: "During", desc: "We ensure a smooth, transparent bidding experience with real-time support." },
+                                    { label: "After", desc: "We guide you through payment and a fast, organized pickup process." },
+                                    { label: "Post-pickup", desc: "If there are any issues, our team is here to ensure a fair resolution." },
+                                ].map((item, idx) => (
+                                    <div key={idx} className="flex gap-3 p-3 bg-white rounded-xl border border-zinc-100 shadow-sm group/item hover:border-primary/20 transition-all">
+                                        <div className="text-primary font-black min-w-[65px]">{item.label}:</div>
+                                        <div className="group-hover/item:text-secondary transition-colors line-clamp-2">{item.desc}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <p className="mt-8 text-primary font-black text-base tracking-tighter italic">👉 Bid with confidence.</p>
+                    </div>
+                </div>
+                
+                {/* Visual Accent */}
+                <div className="flex flex-col md:flex-row items-center justify-center gap-8 py-8 border-y border-zinc-50">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-zinc-50 rounded-xl border border-zinc-100 flex items-center justify-center text-zinc-300">
+                            <Globe2 size={20} />
+                        </div>
+                        <div>
+                            <div className="text-[9px] font-black uppercase tracking-widest text-zinc-300">Location</div>
+                            <div className="text-xs font-bold uppercase text-secondary italic">Beltsville, MD</div>
+                        </div>
+                    </div>
+                    <div className="h-[1px] w-16 bg-zinc-100 hidden md:block" />
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-zinc-50 rounded-xl border border-zinc-100 flex items-center justify-center text-zinc-300">
+                            <Building2 size={20} />
+                        </div>
+                        <div>
+                            <div className="text-[9px] font-black uppercase tracking-widest text-zinc-300">Region</div>
+                            <div className="text-xs font-bold uppercase text-secondary italic">Greater DMV Area</div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-      </section>
-
-      {/* Corporate Family - Clean SaaS Light Grid */}
-      <section className="py-24 px-6 bg-white border-t border-zinc-100 italic">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-            <div className="mb-16">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-1 w-8 bg-primary rounded-full" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Institutional Strength</span>
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none">The Corporate <span className="text-primary">Family</span>.</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {corporateEntities.map((entity, i) => (
-                    <div key={i} className="p-8 bg-zinc-50 border border-zinc-100 rounded-[32px] hover:bg-white hover:border-primary/20 hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500 group">
-                        <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center border border-zinc-100 mb-6 group-hover:bg-primary/5 transition-all">
-                            <Building2 className="text-zinc-300 group-hover:text-primary transition-colors" size={24} />
-                        </div>
-                        <h4 className="text-lg font-bold text-secondary mb-2 uppercase italic leading-none">{entity.name}</h4>
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-8">{entity.specialty}</p>
-                        <div className="pt-6 border-t border-zinc-100 flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-zinc-300 uppercase">{entity.location}</span>
-                            <ChevronRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                    </div>
-                ))}
             </div>
         </div>
       </section>
 
       {/* CTA Final */}
-      <section className="py-24 px-6 bg-zinc-50 border-t border-zinc-100">
-        <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-secondary font-display uppercase italic mb-8">Ready to Engage Our Services?</h2>
-            <Link href="/engage" className="bg-primary text-white px-12 py-6 rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-secondary transition-all shadow-2xl shadow-primary/20 italic">
+      <section className="py-16 px-6 bg-zinc-50 border-t border-zinc-100">
+        <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-2xl font-bold text-secondary font-display uppercase italic mb-6">Ready to Engage Our Services?</h2>
+            <Link href="/engage" className="inline-block bg-primary text-white px-10 py-5 rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-secondary transition-all shadow-xl shadow-primary/10 italic">
                 Get Strategic Consultation
             </Link>
         </div>
