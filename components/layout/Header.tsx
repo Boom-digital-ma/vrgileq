@@ -297,7 +297,7 @@ export default function Header() {
             <nav className="flex flex-col gap-1 mb-auto">
               {[
                 { name: 'Auctions', href: '/' },
-                { name: 'How it works', href: '/inventory' },
+                { name: 'How it works', href: '/how-it-works' },
                 { name: 'Blog', href: '/blog' },
                 { name: 'About', href: '/about' },
                 { name: 'Contact us', href: '/contact' },
