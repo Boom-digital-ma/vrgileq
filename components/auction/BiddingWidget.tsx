@@ -145,8 +145,12 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     try {
         const result = await toggleWatchlist(auctionId);
         if (result.success) {
-            setIsWatched(result.action === 'added');
-            toast.success(result.action === 'added' ? "Added to watchlist" : "Removed from watchlist");
+            const nextState = result.action === 'added';
+            setIsWatched(nextState);
+            toast.success(nextState ? "Added to watchlist" : "Removed from watchlist");
+            
+            // Dispatch custom event to notify watchlist drawer
+            window.dispatchEvent(new CustomEvent("watchlist-updated", { detail: { lotId: auctionId, isWatched: nextState } }));
         }
     } catch (e) {
         toast.error("Operation failed");

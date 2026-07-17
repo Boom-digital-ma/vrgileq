@@ -5,6 +5,7 @@ import { ShieldCheck, Info, Timer, LayoutGrid, Calendar, Gavel, ArrowRight, Chev
 import RegistrationButton from '@/components/auction/RegistrationButton'
 import EventStatusBadge from '@/components/auction/EventStatusBadge'
 import EventReminderButton from '@/components/auction/EventReminderButton'
+import EventWatchlistDrawer from '@/components/auction/EventWatchlistDrawer'
 import ProtocolCards from '@/components/auction/ProtocolCards'
 import ImageGallery from '@/components/auction/ImageGallery'
 import Link from 'next/link'
@@ -203,7 +204,7 @@ export default async function EventPage({
                             startAt={event.start_at}
                             endsAt={event.ends_at}
                         />
-                        {isUpcoming && (
+                        {!isEnded && (
                             <EventReminderButton eventId={event.id} startAt={event.start_at} isUpcoming={isUpcoming} variant="page" />
                         )}
                     </div>
@@ -283,6 +284,9 @@ export default async function EventPage({
                 initialTotalCount={count || 0}
             />
         </div>
+
+        {/* Floating Watchlist Drawer */}
+        <EventWatchlistDrawer eventId={id} user={user} />
 
       </div>
     </div>

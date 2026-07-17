@@ -255,6 +255,9 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
         const nextState = !isWatched;
         setIsWatched(nextState);
         toast.success(nextState ? "Added to watchlist" : "Removed from watchlist");
+        
+        // Dispatch custom event to notify watchlist drawer
+        window.dispatchEvent(new CustomEvent("watchlist-updated", { detail: { lotId: product.id, isWatched: nextState } }));
     } catch (err) {
         toast.error("Operation failed");
     } finally {

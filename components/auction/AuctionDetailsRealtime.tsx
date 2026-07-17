@@ -4,15 +4,63 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import ImageGallery from "@/components/auction/ImageGallery";
 import BiddingWidget from "@/components/auction/BiddingWidget";
-import { Timer, Gavel, Package, ShieldCheck, Info, MapPin, Clock } from "lucide-react";
+import { Timer, Gavel, Package, ShieldCheck, Info, MapPin, Clock, Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toggleWatchlist } from "@/app/actions/watchlist";
+import { toast } from "sonner";
 
 export default function AuctionDetailsRealtime({ initialLot, initialBids }: { initialLot: any, initialBids: any[] }) {
   const [lot, setLot] = useState(initialLot);
   const [bids, setBids] = useState(initialBids);
   const [mounted, setMounted] = useState(false);
   const [isAuctionEnded, setIsAuctionEnded] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isWatched, setIsWatched] = useState(false);
+  const [loadingWatch, setLoadingWatch] = useState(false);
   const supabase = createClient();
+
+  useEffect(() => {
+    let isMounted = true;
+    async function checkUserAndWatchlist() {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser && isMounted) {
+        setUser(currentUser);
+        const { data: watchRes } = await supabase
+          .from('watchlist')
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .eq('auction_id', lot.id)
+          .maybeSingle();
+        if (isMounted) {
+          setIsWatched(!!watchRes);
+        }
+      }
+    }
+    checkUserAndWatchlist();
+    return () => {
+      isMounted = false;
+    };
+  }, [lot.id, supabase]);
+
+  const handleToggleWatch = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error("Login required", { description: "Please sign in to track items." });
+      return;
+    }
+    setLoadingWatch(true);
+    try {
+      await toggleWatchlist(lot.id);
+      const nextState = !isWatched;
+      setIsWatched(nextState);
+      toast.success(nextState ? "Added to watchlist" : "Removed from watchlist");
+    } catch (err) {
+      toast.error("Operation failed");
+    } finally {
+      setLoadingWatch(false);
+    }
+  };
 
   useEffect(() => {
     setLot(initialLot);
@@ -125,24 +173,45 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
         {/* LEFT: Content & Media */}
         <div className="lg:col-span-7">
           <div className="mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                  {isLive ? (
-                    <div className="flex items-center gap-2 bg-rose-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                        </span>
-                        Live Bidding
-                    </div>
-                  ) : isUpcoming ? (
-                    <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in">
-                        Upcoming
-                    </div>
-                  ) : (
-                    <div className="bg-zinc-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-zinc-500/20">
-                        {isAuctionEnded ? 'Auction Ended' : `Auction ${lot.status}`}
-                    </div>
-                  )}
+              <div className="flex items-center justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3">
+                      {isLive ? (
+                        <div className="flex items-center gap-2 bg-rose-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                            </span>
+                            Live Bidding
+                        </div>
+                      ) : isUpcoming ? (
+                        <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 animate-in fade-in zoom-in">
+                            Upcoming
+                        </div>
+                      ) : (
+                        <div className="bg-zinc-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-zinc-500/20">
+                            {isAuctionEnded ? 'Auction Ended' : `Auction ${lot.status}`}
+                        </div>
+                      )}
+                  </div>
+                  
+                  {/* Watchlist Toggle Button */}
+                  <button 
+                      onClick={handleToggleWatch} 
+                      disabled={loadingWatch}
+                      className={cn(
+                          "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all active:scale-[0.98]",
+                          isWatched 
+                              ? "bg-primary/10 border-primary/20 text-primary animate-in zoom-in-95 duration-100" 
+                              : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:text-primary hover:border-primary/20"
+                      )}
+                  >
+                      {loadingWatch ? (
+                          <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                          <Star size={12} className={isWatched ? "fill-current text-primary" : ""} />
+                      )}
+                      {isWatched ? "In Watchlist" : "Add to Watchlist"}
+                  </button>
               </div>
               
               <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-secondary leading-tight mb-4 font-display">
