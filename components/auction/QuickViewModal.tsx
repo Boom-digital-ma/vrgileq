@@ -8,7 +8,7 @@ import { placeBid } from "@/app/actions/bids";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, calculateNextIncrement } from "@/lib/utils";
 
 interface QuickViewModalProps {
   product: {
@@ -140,8 +140,9 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
   }, [product.price, product.bidCount]);
 
   useEffect(() => {
-    setBidAmount(realtimePrice + (product.minIncrement || 100));
-  }, [realtimePrice, product.minIncrement]);
+    const rawAmount = realtimePrice + calculateNextIncrement(realtimePrice);
+    setBidAmount(Math.round(rawAmount * 100) / 100);
+  }, [realtimePrice]);
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import ImageGallery from "@/components/auction/ImageGallery";
 import BiddingWidget from "@/components/auction/BiddingWidget";
 import { Timer, Gavel, Package, ShieldCheck, Info, MapPin, Clock, Star, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, calculateNextIncrement } from "@/lib/utils";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { toast } from "sonner";
 
@@ -231,7 +231,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
               {[
                   { label: "Manufacturer", value: lot.manufacturer || "Certified OEM", icon: Package },
                   { label: "Model Reference", value: lot.model || "Industrial Standard", icon: Info },
-                  { label: "Bidding Increment", value: `$${lot.min_increment}`, icon: Gavel },
+                  { label: "Bidding Increment", value: `$${calculateNextIncrement(lot.current_price).toLocaleString()}`, icon: Gavel },
                   { label: "Asset Condition", value: "Verified / In-situ", icon: ShieldCheck },
               ].map((spec, i) => (
                   <div key={i} className="flex items-start gap-4">

@@ -166,7 +166,7 @@ export async function importLots(eventId: string, lots: any[]) {
         description: lot.description || '',
         start_price: Number(lot.start_price) || 0,
         current_price: Number(lot.start_price) || 0,
-        min_increment: Number(lot.min_increment) || 5,
+        min_increment: Number(lot.min_increment) || 0.10,
         status: 'live',
         image_url: lot.image_url || null,
         manufacturer: lot.manufacturer || null,

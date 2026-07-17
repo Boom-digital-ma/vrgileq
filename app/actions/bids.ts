@@ -51,7 +51,7 @@ export async function placeBid({
   // RULE 2: Auto-Proxy Logic
   // Any amount above minRequiredBid is treated as a potential proxy/max bid by the SQL engine
   const dynamicIncrement = calculateNextIncrement(Number(auction.current_price));
-  const minRequiredBid = Number(auction.current_price) + dynamicIncrement;
+  const minRequiredBid = Math.round((Number(auction.current_price) + dynamicIncrement) * 100) / 100;
   
   if (amount < minRequiredBid) {
     throw new Error(`Minimum bid required is $${minRequiredBid.toLocaleString()}`);

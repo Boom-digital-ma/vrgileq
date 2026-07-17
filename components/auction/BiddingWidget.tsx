@@ -28,7 +28,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [realtimePrice, setRealtimePrice] = useState(initialPrice);
   const [realtimeBids, setRealtimeBids] = useState(bids);
   const [realtimeEndsAt, setRealtimeEndsAt] = useState(endsAt);
-  const [bidAmount, setBidAmount] = useState<number>(initialPrice + calculateNextIncrement(initialPrice));
+  const [bidAmount, setBidAmount] = useState<number>(Math.round((initialPrice + calculateNextIncrement(initialPrice)) * 100) / 100);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -111,7 +111,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
             const newPrice = Number(payload.new.current_price);
             setRealtimePrice(newPrice);
             setRealtimeEndsAt(new Date(payload.new.ends_at));
-            setBidAmount(newPrice + calculateNextIncrement(newPrice));
+            setBidAmount(Math.round((newPrice + calculateNextIncrement(newPrice)) * 100) / 100);
           }
         }
       )
@@ -193,7 +193,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
       if (!result.success) throw new Error(result.error);
 
-      if (bidAmount > (realtimePrice + minIncrement)) {
+      if (bidAmount > minBid) {
           toast.success("Max Bid Activated!", {
               description: `System will bid for you up to $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}.`
           });
@@ -220,7 +220,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const premiumPercent = settings?.buyers_premium || 15;
   const taxRate = settings?.tax_rate || 0;
   const nextRequiredInc = calculateNextIncrement(realtimePrice);
-  const currentHammer = bidAmount > (realtimePrice + nextRequiredInc) ? (realtimePrice + nextRequiredInc) : bidAmount;
+  const minBid = Math.round((realtimePrice + nextRequiredInc) * 100) / 100;
+  const currentHammer = bidAmount > minBid ? minBid : bidAmount;
   const premiumAmount = currentHammer * (premiumPercent / 100);
   const taxAmount = (currentHammer + premiumAmount) * (taxRate / 100);
   const totalAuth = currentHammer + premiumAmount + taxAmount;
@@ -315,7 +316,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2 italic">Next Min Bid</div>
           <div className="text-3xl font-bold text-secondary/40 font-display italic tracking-tight" suppressHydrationWarning>
-            ${mounted ? (realtimePrice + calculateNextIncrement(realtimePrice)).toLocaleString() : (realtimePrice + calculateNextIncrement(realtimePrice)).toString()}
+            ${mounted ? minBid.toLocaleString() : minBid.toString()}
           </div>
         </div>
       </div>
@@ -328,7 +329,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           <div className="relative">
             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 text-xl font-bold font-display">$</span>
             <input
-              type="number" step="any" disabled={isAdmin} min={realtimePrice + calculateNextIncrement(realtimePrice)}
+              type="number" step="any" disabled={isAdmin} min={minBid}
               value={bidAmount} onChange={(e) => setBidAmount(Number(e.target.value))}
               className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-5 pl-10 pr-6 text-2xl font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all font-display italic outline-none disabled:opacity-50"
             />

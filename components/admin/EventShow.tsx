@@ -621,7 +621,7 @@ export const EventShow = () => {
             <ImageUpload onUpload={setUploadedImages} defaultValues={[]} />
             <div className="space-y-4">
                 <div className="grid grid-cols-4 gap-4">
-                    <div className="col-span-1"><label className={labelClasses}>Lot #</label><input name="lot_number" type="number" className={inputClasses} placeholder="101" /></div>
+                    <div className="col-span-1"><label className={labelClasses}>Lot #</label><input name="lot_number" type="number" step="any" className={inputClasses} placeholder="101" /></div>
                     <div className="col-span-3"><label className={labelClasses}>Product Title</label><input name="title" required className={inputClasses} /></div>
                 </div>
                 <div>
@@ -633,8 +633,8 @@ export const EventShow = () => {
                 </div>
                 <div><label className={labelClasses}>Description</label><textarea name="description" rows={3} className={cn(inputClasses, "h-auto py-3 resize-none")} /></div>
                 <div className="grid grid-cols-2 gap-4">
-                    <div><label className={labelClasses}>Opening Bid ($)</label><input name="start_price" type="number" required className={inputClasses} /></div>
-                    <div><label className={labelClasses}>Min. Increment ($)</label><input name="min_increment" type="number" defaultValue={100} className={inputClasses} /></div>
+                    <div><label className={labelClasses}>Opening Bid ($)</label><input name="start_price" type="number" step="any" required className={inputClasses} /></div>
+                    <div><label className={labelClasses}>Min. Increment ($)</label><input name="min_increment" type="number" step="any" defaultValue={100} className={inputClasses} /></div>
                 </div>
             </div>
             <div className="flex justify-end pt-4"><button disabled={formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">{formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Add to Catalog</>}</button></div>
@@ -652,7 +652,7 @@ export const EventShow = () => {
                 <ImageUpload onUpload={setUploadedImages} defaultValues={uploadedImages} />
                 <div className="space-y-4">
                     <div className="grid grid-cols-4 gap-4">
-                        <div className="col-span-1"><label className={labelClasses}>Lot #</label><input name="lot_number" type="number" defaultValue={editLotData.lot_number} className={inputClasses} /></div>
+                        <div className="col-span-1"><label className={labelClasses}>Lot #</label><input name="lot_number" type="number" step="any" defaultValue={editLotData.lot_number} className={inputClasses} /></div>
                         <div className="col-span-3"><label className={labelClasses}>Product Title</label><input name="title" defaultValue={editLotData.title} required className={inputClasses} /></div>
                     </div>
                     <div>
@@ -664,12 +664,12 @@ export const EventShow = () => {
                     </div>
                     <div><label className={labelClasses}>Description</label><textarea name="description" defaultValue={editLotData.description} rows={3} className={cn(inputClasses, "h-auto py-3 resize-none")} /></div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div><label className={labelClasses}>Current Valuation ($)</label><input name="current_price" type="number" defaultValue={editLotData.current_price} required className={inputClasses} /></div>
-                        <div><label className={labelClasses}>Start Price ($)</label><input name="start_price" type="number" defaultValue={editLotData.start_price} className={inputClasses} /></div>
+                        <div><label className={labelClasses}>Current Valuation ($)</label><input name="current_price" type="number" step="any" defaultValue={editLotData.current_price} required className={inputClasses} /></div>
+                        <div><label className={labelClasses}>Start Price ($)</label><input name="start_price" type="number" step="any" defaultValue={editLotData.start_price} className={inputClasses} /></div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div><label className={labelClasses}>Closing Date</label><input name="ends_at" type="datetime-local" defaultValue={formatDateForInput(editLotData.ends_at)} className={inputClasses} /></div>
-                        <div><label className={labelClasses}>Min. Increment ($)</label><input name="min_increment" type="number" defaultValue={editLotData.min_increment} className={inputClasses} /></div>
+                        <div><label className={labelClasses}>Min. Increment ($)</label><input name="min_increment" type="number" step="any" defaultValue={editLotData.min_increment} className={inputClasses} /></div>
                     </div>
                 </div>
                 <div className="flex justify-end pt-4 font-sans text-zinc-900"><button disabled={formLoading} className="bg-zinc-900 text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">{formLoading ? <Loader2 size={18} className="animate-spin" /> : <><Save size={18} /> Update Item</>}</button></div>

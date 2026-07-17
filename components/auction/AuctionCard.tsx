@@ -50,7 +50,7 @@ export default function AuctionCard({
   disableRealtime?: boolean 
 }) {
   const initialIncrement = calculateNextIncrement(product.price);
-  const [bidAmount, setBidAmount] = useState<number>(product.price + initialIncrement);
+  const [bidAmount, setBidAmount] = useState<number>(Math.round((product.price + initialIncrement) * 100) / 100);
   const [mounted, setMounted] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
@@ -236,8 +236,9 @@ export default function AuctionCard({
   }, [product.id, supabase, disableRealtime]);
 
   useEffect(() => {
-    setBidAmount(realtimePrice + (product.minIncrement || 100));
-  }, [realtimePrice, product.minIncrement]);
+    const rawAmount = realtimePrice + calculateNextIncrement(realtimePrice);
+    setBidAmount(Math.round(rawAmount * 100) / 100);
+  }, [realtimePrice]);
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
@@ -295,7 +296,7 @@ export default function AuctionCard({
             return;
         }
 
-        const minRequiredBid = realtimePrice + (product.minIncrement || 1);
+        const minRequiredBid = Math.round((realtimePrice + calculateNextIncrement(realtimePrice)) * 100) / 100;
         const isProxy = bidAmount > minRequiredBid;
 
         const result = await placeBid({ auctionId: product.id, amount: bidAmount });
@@ -598,7 +599,7 @@ export default function AuctionCard({
                             <input 
                             type="number" 
                             step="any"
-                            min={realtimePrice + calculateNextIncrement(realtimePrice)} 
+                            min={Math.round((realtimePrice + calculateNextIncrement(realtimePrice)) * 100) / 100} 
                             value={bidAmount} 
                             onChange={(e) => setBidAmount(Number(e.target.value))} 
                             className="w-full h-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-3 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 
