@@ -285,10 +285,10 @@ export default async function EventPage({
             />
         </div>
 
-        {/* Floating Watchlist Drawer */}
-        <EventWatchlistDrawer eventId={id} user={user} />
-
       </div>
+
+      {/* Floating Watchlist Drawer */}
+      <EventWatchlistDrawer eventId={id} user={user} />
     </div>
   )
 }

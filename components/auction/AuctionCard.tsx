@@ -38,13 +38,28 @@ export interface Product {
   status?: string;
 }
 
-export default function AuctionCard({ product, user, disableRealtime = false }: { product: Product, user: any, disableRealtime?: boolean }) {
+export default function AuctionCard({ 
+  product, 
+  user, 
+  isInitiallyWatched = false, 
+  disableRealtime = false 
+}: { 
+  product: Product, 
+  user: any, 
+  isInitiallyWatched?: boolean, 
+  disableRealtime?: boolean 
+}) {
   const initialIncrement = calculateNextIncrement(product.price);
   const [bidAmount, setBidAmount] = useState<number>(product.price + initialIncrement);
   const [mounted, setMounted] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
-  const [isWatched, setIsWatched] = useState(false);
+  const [isWatched, setIsWatched] = useState(isInitiallyWatched);
+
+  // Sync isWatched state when props change
+  useEffect(() => {
+    setIsWatched(isInitiallyWatched);
+  }, [isInitiallyWatched]);
   const [loadingWatch, setLoadingWatch] = useState(false);
   const [loadingBid, setLoadingBid] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
@@ -214,20 +229,11 @@ export default function AuctionCard({ product, user, disableRealtime = false }: 
       })
       .subscribe();
 
-    // Only fetch watchlist status if user is present
-    async function checkWatchlist() {
-        if (user && isSubscriptionMounted) {
-            const { data } = await supabase.from('watchlist').select('id').eq('user_id', user.id).eq('auction_id', product.id).maybeSingle();
-            if (isSubscriptionMounted) setIsWatched(!!data);
-        }
-    }
-    checkWatchlist();
-
     return () => {
         isSubscriptionMounted = false;
         supabase.removeChannel(channel);
     };
-  }, [product.id, supabase, user, disableRealtime]);
+  }, [product.id, supabase, disableRealtime]);
 
   useEffect(() => {
     setBidAmount(realtimePrice + (product.minIncrement || 100));

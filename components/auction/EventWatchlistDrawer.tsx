@@ -285,7 +285,7 @@ export default function EventWatchlistDrawer({ eventId, user: initialUser }: { e
                             </span>
                             <button
                               onClick={(e) => handleRemove(e, item.id)}
-                              className="text-zinc-300 hover:text-rose-500 p-1 rounded-lg transition-colors cursor-pointer"
+                              className="relative z-20 text-zinc-300 hover:text-rose-500 p-1 rounded-lg transition-colors cursor-pointer"
                               title="Remove from Watchlist"
                             >
                               <Trash2 size={12} />

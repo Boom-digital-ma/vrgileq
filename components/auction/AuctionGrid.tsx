@@ -30,10 +30,54 @@ export default function AuctionGrid({
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalCount > products.length);
+  const [watchedLotIds, setWatchedLotIds] = useState<Set<string>>(new Set());
   const observerTarget = useRef<HTMLDivElement>(null);
   
   // Memoize Supabase to prevent recreating listeners unnecessarily
   const supabase = useMemo(() => createClient(), []);
+
+  // Fetch watched lot IDs once on mount/user change
+  useEffect(() => {
+    if (!user) {
+        setWatchedLotIds(new Set<string>());
+        return;
+    }
+    async function fetchWatchlist() {
+        try {
+            const { data, error } = await supabase
+                .from('watchlist')
+                .select('auction_id')
+                .eq('user_id', user.id);
+            if (error) throw error;
+            const ids = new Set<string>((data || []).map((w: any) => w.auction_id as string));
+            setWatchedLotIds(ids);
+        } catch (err) {
+            console.error("[AuctionGrid] Error fetching watchlist ids:", err);
+        }
+    }
+    fetchWatchlist();
+  }, [user, supabase]);
+
+  // Listen to global watchlist update events to keep status in sync in real-time
+  useEffect(() => {
+    const handleWatchlistUpdate = (e: Event) => {
+        const customEvent = e as CustomEvent;
+        if (customEvent.detail) {
+            const { lotId, isWatched } = customEvent.detail;
+            setWatchedLotIds(prev => {
+                const next = new Set(prev);
+                if (isWatched) {
+                    next.add(lotId);
+                } else {
+                    next.delete(lotId);
+                }
+                return next;
+            });
+        }
+    };
+    window.addEventListener('watchlist-updated', handleWatchlistUpdate);
+    return () => window.removeEventListener('watchlist-updated', handleWatchlistUpdate);
+  }, []);
 
   // Sync user session once
   useEffect(() => {
@@ -195,6 +239,7 @@ export default function AuctionGrid({
                         key={product.id} 
                         product={product} 
                         user={user} 
+                        isInitiallyWatched={watchedLotIds.has(product.id)}
                         disableRealtime={true} 
                     />
                 ))}
