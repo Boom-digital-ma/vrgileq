@@ -43,6 +43,19 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const supabase = createClient();
 
   useEffect(() => {
+    setRealtimePrice(initialPrice);
+    setBidAmount(Math.round((initialPrice + calculateNextIncrement(initialPrice)) * 100) / 100);
+  }, [initialPrice]);
+
+  useEffect(() => {
+    setRealtimeBids(bids);
+  }, [bids]);
+
+  useEffect(() => {
+    setRealtimeEndsAt(endsAt);
+  }, [endsAt]);
+
+  useEffect(() => {
     setMounted(true);
     let isMounted = true;
     
