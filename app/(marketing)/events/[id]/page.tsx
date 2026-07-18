@@ -185,7 +185,7 @@ export default async function EventPage({
       <div className="max-w-7xl mx-auto px-6 py-10 md:py-14">
         
         {/* REFINED HEADER SECTION */}
-        <div className="space-y-10 mb-14">
+        <div className="space-y-10 mb-8">
             <div className="flex flex-col md:flex-row gap-8 items-start">
                 {/* Thumbnail */}
                 {event.image_url && (
@@ -238,14 +238,14 @@ export default async function EventPage({
         }} />
 
         {/* FULL WIDTH CATALOG SECTION */}
-        <div className="space-y-12">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 pb-8">
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 pb-5">
                 <div className="flex items-center gap-4">
                     <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
                         <LayoutGrid size={24} />
                     </div>
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase">Event Catalog</h2>
+                        <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase">Catalogue</h2>
                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">
                            {count === 0 ? "Awaiting Catalog Deployment" : `${count} Assets currently in protocol`}
                         </p>

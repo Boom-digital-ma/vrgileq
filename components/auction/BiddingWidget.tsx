@@ -352,13 +352,13 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         </div>
 
         {userProfile && (
-            <button type="button" onClick={handleToggleWatch} disabled={loadingWatch} className={cn(
-                "flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all",
-                isWatched ? "bg-primary/10 border-primary/20 text-primary" : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:text-primary hover:border-primary/20"
-            )}>
-                {loadingWatch ? <Loader2 size={14} className="animate-spin" /> : <Star size={14} className={isWatched ? "fill-current" : ""} />}
-                {isWatched ? "In Watchlist" : "Add to Watchlist"}
-            </button>
+             <button type="button" onClick={handleToggleWatch} disabled={loadingWatch} className={cn(
+                 "flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all",
+                 isWatched ? "bg-amber-50 border-amber-200 text-amber-500 shadow-sm shadow-amber-500/10" : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:text-amber-500 hover:border-amber-200"
+             )}>
+                 {loadingWatch ? <Loader2 size={14} className="animate-spin" /> : <Star size={14} className={isWatched ? "fill-amber-500 text-amber-500" : ""} />}
+                 {isWatched ? "In Watchlist" : "Add to Watchlist"}
+             </button>
         )}
 
         <button type="submit" disabled={loading || isEnded || !isStarted || isAdmin} className={cn(

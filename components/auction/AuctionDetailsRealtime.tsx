@@ -201,14 +201,14 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
                       className={cn(
                           "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all active:scale-[0.98]",
                           isWatched 
-                              ? "bg-primary/10 border-primary/20 text-primary animate-in zoom-in-95 duration-100" 
-                              : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:text-primary hover:border-primary/20"
+                              ? "bg-amber-50 border-amber-200 text-amber-500 shadow-sm shadow-amber-500/10 animate-in zoom-in-95 duration-100" 
+                              : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:text-amber-500 hover:border-amber-200"
                       )}
                   >
                       {loadingWatch ? (
                           <Loader2 size={12} className="animate-spin" />
                       ) : (
-                          <Star size={12} className={isWatched ? "fill-current text-primary" : ""} />
+                          <Star size={12} className={isWatched ? "fill-amber-500 text-amber-500" : ""} />
                       )}
                       {isWatched ? "In Watchlist" : "Add to Watchlist"}
                   </button>

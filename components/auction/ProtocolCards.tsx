@@ -47,7 +47,7 @@ export default function ProtocolCards({ event }: ProtocolCardsProps) {
   const isUpcoming = !!(now && (status === 'scheduled' || (status === 'live' && new Date(event.start_at) > now)));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-20">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-10">
         {/* CARD 1: Timing */}
         <div className="md:col-span-3 bg-white border border-zinc-100 rounded-[24px] p-5 shadow-sm flex items-center gap-4">
             <div className="bg-primary/10 p-3 rounded-xl text-primary">

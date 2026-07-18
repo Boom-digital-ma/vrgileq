@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AuctionCard, { Product } from "./AuctionCard";
 import { createClient } from "@/lib/supabase/client";
 import { fetchLots } from "@/app/actions/lots";
-import { Loader2, PackageSearch } from "lucide-react";
+import { Loader2, PackageSearch, Search, X, Star } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AuctionGridProps {
   products: Product[];
@@ -21,7 +22,7 @@ export default function AuctionGrid({
     user: initialUser, 
     eventId, 
     categoryId, 
-    searchQuery,
+    searchQuery: initialSearchQuery = "",
     initialTotalCount = 0,
     status = null // Default to null (all statuses)
 }: AuctionGridProps) {
@@ -31,6 +32,14 @@ export default function AuctionGrid({
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalCount > products.length);
   const [watchedLotIds, setWatchedLotIds] = useState<Set<string>>(new Set());
+  
+  // Local filter states
+  const [localSearchQuery, setLocalSearchQuery] = useState(initialSearchQuery);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearchQuery);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  
+  const mountedRef = useRef(false);
+  const prevWatchedIdsRef = useRef(watchedLotIds);
   const observerTarget = useRef<HTMLDivElement>(null);
   
   // Memoize Supabase to prevent recreating listeners unnecessarily
@@ -89,16 +98,133 @@ export default function AuctionGrid({
     return () => subscription.unsubscribe();
   }, [supabase, user?.id]);
 
+  // Debounce search query input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(localSearchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [localSearchQuery]);
+
+  // Reset local filters on category/event changes (from prop tabs)
+  useEffect(() => {
+    setLocalSearchQuery("");
+    setShowFavoritesOnly(false);
+  }, [categoryId, eventId]);
+
   // Sync with initial props if filters change (Reset state)
-  const resetKey = `${eventId}-${categoryId}-${searchQuery}-${JSON.stringify(status)}`;
+  const resetKey = `${eventId}-${categoryId}-${initialSearchQuery}-${JSON.stringify(status)}`;
   useEffect(() => {
     setItems(products);
     setPage(1);
     setHasMore(initialTotalCount > products.length);
   }, [resetKey, initialTotalCount, products]);
 
+  // Reactive filtering effect (Search + Favorites Only)
+  useEffect(() => {
+    let isCurrent = true;
+    
+    // Check if the only thing that changed was the watchedLotIds
+    const isWatchedIdsChanged = prevWatchedIdsRef.current !== watchedLotIds;
+    prevWatchedIdsRef.current = watchedLotIds;
+    
+    if (!showFavoritesOnly && isWatchedIdsChanged) {
+        return;
+    }
+
+    async function applyFilters() {
+        setLoading(true);
+        try {
+            if (showFavoritesOnly) {
+                if (watchedLotIds.size === 0) {
+                    if (isCurrent) {
+                        setItems([]);
+                        setHasMore(false);
+                    }
+                    return;
+                }
+                
+                const { data: lots, error } = await supabase
+                    .from('auctions')
+                    .select('*, categories(name), bids(count), auction_images(url), auction_events(location, start_at)')
+                    .eq('event_id', eventId)
+                    .in('id', Array.from(watchedLotIds))
+                    .order('lot_number', { ascending: true });
+
+                if (error) throw error;
+
+                const mapped = (lots || []).map((lot: any) => ({
+                    id: lot.id,
+                    event_id: lot.event_id,
+                    lotNumber: lot.lot_number,
+                    title: lot.title,
+                    supplier: lot.categories?.name || "Industrial Liquidation",
+                    price: Number(lot.current_price),
+                    endsAt: lot.ends_at,
+                    startAt: lot.auction_events?.start_at,
+                    image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
+                    images: [
+                        ...(lot.image_url ? [lot.image_url] : []),
+                        ...(lot.auction_images?.map((i: any) => i.url) || [])
+                    ].filter((v, i, a) => a.indexOf(v) === i),
+                    bidCount: lot.bids?.[0]?.count || 0,
+                    pickupLocation: lot.auction_events?.location,
+                    description: lot.description,
+                    minIncrement: Number(lot.min_increment),
+                    winner_id: lot.winner_id,
+                    manufacturer: lot.manufacturer,
+                    model: lot.model
+                }));
+
+                let finalLots = mapped;
+                if (debouncedSearchQuery) {
+                    const q = debouncedSearchQuery.toLowerCase();
+                    finalLots = mapped.filter((l: any) => 
+                        l.title.toLowerCase().includes(q) || 
+                        (l.description && l.description.toLowerCase().includes(q))
+                    );
+                }
+
+                if (isCurrent) {
+                    setItems(finalLots);
+                    setHasMore(false);
+                }
+            } else {
+                const result = await fetchLots({
+                    eventId,
+                    categoryId,
+                    searchQuery: debouncedSearchQuery,
+                    page: 1,
+                    pageSize: 12,
+                    status
+                });
+
+                if (isCurrent) {
+                    setItems(result.lots || []);
+                    setPage(1);
+                    setHasMore(result.hasMore);
+                }
+            }
+        } catch (err) {
+            console.error("Filter error:", err);
+        } finally {
+            if (isCurrent) setLoading(false);
+        }
+    }
+
+    if (mountedRef.current) {
+        applyFilters();
+    } else {
+        mountedRef.current = true;
+    }
+
+    return () => {
+        isCurrent = false;
+    };
+  }, [debouncedSearchQuery, showFavoritesOnly, categoryId, eventId, status, watchedLotIds, supabase]);
+
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore || showFavoritesOnly) return;
     
     setLoading(true);
     const nextPage = page + 1;
@@ -106,7 +232,7 @@ export default function AuctionGrid({
     console.log(`[INFINITE_SCROLL] Fetching page ${nextPage}`, {
         eventId,
         categoryId,
-        searchQuery,
+        searchQuery: debouncedSearchQuery,
         status,
         currentItems: items.length,
         totalExpected: initialTotalCount
@@ -116,7 +242,7 @@ export default function AuctionGrid({
         const result = await fetchLots({
             eventId,
             categoryId,
-            searchQuery,
+            searchQuery: debouncedSearchQuery,
             page: nextPage,
             pageSize: 12,
             status
@@ -140,7 +266,7 @@ export default function AuctionGrid({
     } finally {
         setLoading(false);
     }
-  }, [page, loading, hasMore, eventId, categoryId, searchQuery, status, items.length, initialTotalCount]);
+  }, [page, loading, hasMore, showFavoritesOnly, eventId, categoryId, debouncedSearchQuery, status, items.length, initialTotalCount]);
 
   // Intersection Observer for Automatic Loading
   useEffect(() => {
@@ -151,7 +277,7 @@ export default function AuctionGrid({
           loadMore();
         }
       },
-      { threshold: 0.1, rootMargin: '200px' } // Increased margin for smoother experience
+      { threshold: 0.1, rootMargin: '200px' }
     );
 
     const currentTarget = observerTarget.current;
@@ -166,6 +292,7 @@ export default function AuctionGrid({
     };
   }, [loadMore, hasMore, loading]);
 
+  // Real-time listener for current price & bid updates
   useEffect(() => {
     const channelId = `grid-${eventId || 'global'}`;
     
@@ -221,15 +348,74 @@ export default function AuctionGrid({
   }, [eventId, supabase, user?.id]);
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-8">
+        {/* Toolbar: Search & Watchlist Filter */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white border border-zinc-200 rounded-[28px] p-4 shadow-md shadow-zinc-100/50">
+            {/* Search Input */}
+            <div className="relative w-full sm:max-w-md group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-primary transition-colors h-4 w-4" />
+                <input 
+                    type="text"
+                    placeholder="Search catalog by keyword or lot number..."
+                    value={localSearchQuery}
+                    onChange={(e) => setLocalSearchQuery(e.target.value)}
+                    className="w-full h-11 bg-zinc-50 border border-zinc-200 rounded-2xl pl-11 pr-10 text-xs font-bold text-secondary focus:outline-none focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary transition-all font-sans outline-none"
+                />
+                {localSearchQuery && (
+                    <button 
+                        type="button"
+                        onClick={() => setLocalSearchQuery("")}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-secondary transition-colors"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                )}
+            </div>
+
+            {/* Favorites filter toggle */}
+            {user && (
+                <button
+                    type="button"
+                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                    className={cn(
+                        "flex items-center gap-2.5 px-6 h-11 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all w-full sm:w-auto justify-center active:scale-95",
+                        showFavoritesOnly 
+                            ? "bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20" 
+                            : watchedLotIds.size > 0
+                                ? "bg-amber-50/70 border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-300"
+                                : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-300"
+                    )}
+                >
+                    <Star 
+                        size={14} 
+                        className={cn(
+                            showFavoritesOnly ? "fill-white text-white" : "",
+                            !showFavoritesOnly && watchedLotIds.size > 0 ? "fill-amber-500 text-amber-500" : ""
+                        )} 
+                    />
+                    Watchlist Only ({watchedLotIds.size})
+                    {showFavoritesOnly && (
+                        <span className="relative flex h-2 w-2 ml-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                        </span>
+                    )}
+                </button>
+            )}
+        </div>
+
         {items.length === 0 ? (
             <div className="py-32 flex flex-col items-center justify-center text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm px-10">
                 <div className="bg-zinc-50 p-6 rounded-[32px] mb-8 border border-zinc-100/50">
                     <PackageSearch size={48} className="text-zinc-200" />
                 </div>
-                <h3 className="text-2xl font-bold text-secondary font-display uppercase italic mb-3">Inventory Pending</h3>
+                <h3 className="text-2xl font-bold text-secondary font-display uppercase italic mb-3">
+                    {showFavoritesOnly ? "No Favorites Found" : "No Assets Found"}
+                </h3>
                 <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest max-w-md leading-relaxed">
-                    Our technical team is currently verifying and listing assets for this protocol. <br/> Please check back shortly for the full catalog deployment.
+                    {showFavoritesOnly 
+                        ? "You haven't added any items to your watchlist for this event yet." 
+                        : "No assets match your search criteria. Please try another query."}
                 </p>
             </div>
         ) : (
