@@ -20,9 +20,10 @@ interface BiddingWidgetProps {
   startAt?: Date;
   bids: any[];
   minIncrement: number;
+  winnerId?: string;
 }
 
-export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt, startAt, bids, minIncrement }: BiddingWidgetProps) {
+export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt, startAt, bids, minIncrement, winnerId }: BiddingWidgetProps) {
   const [timeLeft, setTimeLeft] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
   const [realtimePrice, setRealtimePrice] = useState(initialPrice);
@@ -43,7 +44,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const supabase = createClient();
 
   const sortedBids = [...realtimeBids].sort((a, b) => b.amount - a.amount);
-  const isWinning = sortedBids.length > 0 && userProfile && sortedBids[0].user_id === userProfile.id;
+  const isWinning = !!(userProfile && winnerId === userProfile.id);
   const isOutbid = !isWinning && userProfile && realtimeBids.some(b => b.user_id === userProfile.id);
   const userWinningBid = userProfile ? sortedBids.find(b => b.user_id === userProfile.id && b.status === 'active') : null;
   const userProxyAmount = userWinningBid?.max_amount;

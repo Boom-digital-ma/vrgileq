@@ -270,6 +270,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
             startAt={lot.auction_events?.start_at ? new Date(lot.auction_events.start_at) : undefined}
             bids={bids}
             minIncrement={Number(lot.min_increment)}
+            winnerId={lot.winner_id}
           />
           
           <div className="mt-6 flex items-center justify-center gap-3 px-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl">
