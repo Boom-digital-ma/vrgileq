@@ -246,6 +246,23 @@ export default function AuctionCard({
           if (payload.new.status === 'active') {
               setWinnerId(payload.new.user_id);
           }
+          if (user && payload.new.user_id === user.id && payload.new.status === 'active') {
+              setUserMaxBid(payload.new.max_amount ? Number(payload.new.max_amount) : undefined);
+              setUserCurrentBid(Number(payload.new.amount));
+          }
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'bids',
+        filter: `auction_id=eq.${product.id}`
+      }, (payload: any) => {
+        if (isSubscriptionMounted) {
+          if (user && payload.new.user_id === user.id && payload.new.status === 'active') {
+              setUserMaxBid(payload.new.max_amount ? Number(payload.new.max_amount) : undefined);
+              setUserCurrentBid(Number(payload.new.amount));
+          }
         }
       })
       .subscribe();
