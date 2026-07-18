@@ -231,7 +231,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
               {[
                   { label: "Manufacturer", value: lot.manufacturer || "Certified OEM", icon: Package },
                   { label: "Model Reference", value: lot.model || "Industrial Standard", icon: Info },
-                  { label: "Bidding Increment", value: `$${calculateNextIncrement(lot.current_price).toLocaleString()}`, icon: Gavel },
+                  { label: "Bidding Increment", value: `$${mounted ? calculateNextIncrement(lot.current_price).toLocaleString() : calculateNextIncrement(lot.current_price).toFixed(2).replace('.00', '')}`, icon: Gavel },
                   { label: "Asset Condition", value: "Verified / In-situ", icon: ShieldCheck },
               ].map((spec, i) => (
                   <div key={i} className="flex items-start gap-4">
