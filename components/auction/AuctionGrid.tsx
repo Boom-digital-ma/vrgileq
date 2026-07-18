@@ -120,6 +120,26 @@ export default function AuctionGrid({
     setHasMore(initialTotalCount > products.length);
   }, [resetKey]);
 
+  // Sync fresh server props (such as updated prices, winner_id, and userMaxBid proxy limit)
+  // into existing grid items without resetting pagination or filters
+  useEffect(() => {
+    setItems(prevItems => 
+      prevItems.map(prev => {
+        const fresh = products.find(p => p.id === prev.id);
+        if (!fresh) return prev;
+        return {
+          ...prev,
+          price: fresh.price,
+          winner_id: fresh.winner_id,
+          userMaxBid: fresh.userMaxBid,
+          userCurrentBid: fresh.userCurrentBid,
+          bidCount: fresh.bidCount,
+          endsAt: fresh.endsAt
+        };
+      })
+    );
+  }, [products]);
+
   // Reactive filtering effect (Search + Favorites Only)
   useEffect(() => {
     let isCurrent = true;
