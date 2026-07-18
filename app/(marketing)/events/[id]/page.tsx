@@ -259,7 +259,7 @@ export default async function EventPage({
                             !category ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
                         )}
                     >
-                        All Assets
+                        All Items
                     </Link>
                     {uniqueCategories.map((cat: any) => (
                         <Link 
