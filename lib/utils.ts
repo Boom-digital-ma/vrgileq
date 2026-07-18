@@ -88,9 +88,8 @@ export function getOptimizedImageUrl(url: string, { width = 800, quality = 80 }:
 export function calculateNextIncrement(price: number): number {
   const p = Number(price) || 0;
   if (p < 1) return 0.10; // Fallback if below $1
-  if (p < 3) return 0.10;
-  if (p < 5) return 0.25;
-  if (p < 10) return 1.00;
+  if (p < 3) return 0.50; // New rule: $1 – $2.99 is $0.50 increment
+  if (p < 10) return 1.00; // New rule: $3 – $9.99 is $1.00 increment
   if (p < 25) return 2.00;
   if (p < 50) return 2.50;
   if (p < 100) return 5.00;
