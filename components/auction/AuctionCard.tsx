@@ -391,7 +391,7 @@ export default function AuctionCard({
   return (
     <>
       <div className={cn(
-          "group flex flex-col bg-white border rounded-[24px] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(11,43,83,0.1)] overflow-hidden h-full relative italic",
+          "group flex flex-col bg-white border rounded-[24px] transition-all duration-200 hover:shadow-[0_20px_50px_rgba(11,43,83,0.1)] overflow-hidden h-full relative italic",
           isWinning ? "border-emerald-500/30 bg-emerald-50/5 shadow-lg shadow-emerald-500/5" : 
           isOutbid ? "border-rose-500/30 bg-rose-50/5 shadow-lg shadow-rose-500/5" : 
           "border-zinc-200/80 hover:border-primary/20"

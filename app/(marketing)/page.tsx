@@ -410,13 +410,13 @@ export default async function HomePage({
                 href={`/events/${event.id}`} 
                 key={event.id}
                 className={cn(
-                  "group flex flex-col bg-white border border-zinc-100 rounded-[40px] overflow-hidden transition-all duration-500 hover:shadow-[0_40px_80px_rgba(11,43,83,0.1)] hover:-translate-y-2 h-full",
+                  "group flex flex-col bg-white border border-zinc-100 rounded-[40px] overflow-hidden transition-all duration-250 hover:shadow-[0_40px_80px_rgba(11,43,83,0.1)] hover:-translate-y-2 h-full",
                   filter === 'past' && "grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100"
                 )}
               >
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-50 border-b border-zinc-100">
                   {event.image_url ? (
-                    <Image src={event.image_url} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="(max-width: 768px) 100vw, 400px" />
+                    <Image src={event.image_url} alt={event.title} fill className="object-cover transition-transform duration-300 group-hover:scale-110" sizes="(max-width: 768px) 100vw, 400px" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center italic font-bold text-zinc-200 text-xs p-10 text-center uppercase">
                       Inventory Preview Pending

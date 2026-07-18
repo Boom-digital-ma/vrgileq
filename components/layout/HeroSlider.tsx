@@ -29,7 +29,7 @@ export default function HeroSlider() {
         <div
           key={slide.id}
           className={cn(
-            "absolute inset-0 transition-all duration-1000 ease-in-out",
+            "absolute inset-0 transition-all duration-500 ease-in-out",
             index === current ? "opacity-100 scale-100 z-10" : "opacity-0 scale-110 z-0"
           )}
         >
