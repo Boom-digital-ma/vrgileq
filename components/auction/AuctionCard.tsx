@@ -49,11 +49,8 @@ export default function AuctionCard({
   isInitiallyWatched?: boolean, 
   disableRealtime?: boolean 
 }) {
-  const initialIsWinning = user && product.winner_id === user.id;
-  const initialBidAmount = initialIsWinning
-    ? (product.userMaxBid ? Number(product.userMaxBid) : product.price)
-    : Math.round((product.price + calculateNextIncrement(product.price)) * 100) / 100;
-  const [bidAmount, setBidAmount] = useState<number>(initialBidAmount);
+  const initialIncrement = calculateNextIncrement(product.price);
+  const [bidAmount, setBidAmount] = useState<number>(Math.round((product.price + initialIncrement) * 100) / 100);
   const [mounted, setMounted] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
@@ -147,12 +144,8 @@ export default function AuctionCard({
     setUserCurrentBid(product.userCurrentBid);
     setWinnerId(product.winner_id);
     // Also update bid amount recommendation
-    if (user && product.winner_id === user.id) {
-        setBidAmount(product.userMaxBid ? Number(product.userMaxBid) : product.price);
-    } else {
-        const nextInc = calculateNextIncrement(product.price);
-        setBidAmount(Math.round((product.price + nextInc) * 100) / 100);
-    }
+    const nextInc = calculateNextIncrement(product.price);
+    setBidAmount(Math.round((product.price + nextInc) * 100) / 100);
   }, [product.price, product.bidCount, product.endsAt, product.userMaxBid, product.userCurrentBid, product.winner_id, user]);
 
   useEffect(() => {

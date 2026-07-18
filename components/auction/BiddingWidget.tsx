@@ -62,12 +62,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     const activeBid = userProfile ? sorted.find(b => b.user_id === userProfile.id && b.status === 'active') : null;
     const proxy = activeBid?.max_amount;
     
-    if (winning) {
-        setBidAmount(proxy ? Number(proxy) : initialPrice);
-    } else {
-        const nextInc = calculateNextIncrement(initialPrice);
-        setBidAmount(Math.round((initialPrice + nextInc) * 100) / 100);
-    }
+    const nextInc = calculateNextIncrement(initialPrice);
+    setBidAmount(Math.round((initialPrice + nextInc) * 100) / 100);
   }, [initialPrice, bids, userProfile]);
 
   useEffect(() => {
