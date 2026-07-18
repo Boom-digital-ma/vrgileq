@@ -303,11 +303,13 @@ export default function AuctionCard({
         if (!result.success) throw new Error(result.error);
         
         if (isProxy) {
-            toast.success("Max Bid Activated!", {
-                description: `System will bid for you up to $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}.`
+            toast.success("You are in the lead!", {
+                description: `Your max bid is set to $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}.`
             });
         } else {
-            toast.success("Bid placed!");
+            toast.success("You are in the lead!", {
+                description: "Bid placed successfully."
+            });
         }
     } catch (err: any) {
         if (err.name !== 'AbortError') toast.error(err.message);
