@@ -111,9 +111,11 @@ BEGIN
         -- The price jumps to beat the new bidder by one increment, capped at the winner's max
         v_new_price := LEAST(p_amount + public.calculate_next_increment(p_amount), v_current_max_amount);
         
-        -- User requested to avoid the ".1" systematically. If the increment is small (decimal), 
-        -- we round up to the next integer if it's within the proxy limit.
-        IF (v_new_price - floor(v_new_price)) > 0 AND ceil(v_new_price) <= v_current_max_amount THEN
+        -- Round up only if the decimal part is NOT .50 (or .00) to avoid odd cents like .10
+        IF (v_new_price - floor(v_new_price)) > 0 
+           AND (v_new_price - floor(v_new_price)) != 0.5 
+           AND ceil(v_new_price) <= v_current_max_amount 
+        THEN
             v_new_price := ceil(v_new_price);
         END IF;
 
@@ -145,8 +147,12 @@ BEGIN
             COALESCE(v_current_max_amount + public.calculate_next_increment(v_current_max_amount), 0)
         );
         
-        -- Round up if there was a proxy outbid to avoid things like $15.1
-        IF v_current_max_amount IS NOT NULL AND (v_new_price - floor(v_new_price)) > 0 AND ceil(v_new_price) <= p_amount THEN
+        -- Round up only if the decimal part is NOT .50 (or .00) to avoid odd cents like .10
+        IF v_current_max_amount IS NOT NULL 
+           AND (v_new_price - floor(v_new_price)) > 0 
+           AND (v_new_price - floor(v_new_price)) != 0.5 
+           AND ceil(v_new_price) <= p_amount 
+        THEN
             v_new_price := ceil(v_new_price);
         END IF;
 
