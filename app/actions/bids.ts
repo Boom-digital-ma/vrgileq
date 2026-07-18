@@ -21,109 +21,108 @@ export async function placeBid({
   maxBidAmount?: number
   paymentMethodId?: string
 }) {
-  const supabase = await createClient()
-
-  // ... (previous logic for user and auction details)
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-
-  const { data: auction } = await supabase
-    .from('auctions')
-    .select('title, image_url, winner_id, event_id, ends_at, current_price, min_increment, auction_events(start_at)')
-    .eq('id', auctionId)
-    .single()
-
-  if (!auction) throw new Error('Auction not found')
-
-  const now = new Date()
-  const eventData = Array.isArray(auction.auction_events) ? auction.auction_events[0] : auction.auction_events
-  const startAt = eventData?.start_at ? new Date(eventData.start_at) : null
-  const endsAt = new Date(auction.ends_at)
-
-  if (startAt && now < startAt) {
-    throw new Error('Bidding has not started yet for this event.')
-  }
-
-  if (now > endsAt) {
-    throw new Error('This auction has already ended.')
-  }
-
-  // RULE 2: Auto-Proxy Logic
-  // Any amount above minRequiredBid is treated as a potential proxy/max bid by the SQL engine
-  const dynamicIncrement = calculateNextIncrement(Number(auction.current_price));
-  const minRequiredBid = Math.round((Number(auction.current_price) + dynamicIncrement) * 100) / 100;
-  
-  if (amount < minRequiredBid) {
-    throw new Error(`Minimum bid required is $${minRequiredBid.toLocaleString()}`);
-  }
-
-  // We send the full amount as both the bid and the max_amount
-  // The SQL RPC will determine the actual price jump needed
-  const finalAmount = amount;
-  const finalMaxBid = amount;
-
-  let previousWinnerProfile = null
-  let previousWinnerEmail = null
-
-  // FETCH PREVIOUS WINNER INFO (Admin Bypass for RLS)
-  if (auction?.winner_id && auction.winner_id !== user.id) {
-    const adminSupabase = createAdminClient()
-    
-    // 1. Try to get profile info (name)
-    const { data: profile } = await adminSupabase
-        .from('profiles')
-        .select('full_name, email, id')
-        .eq('id', auction.winner_id)
-        .single()
-    
-    if (profile) {
-        previousWinnerProfile = profile
-        previousWinnerEmail = profile.email
-    }
-
-    // 2. Fallback to Auth User if profile email is missing
-    if (!previousWinnerEmail) {
-        const { data: { user: authUser }, error: authError } = await adminSupabase.auth.admin.getUserById(auction.winner_id)
-        
-        if (authUser?.email) {
-            previousWinnerEmail = authUser.email
-            console.log(`[BID_PROTOCOL] Recovered email from Auth (Admin): ${previousWinnerEmail}`)
-        } else {
-            console.error(`[BID_PROTOCOL] Failed to recover email from Auth:`, authError)
-        }
-    }
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('stripe_customer_id, default_payment_method_id')
-    .eq('id', user.id)
-    .single()
-
-  let finalPaymentMethodId = paymentMethodId || profile?.default_payment_method_id
-
-  // FALLBACK: If missing in profile but we have a stripe customer, fetch from Stripe
-  if (!finalPaymentMethodId && profile?.stripe_customer_id) {
-    try {
-        const customer = await stripe.customers.retrieve(profile.stripe_customer_id) as Stripe.Customer
-        finalPaymentMethodId = customer.invoice_settings.default_payment_method as string
-        
-        // Auto-fix the profile for next time
-        if (finalPaymentMethodId) {
-            const adminSupabase = createAdminClient()
-            await adminSupabase.from('profiles').update({ default_payment_method_id: finalPaymentMethodId }).eq('id', user.id)
-        }
-    } catch (e) {
-        console.error("Failed to fetch fallback PM from Stripe", e)
-    }
-  }
-
-  if (!finalPaymentMethodId) {
-    throw new Error('No payment method found. Please add a card to your profile.')
-  }
-
-  // 3. SECURE BIDDING (Database Only)
   try {
+    const supabase = await createClient()
+
+    // ... (previous logic for user and auction details)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: auction } = await supabase
+      .from('auctions')
+      .select('title, image_url, winner_id, event_id, ends_at, current_price, min_increment, auction_events(start_at)')
+      .eq('id', auctionId)
+      .single()
+
+    if (!auction) throw new Error('Auction not found')
+
+    const now = new Date()
+    const eventData = Array.isArray(auction.auction_events) ? auction.auction_events[0] : auction.auction_events
+    const startAt = eventData?.start_at ? new Date(eventData.start_at) : null
+    const endsAt = new Date(auction.ends_at)
+
+    if (startAt && now < startAt) {
+      throw new Error('Bidding has not started yet for this event.')
+    }
+
+    if (now > endsAt) {
+      throw new Error('This auction has already ended.')
+    }
+
+    // RULE 2: Auto-Proxy Logic
+    // Any amount above minRequiredBid is treated as a potential proxy/max bid by the SQL engine
+    const dynamicIncrement = calculateNextIncrement(Number(auction.current_price));
+    const minRequiredBid = Math.round((Number(auction.current_price) + dynamicIncrement) * 100) / 100;
+    
+    if (amount < minRequiredBid) {
+      throw new Error(`Minimum bid required is $${minRequiredBid.toLocaleString()}`);
+    }
+
+    // We send the full amount as both the bid and the max_amount
+    // The SQL RPC will determine the actual price jump needed
+    const finalAmount = amount;
+    const finalMaxBid = amount;
+
+    let previousWinnerProfile = null
+    let previousWinnerEmail = null
+
+    // FETCH PREVIOUS WINNER INFO (Admin Bypass for RLS)
+    if (auction?.winner_id && auction.winner_id !== user.id) {
+      const adminSupabase = createAdminClient()
+      
+      // 1. Try to get profile info (name)
+      const { data: profile } = await adminSupabase
+          .from('profiles')
+          .select('full_name, email, id')
+          .eq('id', auction.winner_id)
+          .single()
+      
+      if (profile) {
+          previousWinnerProfile = profile
+          previousWinnerEmail = profile.email
+      }
+
+      // 2. Fallback to Auth User if profile email is missing
+      if (!previousWinnerEmail) {
+          const { data: { user: authUser }, error: authError } = await adminSupabase.auth.admin.getUserById(auction.winner_id)
+          
+          if (authUser?.email) {
+              previousWinnerEmail = authUser.email
+              console.log(`[BID_PROTOCOL] Recovered email from Auth (Admin): ${previousWinnerEmail}`)
+          } else {
+              console.error(`[BID_PROTOCOL] Failed to recover email from Auth:`, authError)
+          }
+      }
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id, default_payment_method_id')
+      .eq('id', user.id)
+      .single()
+
+    let finalPaymentMethodId = paymentMethodId || profile?.default_payment_method_id
+
+    // FALLBACK: If missing in profile but we have a stripe customer, fetch from Stripe
+    if (!finalPaymentMethodId && profile?.stripe_customer_id) {
+      try {
+          const customer = await stripe.customers.retrieve(profile.stripe_customer_id) as Stripe.Customer
+          finalPaymentMethodId = customer.invoice_settings.default_payment_method as string
+          
+          // Auto-fix the profile for next time
+          if (finalPaymentMethodId) {
+              const adminSupabase = createAdminClient()
+              await adminSupabase.from('profiles').update({ default_payment_method_id: finalPaymentMethodId }).eq('id', user.id)
+          }
+      } catch (e) {
+          console.error("Failed to fetch fallback PM from Stripe", e)
+      }
+    }
+
+    if (!finalPaymentMethodId) {
+      throw new Error('No payment method found. Please add a card to your profile.')
+    }
+
     // Call Supabase RPC with Max Bid support
     // We pass null for p_stripe_pi_id as we no longer hold funds per bid
     const { error: rpcError } = await supabase.rpc('place_bid_secure', {
