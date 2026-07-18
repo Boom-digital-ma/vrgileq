@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Gavel, Star, Trophy, Clock, Package, ArrowRight, CreditCard, ShieldCheck, Plus, Trash2, ShieldAlert, Loader2, History, User, Settings, Lock, ChevronRight, FileText, Truck, Zap, Calendar } from 'lucide-react'
 import Link from 'next/link'
@@ -90,9 +90,51 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
     setLoading(false)
   }
 
+  const participatingIdsRef = useRef<Set<string>>(new Set())
+
+  // Keep track of participating lot IDs to only re-trigger fetch for relevant events
+  useEffect(() => {
+    const ids = new Set<string>([
+      ...(data.bids?.map((b: any) => b.auction_id) || []),
+      ...(data.watchlist?.map((w: any) => w.id) || [])
+    ])
+    participatingIdsRef.current = ids
+  }, [data.bids, data.watchlist])
+
   useEffect(() => {
     fetchData()
   }, [supabase])
+
+  // Realtime subscription for bids and auctions changes to keep status in sync
+  useEffect(() => {
+    if (!user) return
+
+    const channel = supabase
+      .channel('profile-sync-channel')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'auctions'
+      }, (payload: any) => {
+        if (participatingIdsRef.current.has(payload.new?.id)) {
+            fetchData()
+        }
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'bids'
+      }, (payload: any) => {
+        if (participatingIdsRef.current.has(payload.new?.auction_id)) {
+            fetchData()
+        }
+      })
+      .subscribe()
+
+    return () => {
+        supabase.removeChannel(channel)
+    }
+  }, [supabase, user])
 
   const handleEmailChange = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

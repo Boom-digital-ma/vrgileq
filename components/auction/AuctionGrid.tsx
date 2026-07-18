@@ -457,7 +457,7 @@ export default function AuctionGrid({
             {loading && (
                 <div className="flex items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-zinc-100 shadow-sm">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Loading Assets...</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Loading Items...</span>
                 </div>
             )}
             {!hasMore && items.length > 0 && (
