@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown, Edit3, Shield, FileText, Maximize2 } from "lucide-react";
@@ -101,7 +101,10 @@ export default function AuctionCard({
   const [showLightbox, setShowLightbox] = useState(false);
   const router = useRouter();
   
-  const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
+  const allImages = useMemo(() => {
+    const list = product.images && product.images.length > 0 ? product.images : [product.image];
+    return [...list].reverse();
+  }, [product.images, product.image]);
   const supabase = createClient();
 
   const isAdmin = user?.role === 'admin';
@@ -314,6 +317,20 @@ export default function AuctionCard({
             return;
         }
 
+        if (bidAmount < minRequiredBid) {
+            if (isWinning) {
+                toast.error("You are already the highest bidder", {
+                    description: `To raise your max bid, your new bid must be higher than $${minRequiredBid.toLocaleString()}.`
+                });
+            } else {
+                toast.error("Bid amount too low", {
+                    description: `Minimum bid required is $${minRequiredBid.toLocaleString()}.`
+                });
+            }
+            setLoadingBid(false);
+            return;
+        }
+
         const isProxy = bidAmount > minRequiredBid;
 
         const result = await placeBid({ auctionId: product.id, amount: bidAmount });
@@ -397,7 +414,7 @@ export default function AuctionCard({
 
           {allImages.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-y-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
-                {allImages.map((_, i) => (
+                {allImages.map((_: any, i: number) => (
                     <div 
                     key={i} 
                     className={cn(
@@ -608,7 +625,7 @@ export default function AuctionCard({
                     </div>
                 )}
                 {!isAdmin && (
-                    <form onSubmit={handleBid} className="flex gap-2">
+                    <form onSubmit={handleBid} className="flex gap-2" noValidate>
                         <div className="relative flex-1 group/input">
                             <label className="absolute -top-2 left-3 bg-white px-1.5 text-[8px] font-bold uppercase tracking-widest text-zinc-400 z-10 group-focus-within/input:text-primary transition-colors">
                                 Bid / Max Bid

@@ -221,6 +221,20 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           return;
       }
 
+      if (bidAmount < minBid) {
+          if (isWinning) {
+              toast.error("You are already the highest bidder", {
+                  description: `To raise your max bid, your new bid must be higher than $${minBid.toLocaleString()}.`
+              });
+          } else {
+              toast.error("Bid amount too low", {
+                  description: `Minimum bid required is $${minBid.toLocaleString()}.`
+              });
+          }
+          setLoading(false);
+          return;
+      }
+
       const result = await placeBid({
         auctionId,
         amount: bidAmount,
@@ -349,7 +363,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         </div>
       </div>
 
-      <form onSubmit={handleBid} className="flex flex-col gap-5 mb-8">
+      <form onSubmit={handleBid} className="flex flex-col gap-5 mb-8" noValidate>
         <div className="relative group/input">
           <label className="absolute -top-2 left-4 bg-white px-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 z-10 group-focus-within/input:text-primary transition-colors">
             {isAdmin ? "Bid Simulation (Disabled)" : "Place Your Bid / Max Bid"}
