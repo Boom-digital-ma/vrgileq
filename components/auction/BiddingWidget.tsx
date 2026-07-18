@@ -42,10 +42,28 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   
   const supabase = createClient();
 
+  const sortedBids = [...realtimeBids].sort((a, b) => b.amount - a.amount);
+  const isWinning = sortedBids.length > 0 && userProfile && sortedBids[0].user_id === userProfile.id;
+  const isOutbid = !isWinning && userProfile && realtimeBids.some(b => b.user_id === userProfile.id);
+  const userWinningBid = userProfile ? sortedBids.find(b => b.user_id === userProfile.id && b.status === 'active') : null;
+  const userProxyAmount = userWinningBid?.max_amount;
+  const isProxyActive = isWinning && userProxyAmount && userProxyAmount > realtimePrice;
+
+  const referencePrice = (isWinning && userProxyAmount && userProxyAmount > realtimePrice) 
+    ? Number(userProxyAmount) 
+    : realtimePrice;
+  const nextRequiredInc = calculateNextIncrement(referencePrice);
+  const minBid = Math.round((referencePrice + nextRequiredInc) * 100) / 100;
+
   useEffect(() => {
     setRealtimePrice(initialPrice);
-    setBidAmount(Math.round((initialPrice + calculateNextIncrement(initialPrice)) * 100) / 100);
-  }, [initialPrice]);
+    const sorted = [...bids].sort((a, b) => b.amount - a.amount);
+    const winning = sorted.length > 0 && userProfile && sorted[0].user_id === userProfile.id;
+    const activeBid = userProfile ? sorted.find(b => b.user_id === userProfile.id && b.status === 'active') : null;
+    const proxy = activeBid?.max_amount;
+    const ref = (winning && proxy && proxy > initialPrice) ? Number(proxy) : initialPrice;
+    setBidAmount(Math.round((ref + calculateNextIncrement(ref)) * 100) / 100);
+  }, [initialPrice, bids, userProfile]);
 
   useEffect(() => {
     setRealtimeBids(bids);
@@ -54,6 +72,10 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   useEffect(() => {
     setRealtimeEndsAt(endsAt);
   }, [endsAt]);
+
+  useEffect(() => {
+    setBidAmount(prev => prev < minBid ? minBid : prev);
+  }, [minBid]);
 
   useEffect(() => {
     setMounted(true);
@@ -225,17 +247,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     }
   };
 
-  const sortedBids = [...realtimeBids].sort((a, b) => b.amount - a.amount);
-  const isWinning = sortedBids.length > 0 && userProfile && sortedBids[0].user_id === userProfile.id;
-  const isOutbid = !isWinning && userProfile && realtimeBids.some(b => b.user_id === userProfile.id);
-  const userWinningBid = userProfile ? sortedBids.find(b => b.user_id === userProfile.id && b.status === 'active') : null;
-  const userProxyAmount = userWinningBid?.max_amount;
-  const isProxyActive = isWinning && userProxyAmount && userProxyAmount > realtimePrice;
-
   const premiumPercent = settings?.buyers_premium || 15;
   const taxRate = settings?.tax_rate || 0;
-  const nextRequiredInc = calculateNextIncrement(realtimePrice);
-  const minBid = Math.round((realtimePrice + nextRequiredInc) * 100) / 100;
   const currentHammer = bidAmount > minBid ? minBid : bidAmount;
   const premiumAmount = currentHammer * (premiumPercent / 100);
   const taxAmount = (currentHammer + premiumAmount) * (taxRate / 100);

@@ -315,7 +315,8 @@ export async function fetchLots({
                 userCurrentBid: userBid?.amount,
                 manufacturer: lot.manufacturer,
                 model: lot.model,
-                status: lot.status
+                status: lot.status,
+                winner_id: lot.winner_id
             }
         }) || []
 

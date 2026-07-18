@@ -51,8 +51,23 @@ export async function placeBid({
 
     // RULE 2: Auto-Proxy Logic
     // Any amount above minRequiredBid is treated as a potential proxy/max bid by the SQL engine
-    const dynamicIncrement = calculateNextIncrement(Number(auction.current_price));
-    const minRequiredBid = Math.round((Number(auction.current_price) + dynamicIncrement) * 100) / 100;
+    let referencePrice = Number(auction.current_price);
+    if (auction.winner_id === user.id) {
+        const { data: activeBid } = await supabase
+            .from('bids')
+            .select('max_amount')
+            .eq('auction_id', auctionId)
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .maybeSingle();
+            
+        if (activeBid?.max_amount) {
+            referencePrice = Number(activeBid.max_amount);
+        }
+    }
+
+    const dynamicIncrement = calculateNextIncrement(referencePrice);
+    const minRequiredBid = Math.round((referencePrice + dynamicIncrement) * 100) / 100;
     
     if (amount < minRequiredBid) {
       throw new Error(`Minimum bid required is $${minRequiredBid.toLocaleString()}`);

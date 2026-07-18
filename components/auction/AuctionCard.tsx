@@ -49,8 +49,12 @@ export default function AuctionCard({
   isInitiallyWatched?: boolean, 
   disableRealtime?: boolean 
 }) {
-  const initialIncrement = calculateNextIncrement(product.price);
-  const [bidAmount, setBidAmount] = useState<number>(Math.round((product.price + initialIncrement) * 100) / 100);
+  const initialIsWinning = user && product.winner_id === user.id;
+  const initialReferencePrice = (initialIsWinning && product.userMaxBid && product.userMaxBid > product.price)
+    ? Number(product.userMaxBid)
+    : product.price;
+  const initialIncrement = calculateNextIncrement(initialReferencePrice);
+  const [bidAmount, setBidAmount] = useState<number>(Math.round((initialReferencePrice + initialIncrement) * 100) / 100);
   const [mounted, setMounted] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
@@ -70,6 +74,14 @@ export default function AuctionCard({
   const [userMaxBid, setUserMaxBid] = useState(product.userMaxBid);
   const [userCurrentBid, setUserCurrentBid] = useState(product.userCurrentBid);
   const [winnerId, setWinnerId] = useState(product.winner_id);
+  
+  const isWinning = user && winnerId === user.id;
+  const isOutbid = user && userCurrentBid && winnerId && winnerId !== user.id;
+
+  const referencePrice = (isWinning && userMaxBid && userMaxBid > realtimePrice)
+    ? Number(userMaxBid)
+    : realtimePrice;
+  const minRequiredBid = Math.round((referencePrice + calculateNextIncrement(referencePrice)) * 100) / 100;
   
   // Refined start logic: If not draft, check if current time is past startAt
   const getIsStarted = () => {
@@ -132,11 +144,17 @@ export default function AuctionCard({
     setUserMaxBid(product.userMaxBid);
     setUserCurrentBid(product.userCurrentBid);
     setWinnerId(product.winner_id);
-    
     // Also update bid amount recommendation
-    const nextInc = calculateNextIncrement(product.price);
-    setBidAmount(product.price + nextInc);
-  }, [product.price, product.bidCount, product.endsAt, product.userMaxBid, product.userCurrentBid, product.winner_id]);
+    const referencePrice = (user && product.winner_id === user.id && product.userMaxBid && product.userMaxBid > product.price)
+        ? Number(product.userMaxBid)
+        : product.price;
+    const nextInc = calculateNextIncrement(referencePrice);
+    setBidAmount(Math.round((referencePrice + nextInc) * 100) / 100);
+  }, [product.price, product.bidCount, product.endsAt, product.userMaxBid, product.userCurrentBid, product.winner_id, user]);
+
+  useEffect(() => {
+    setBidAmount(prev => prev < minRequiredBid ? minRequiredBid : prev);
+  }, [minRequiredBid]);
 
   // 1. Timer Effect
   useEffect(() => {
@@ -296,7 +314,6 @@ export default function AuctionCard({
             return;
         }
 
-        const minRequiredBid = Math.round((realtimePrice + calculateNextIncrement(realtimePrice)) * 100) / 100;
         const isProxy = bidAmount > minRequiredBid;
 
         const result = await placeBid({ auctionId: product.id, amount: bidAmount });
@@ -318,8 +335,7 @@ export default function AuctionCard({
     }
   };
 
-  const isWinning = user && winnerId === user.id;
-  const isOutbid = user && userCurrentBid && winnerId && winnerId !== user.id;
+
 
   return (
     <>
@@ -601,7 +617,7 @@ export default function AuctionCard({
                             <input 
                             type="number" 
                             step="any"
-                            min={Math.round((realtimePrice + calculateNextIncrement(realtimePrice)) * 100) / 100} 
+                            min={minRequiredBid} 
                             value={bidAmount} 
                             onChange={(e) => setBidAmount(Number(e.target.value))} 
                             className="w-full h-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-3 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 
