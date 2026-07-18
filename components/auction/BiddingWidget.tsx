@@ -221,18 +221,22 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           return;
       }
 
-      if (bidAmount < minBid) {
-          if (isWinning) {
-              toast.error("You are already the highest bidder", {
-                  description: `To raise your max bid, your new bid must be higher than $${minBid.toLocaleString()}.`
+      if (isWinning) {
+          if (bidAmount < realtimePrice) {
+              toast.error("Bid limit too low", {
+                  description: `Your bid limit cannot be lower than the current price of $${realtimePrice.toLocaleString()}.`
               });
-          } else {
+              setLoading(false);
+              return;
+          }
+      } else {
+          if (bidAmount < minBid) {
               toast.error("Bid amount too low", {
                   description: `Minimum bid required is $${minBid.toLocaleString()}.`
               });
+              setLoading(false);
+              return;
           }
-          setLoading(false);
-          return;
       }
 
       const result = await placeBid({
@@ -371,7 +375,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           <div className="relative">
             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 text-xl font-bold font-display">$</span>
             <input
-              type="number" step="any" disabled={isAdmin} min={minBid}
+              type="number" step="any" disabled={isAdmin} min={isWinning ? realtimePrice : minBid}
               value={bidAmount} onChange={(e) => setBidAmount(Number(e.target.value))}
               className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-5 pl-10 pr-6 text-2xl font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all font-display italic outline-none disabled:opacity-50"
             />

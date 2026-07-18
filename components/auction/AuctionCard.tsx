@@ -317,18 +317,22 @@ export default function AuctionCard({
             return;
         }
 
-        if (bidAmount < minRequiredBid) {
-            if (isWinning) {
-                toast.error("You are already the highest bidder", {
-                    description: `To raise your max bid, your new bid must be higher than $${minRequiredBid.toLocaleString()}.`
+        if (isWinning) {
+            if (bidAmount < realtimePrice) {
+                toast.error("Bid limit too low", {
+                    description: `Your bid limit cannot be lower than the current price of $${realtimePrice.toLocaleString()}.`
                 });
-            } else {
+                setLoadingBid(false);
+                return;
+            }
+        } else {
+            if (bidAmount < minRequiredBid) {
                 toast.error("Bid amount too low", {
                     description: `Minimum bid required is $${minRequiredBid.toLocaleString()}.`
                 });
+                setLoadingBid(false);
+                return;
             }
-            setLoadingBid(false);
-            return;
         }
 
         const isProxy = bidAmount > minRequiredBid;
@@ -634,7 +638,7 @@ export default function AuctionCard({
                             <input 
                             type="number" 
                             step="any"
-                            min={minRequiredBid} 
+                            min={isWinning ? realtimePrice : minRequiredBid} 
                             value={bidAmount} 
                             onChange={(e) => setBidAmount(Number(e.target.value))} 
                             className="w-full h-full bg-zinc-50 border-2 border-zinc-100/80 rounded-xl py-3 pl-7 pr-3 text-sm font-bold text-secondary focus:outline-none focus:border-primary/30 focus:bg-white transition-all outline-none" 

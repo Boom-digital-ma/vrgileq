@@ -69,8 +69,14 @@ export async function placeBid({
     const dynamicIncrement = calculateNextIncrement(referencePrice);
     const minRequiredBid = Math.round((referencePrice + dynamicIncrement) * 100) / 100;
     
-    if (amount < minRequiredBid) {
-      throw new Error(`Minimum bid required is $${minRequiredBid.toLocaleString()}`);
+    if (auction.winner_id === user.id) {
+        if (amount < Number(auction.current_price)) {
+            throw new Error(`Your bid limit cannot be lower than the current price of $${Number(auction.current_price).toLocaleString()}`);
+        }
+    } else {
+        if (amount < minRequiredBid) {
+            throw new Error(`Minimum bid required is $${minRequiredBid.toLocaleString()}`);
+        }
     }
 
     // We send the full amount as both the bid and the max_amount
