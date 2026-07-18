@@ -118,7 +118,7 @@ export default function AuctionGrid({
     setItems(products);
     setPage(1);
     setHasMore(initialTotalCount > products.length);
-  }, [resetKey, initialTotalCount, products]);
+  }, [resetKey]);
 
   // Reactive filtering effect (Search + Favorites Only)
   useEffect(() => {
