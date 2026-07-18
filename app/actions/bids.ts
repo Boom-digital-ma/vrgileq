@@ -189,6 +189,9 @@ export async function placeBid({
     }
 
     revalidatePath(`/auctions/${auctionId}`)
+    if (auction?.event_id) {
+        revalidatePath(`/events/${auction.event_id}`)
+    }
     revalidatePath('/profile')
     return { success: true }
 

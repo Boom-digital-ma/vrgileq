@@ -353,18 +353,37 @@ export default function AuctionCard({
         }
 
         const isProxy = bidAmount > minRequiredBid;
+        const previousProxy = userMaxBid;
 
         const result = await placeBid({ auctionId: product.id, amount: bidAmount });
         if (!result.success) throw new Error(result.error);
         
-        if (isProxy) {
-            toast.success("You are in the lead!", {
-                description: `Your max bid is set to $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}.`
-            });
+        if (isWinning) {
+            if (previousProxy && bidAmount !== previousProxy) {
+                if (bidAmount > previousProxy) {
+                    toast.success("Max bid increased!", {
+                        description: `Your max bid has been raised to $${bidAmount.toLocaleString()}.`
+                    });
+                } else {
+                    toast.success("Max bid decreased!", {
+                        description: `Your max bid has been lowered to $${bidAmount.toLocaleString()}.`
+                    });
+                }
+            } else {
+                toast.success("You are in the lead!", {
+                    description: "Bid placed successfully."
+                });
+            }
         } else {
-            toast.success("You are in the lead!", {
-                description: "Bid placed successfully."
-            });
+            if (isProxy) {
+                toast.success("You are in the lead!", {
+                    description: `Your max bid is set to $${bidAmount.toLocaleString()}.`
+                });
+            } else {
+                toast.success("You are in the lead!", {
+                    description: "Bid placed successfully."
+                });
+            }
         }
     } catch (err: any) {
         if (err.name !== 'AbortError') toast.error(err.message);
