@@ -50,11 +50,10 @@ export default function AuctionCard({
   disableRealtime?: boolean 
 }) {
   const initialIsWinning = user && product.winner_id === user.id;
-  const initialReferencePrice = (initialIsWinning && product.userMaxBid && product.userMaxBid > product.price)
-    ? Number(product.userMaxBid)
-    : product.price;
-  const initialIncrement = calculateNextIncrement(initialReferencePrice);
-  const [bidAmount, setBidAmount] = useState<number>(Math.round((initialReferencePrice + initialIncrement) * 100) / 100);
+  const initialBidAmount = initialIsWinning
+    ? (product.userMaxBid ? Number(product.userMaxBid) : product.price)
+    : Math.round((product.price + calculateNextIncrement(product.price)) * 100) / 100;
+  const [bidAmount, setBidAmount] = useState<number>(initialBidAmount);
   const [mounted, setMounted] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
@@ -148,16 +147,18 @@ export default function AuctionCard({
     setUserCurrentBid(product.userCurrentBid);
     setWinnerId(product.winner_id);
     // Also update bid amount recommendation
-    const referencePrice = (user && product.winner_id === user.id && product.userMaxBid && product.userMaxBid > product.price)
-        ? Number(product.userMaxBid)
-        : product.price;
-    const nextInc = calculateNextIncrement(referencePrice);
-    setBidAmount(Math.round((referencePrice + nextInc) * 100) / 100);
+    if (user && product.winner_id === user.id) {
+        setBidAmount(product.userMaxBid ? Number(product.userMaxBid) : product.price);
+    } else {
+        const nextInc = calculateNextIncrement(product.price);
+        setBidAmount(Math.round((product.price + nextInc) * 100) / 100);
+    }
   }, [product.price, product.bidCount, product.endsAt, product.userMaxBid, product.userCurrentBid, product.winner_id, user]);
 
   useEffect(() => {
-    setBidAmount(prev => prev < minRequiredBid ? minRequiredBid : prev);
-  }, [minRequiredBid]);
+    const floor = isWinning ? realtimePrice : minRequiredBid;
+    setBidAmount(prev => prev < floor ? floor : prev);
+  }, [minRequiredBid, isWinning, realtimePrice]);
 
   // 1. Timer Effect
   useEffect(() => {
