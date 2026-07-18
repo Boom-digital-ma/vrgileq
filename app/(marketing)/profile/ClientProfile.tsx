@@ -420,7 +420,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                         <EmptyState message="No active participations detected" link="/auctions" linkText="Explore Catalog" />
                       ) : (
                         data.bids.map((bid) => (
-                          <AuctionRow key={bid.id} auction={bid.auctions} bidAmount={bid.amount} maxBid={bid.max_amount} status={bid.status} />
+                          <AuctionRow key={bid.id} auction={bid.auctions} bidAmount={bid.amount} maxBid={bid.max_amount} status={bid.status} currentUserId={data.profile?.id} />
                         ))
                       )}
                     </div>
@@ -621,8 +621,8 @@ function AcquisitionRow({ sale }: { sale: any }) {
   )
 }
 
-function AuctionRow({ auction, bidAmount, maxBid, status, isWon, saleId }: { auction: any, bidAmount: number, maxBid?: number, status?: string, isWon?: boolean, saleId?: string }) {
-  const isWinning = status === 'active';
+function AuctionRow({ auction, bidAmount, maxBid, status, isWon, saleId, currentUserId }: { auction: any, bidAmount: number, maxBid?: number, status?: string, isWon?: boolean, saleId?: string, currentUserId?: string }) {
+  const isWinning = currentUserId ? (auction.winner_id === currentUserId) : (status === 'active');
   const imgUrl = auction.auction_images?.[0]?.url || auction.image_url || "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad";
 
   return (
