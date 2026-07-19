@@ -36,10 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
-# docs
+# docs and guides
 /docs/
-TODO_*.md
-GEMINI.md
+/guides/
+*.md
 
 # typescript
 *.tsbuildinfo
