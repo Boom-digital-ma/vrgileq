@@ -86,7 +86,7 @@ export default async function AuctionDetailPage({ params }: { params: { id: stri
       
       {/* Back Navigation Bar */}
       <div className="border-b border-zinc-100 bg-white sticky top-16 z-30">
-        <div className="container mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-6 py-4">
             <Link href={`/events/${lot.event_id}`} className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-primary transition-all group">
                 <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                 Back to Event

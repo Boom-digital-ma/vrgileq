@@ -167,7 +167,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
   const isUpcoming = !isStarted && !isAuctionEnded;
 
   return (
-    <div className="container mx-auto px-6 py-12">
+    <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         
         {/* LEFT: Content & Media */}
