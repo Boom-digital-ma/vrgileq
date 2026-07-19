@@ -1,36 +1,4 @@
--- Create dynamic increment calculator function
-CREATE OR REPLACE FUNCTION public.calculate_next_increment(p_price DECIMAL)
-RETURNS DECIMAL AS $$
-DECLARE
-    p DECIMAL := COALESCE(p_price, 0);
-BEGIN
-    IF p < 1 THEN RETURN 0.10;
-    ELSIF p < 3 THEN RETURN 0.50;
-    ELSIF p < 10 THEN RETURN 1.00;
-    ELSIF p < 25 THEN RETURN 2.00;
-    ELSIF p < 50 THEN RETURN 2.50;
-    ELSIF p < 100 THEN RETURN 5.00;
-    ELSIF p < 150 THEN RETURN 7.50;
-    ELSIF p < 200 THEN RETURN 10.00;
-    ELSIF p < 500 THEN RETURN 15.00;
-    ELSIF p < 550 THEN RETURN 25.00;
-    ELSIF p < 600 THEN RETURN 30.00;
-    ELSIF p < 2000 THEN RETURN 50.00;
-    ELSIF p < 30000 THEN RETURN 100.00;
-    ELSIF p < 40000 THEN RETURN 300.00;
-    ELSIF p < 50000 THEN RETURN 400.00;
-    ELSIF p < 100000 THEN RETURN 500.00;
-    ELSIF p < 150000 THEN RETURN 1000.00;
-    ELSIF p < 200000 THEN RETURN 1500.00;
-    ELSIF p < 250000 THEN RETURN 2000.00;
-    ELSIF p < 300000 THEN RETURN 2500.00;
-    ELSIF p < 350000 THEN RETURN 3000.00;
-    ELSE RETURN 3500.00;
-    END IF;
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-
--- Update place_bid_secure to calculate increments dynamically and update the auctions.min_increment column
+-- Update place_bid_secure to allow the current winner to lower or raise their proxy limit down to the current price
 CREATE OR REPLACE FUNCTION public.place_bid_secure(
     p_auction_id UUID,
     p_user_id UUID,
@@ -72,15 +40,15 @@ BEGIN
     IF v_status != 'live' THEN RAISE EXCEPTION 'Auction is not live'; END IF;
     IF v_ends_at < now() THEN RAISE EXCEPTION 'Auction has ended'; END IF;
     
-    -- If the bidder is already the highest bidder, we only allow them to raise their proxy limit
+    -- If the bidder is already the highest bidder, we allow them to update their proxy limit (raise or lower it)
     IF v_current_winner_id = p_user_id THEN
         -- Find their active bid
         SELECT max_amount INTO v_current_max_amount
         FROM bids WHERE auction_id = p_auction_id AND status = 'active' AND user_id = p_user_id
         LIMIT 1;
 
-        IF p_amount <= COALESCE(v_current_max_amount, v_current_price) THEN
-            RAISE EXCEPTION 'You are already the highest bidder. To raise your max bid, your new bid must be higher than your current max bid of %', COALESCE(v_current_max_amount, v_current_price);
+        IF p_amount < v_current_price THEN
+            RAISE EXCEPTION 'You are already the highest bidder. Your new bid limit cannot be lower than the current price of %', v_current_price;
         END IF;
 
         -- Update their active bid max_amount to the new amount
