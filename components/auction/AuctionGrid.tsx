@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AuctionCard, { Product } from "./AuctionCard";
 import { createClient } from "@/lib/supabase/client";
 import { fetchLots } from "@/app/actions/lots";
-import { Loader2, PackageSearch, Search, X, Star } from "lucide-react";
+import { Loader2, PackageSearch, Search, X, Star, Gavel } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AuctionGridProps {
@@ -32,40 +32,56 @@ export default function AuctionGrid({
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalCount > products.length);
   const [watchedLotIds, setWatchedLotIds] = useState<Set<string>>(new Set());
+  const [biddedLotIds, setBiddedLotIds] = useState<Set<string>>(new Set());
   
   // Local filter states
   const [localSearchQuery, setLocalSearchQuery] = useState(initialSearchQuery);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearchQuery);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showBiddedOnly, setShowBiddedOnly] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   
   const mountedRef = useRef(false);
   const prevWatchedIdsRef = useRef(watchedLotIds);
+  const prevBiddedIdsRef = useRef(biddedLotIds);
   const observerTarget = useRef<HTMLDivElement>(null);
   
   // Memoize Supabase to prevent recreating listeners unnecessarily
   const supabase = useMemo(() => createClient(), []);
 
-  // Fetch watched lot IDs once on mount/user change
+  // Fetch watched and bidded lot IDs once on mount/user change
   useEffect(() => {
     if (!user) {
         setWatchedLotIds(new Set<string>());
+        setBiddedLotIds(new Set<string>());
         return;
     }
-    async function fetchWatchlist() {
+    async function fetchUserData() {
         try {
-            const { data, error } = await supabase
+            // Watchlist
+            const { data: watchData, error: watchErr } = await supabase
                 .from('watchlist')
                 .select('auction_id')
                 .eq('user_id', user.id);
-            if (error) throw error;
-            const ids = new Set<string>((data || []).map((w: any) => w.auction_id as string));
-            setWatchedLotIds(ids);
+            if (!watchErr) {
+                const ids = new Set<string>((watchData || []).map((w: any) => w.auction_id as string));
+                setWatchedLotIds(ids);
+            }
+
+            // Bids
+            const { data: bidData, error: bidErr } = await supabase
+                .from('bids')
+                .select('auction_id')
+                .eq('user_id', user.id);
+            if (!bidErr) {
+                const bids = new Set<string>((bidData || []).map((b: any) => b.auction_id as string));
+                setBiddedLotIds(bids);
+            }
         } catch (err) {
-            console.error("[AuctionGrid] Error fetching watchlist ids:", err);
+            console.error("[AuctionGrid] Error fetching user data:", err);
         }
     }
-    fetchWatchlist();
+    fetchUserData();
   }, [user, supabase]);
 
   // Listen to global watchlist update events to keep status in sync in real-time
@@ -117,6 +133,7 @@ export default function AuctionGrid({
     const handleReset = () => {
         setLocalSearchQuery('');
         setShowFavoritesOnly(false);
+        setShowBiddedOnly(false);
         setResetKey(prev => prev + 1);
     };
     window.addEventListener('reset-auction-grid', handleReset);
@@ -151,23 +168,37 @@ export default function AuctionGrid({
     );
   }, [products]);
 
-  // Reactive filtering effect (Search + Favorites Only)
+  // Reactive filtering effect (Search + Favorites Only + Bidded Only)
   useEffect(() => {
     let isCurrent = true;
     
-    // Check if the only thing that changed was the watchedLotIds
+    // Check if the only thing that changed was the watchedLotIds or biddedLotIds
     const isWatchedIdsChanged = prevWatchedIdsRef.current !== watchedLotIds;
     prevWatchedIdsRef.current = watchedLotIds;
+    const isBiddedIdsChanged = prevBiddedIdsRef.current !== biddedLotIds;
+    prevBiddedIdsRef.current = biddedLotIds;
     
-    if (!showFavoritesOnly && isWatchedIdsChanged) {
+    if (!showFavoritesOnly && isWatchedIdsChanged && !showBiddedOnly) {
+        return;
+    }
+    if (!showBiddedOnly && isBiddedIdsChanged && !showFavoritesOnly) {
         return;
     }
 
     async function applyFilters() {
         setLoading(true);
         try {
-            if (showFavoritesOnly) {
-                if (watchedLotIds.size === 0) {
+            if (showFavoritesOnly || showBiddedOnly) {
+                let targetIds = new Set<string>();
+                if (showFavoritesOnly && showBiddedOnly) {
+                    targetIds = new Set([...watchedLotIds].filter(x => biddedLotIds.has(x)));
+                } else if (showFavoritesOnly) {
+                    targetIds = watchedLotIds;
+                } else {
+                    targetIds = biddedLotIds;
+                }
+
+                if (targetIds.size === 0) {
                     if (isCurrent) {
                         setItems([]);
                         setHasMore(false);
@@ -179,7 +210,7 @@ export default function AuctionGrid({
                     .from('auctions')
                     .select('*, categories(name), bids(count), auction_images(url), auction_events(location, start_at)')
                     .eq('event_id', eventId)
-                    .in('id', Array.from(watchedLotIds))
+                    .in('id', Array.from(targetIds))
                     .order('lot_number', { ascending: true });
 
                 if (error) throw error;
@@ -419,35 +450,49 @@ export default function AuctionGrid({
                 )}
             </div>
 
-            {/* Favorites filter toggle */}
+            {/* Filter toggles */}
             {user && (
-                <button
-                    type="button"
-                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                    className={cn(
-                        "flex items-center gap-2.5 px-6 h-11 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all w-full sm:w-auto justify-center active:scale-95",
-                        showFavoritesOnly 
-                            ? "bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20" 
-                            : watchedLotIds.size > 0
-                                ? "bg-amber-50/70 border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-300"
-                                : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-300"
-                    )}
-                >
-                    <Star 
-                        size={14} 
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                        type="button"
+                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                         className={cn(
-                            showFavoritesOnly ? "fill-white text-white" : "",
-                            !showFavoritesOnly && watchedLotIds.size > 0 ? "fill-amber-500 text-amber-500" : ""
-                        )} 
-                    />
-                    Watchlist Only ({watchedLotIds.size})
-                    {showFavoritesOnly && (
-                        <span className="relative flex h-2 w-2 ml-1">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                        </span>
-                    )}
-                </button>
+                            "flex items-center gap-2.5 px-6 h-11 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all flex-1 sm:flex-none justify-center active:scale-95",
+                            showFavoritesOnly 
+                                ? "bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20" 
+                                : watchedLotIds.size > 0
+                                    ? "bg-amber-50/70 border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-300"
+                                    : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-300"
+                        )}
+                    >
+                        <Star 
+                            size={14} 
+                            className={cn(
+                                showFavoritesOnly ? "fill-white text-white" : "",
+                                !showFavoritesOnly && watchedLotIds.size > 0 ? "fill-amber-500 text-amber-500" : ""
+                            )} 
+                        />
+                        <span className="hidden sm:inline">Watchlist</span> ({watchedLotIds.size})
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setShowBiddedOnly(!showBiddedOnly)}
+                        className={cn(
+                            "flex items-center gap-2.5 px-6 h-11 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all flex-1 sm:flex-none justify-center active:scale-95",
+                            showBiddedOnly 
+                                ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
+                                : biddedLotIds.size > 0
+                                    ? "bg-primary/5 border-primary/20 text-primary hover:bg-primary/10 hover:border-primary/30"
+                                    : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-300"
+                        )}
+                    >
+                        <Gavel 
+                            size={14} 
+                        />
+                        <span className="hidden sm:inline">My Bids</span> ({biddedLotIds.size})
+                    </button>
+                </div>
             )}
         </div>
 
@@ -457,12 +502,16 @@ export default function AuctionGrid({
                     <PackageSearch size={48} className="text-zinc-200" />
                 </div>
                 <h3 className="text-2xl font-bold text-secondary font-display uppercase italic mb-3">
-                    {showFavoritesOnly ? "No Favorites Found" : "No Assets Found"}
+                    {showFavoritesOnly && showBiddedOnly ? "No Matches Found" : showFavoritesOnly ? "No Favorites Found" : showBiddedOnly ? "No Bids Found" : "No Assets Found"}
                 </h3>
                 <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest max-w-md leading-relaxed">
-                    {showFavoritesOnly 
-                        ? "You haven't added any items to your watchlist for this event yet." 
-                        : "No assets match your search criteria. Please try another query."}
+                    {showFavoritesOnly && showBiddedOnly 
+                        ? "You don't have any items that are both in your watchlist and have your bids."
+                        : showFavoritesOnly 
+                            ? "You haven't added any items to your watchlist for this event yet." 
+                            : showBiddedOnly
+                                ? "You haven't placed any bids in this event yet."
+                                : "No assets match your search criteria. Please try another query."}
                 </p>
             </div>
         ) : (
