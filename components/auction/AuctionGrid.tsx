@@ -79,7 +79,7 @@ export default function AuctionGrid({
                     .in('id', allIds);
 
                 if (!validErr && validAuctions) {
-                    const validIds = new Set(validAuctions.map(a => a.id));
+                    const validIds = new Set(validAuctions.map((a: any) => a.id));
                     watchIds = watchIds.filter(id => validIds.has(id));
                     bidIds = bidIds.filter(id => validIds.has(id));
                 }
