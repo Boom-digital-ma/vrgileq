@@ -262,10 +262,19 @@ export async function fetchLots({
         
         // Admin sees everything by default. Normal users should not see drafts.
         if (status && !isAdmin) {
-            if (Array.isArray(status)) query = query.in('status', status)
-            else query = query.eq('status', status)
+            // Filter out invalid statuses by catching them or just use what's provided
+            // Actually, if status is provided, just use it (assuming valid).
+            // But if it's an array and contains 'scheduled', it will crash.
+            // Let's filter out 'scheduled' since it's not in the DB enum.
+            let safeStatus = Array.isArray(status) ? status.filter(s => s !== 'scheduled') : (status === 'scheduled' ? null : status);
+            if (safeStatus) {
+                if (Array.isArray(safeStatus) && safeStatus.length > 0) query = query.in('status', safeStatus)
+                else if (!Array.isArray(safeStatus)) query = query.eq('status', safeStatus)
+            } else {
+                query = query.neq('status', 'draft')
+            }
         } else if (!status && !isAdmin) {
-            query = query.in('status', ['live', 'scheduled', 'closed'])
+            query = query.neq('status', 'draft')
         }
 
         const from = (page - 1) * pageSize
