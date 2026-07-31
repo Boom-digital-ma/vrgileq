@@ -211,8 +211,8 @@ export default function AuctionGrid({
                 if (debouncedSearchQuery) {
                     const q = debouncedSearchQuery.toLowerCase().trim();
                     finalLots = mapped.filter((l: any) => 
-                        l.title.toLowerCase().includes(q) || 
-                        (l.description && l.description.toLowerCase().includes(q)) ||
+                        l.title?.toLowerCase()?.includes(q) || 
+                        l.description?.toLowerCase()?.includes(q) ||
                         (l.lotNumber && l.lotNumber.toString() === q)
                     );
                 }
