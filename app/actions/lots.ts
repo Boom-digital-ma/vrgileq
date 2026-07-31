@@ -155,9 +155,10 @@ export async function importLots(eventId: string, lots: any[]) {
     });
 
     const formattedLots = sortedLots.map((lot, index) => {
-      // STAGGERED CLOSING: Base Time + (Index * 2 minutes)
-      // This ensures Lot 1 (index 0) starts at base, Lot 2 at +2m, etc.
-      const staggeredEndsAt = new Date(baseEndsAt.getTime() + (index * 2 * 60 * 1000)).toISOString();
+      // STAGGERED CLOSING: Group by 2 items every 2 minutes
+      // Index 0, 1 -> +0 min; Index 2, 3 -> +2 min; Index 4, 5 -> +4 min
+      const staggerMinutes = Math.floor(index / 2) * 2;
+      const staggeredEndsAt = new Date(baseEndsAt.getTime() + (staggerMinutes * 60 * 1000)).toISOString();
 
       return {
         event_id: eventId,
