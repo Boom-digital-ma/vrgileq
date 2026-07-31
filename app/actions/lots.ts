@@ -253,14 +253,19 @@ export async function fetchLots({
 
         if (eventId) query = query.eq('event_id', eventId)
         if (categoryId) query = query.eq('category_id', categoryId)
-        if (searchQuery) query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
+        if (searchQuery) {
+            const trimmedQuery = searchQuery.trim()
+            const isNumeric = /^\d+$/.test(trimmedQuery)
+            const lotNumberCondition = isNumeric ? `,lot_number.eq.${trimmedQuery}` : ''
+            query = query.or(`title.ilike.%${trimmedQuery}%,description.ilike.%${trimmedQuery}%${lotNumberCondition}`)
+        }
         
-        // Admin sees everything by default, others only live
+        // Admin sees everything by default. Normal users should not see drafts.
         if (status && !isAdmin) {
             if (Array.isArray(status)) query = query.in('status', status)
             else query = query.eq('status', status)
         } else if (!status && !isAdmin) {
-            query = query.eq('status', 'live')
+            query = query.in('status', ['live', 'scheduled', 'closed'])
         }
 
         const from = (page - 1) * pageSize

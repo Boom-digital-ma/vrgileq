@@ -198,10 +198,11 @@ export default function AuctionGrid({
 
                 let finalLots = mapped;
                 if (debouncedSearchQuery) {
-                    const q = debouncedSearchQuery.toLowerCase();
+                    const q = debouncedSearchQuery.toLowerCase().trim();
                     finalLots = mapped.filter((l: any) => 
                         l.title.toLowerCase().includes(q) || 
-                        (l.description && l.description.toLowerCase().includes(q))
+                        (l.description && l.description.toLowerCase().includes(q)) ||
+                        (l.lotNumber && l.lotNumber.toString() === q)
                     );
                 }
 
@@ -210,19 +211,27 @@ export default function AuctionGrid({
                     setHasMore(false);
                 }
             } else {
-                const result = await fetchLots({
-                    eventId,
-                    categoryId,
-                    searchQuery: debouncedSearchQuery,
-                    page: 1,
-                    pageSize: 12,
-                    status
-                });
+                if (debouncedSearchQuery === initialSearchQuery) {
+                    if (isCurrent) {
+                        setItems(products);
+                        setPage(1);
+                        setHasMore(initialTotalCount > products.length);
+                    }
+                } else {
+                    const result = await fetchLots({
+                        eventId,
+                        categoryId,
+                        searchQuery: debouncedSearchQuery,
+                        page: 1,
+                        pageSize: 12,
+                        status
+                    });
 
-                if (isCurrent) {
-                    setItems(result.lots || []);
-                    setPage(1);
-                    setHasMore(result.hasMore);
+                    if (isCurrent) {
+                        setItems(result.lots || []);
+                        setPage(1);
+                        setHasMore(result.hasMore);
+                    }
                 }
             }
         } catch (err) {

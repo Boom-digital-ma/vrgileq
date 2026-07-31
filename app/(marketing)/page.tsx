@@ -67,7 +67,12 @@ export default async function HomePage({
         query = query.eq('status', 'live')
     }
 
-    if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
+    if (q) {
+        const trimmedQ = q.trim()
+        const isNumeric = /^\d+$/.test(trimmedQ)
+        const lotNumberCondition = isNumeric ? `,lot_number.eq.${trimmedQ}` : ''
+        query = query.or(`title.ilike.%${trimmedQ}%,description.ilike.%${trimmedQ}%${lotNumberCondition}`)
+    }
     if (category) query = query.eq('category_id', category)
 
     const from = (currentPage - 1) * PAGE_SIZE_LOTS
@@ -104,7 +109,12 @@ export default async function HomePage({
         `)
         .in('status', ['sold', 'ended'])
 
-    if (q) archiveQuery = archiveQuery.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
+    if (q) {
+        const trimmedQ = q.trim()
+        const isNumeric = /^\d+$/.test(trimmedQ)
+        const lotNumberCondition = isNumeric ? `,lot_number.eq.${trimmedQ}` : ''
+        archiveQuery = archiveQuery.or(`title.ilike.%${trimmedQ}%,description.ilike.%${trimmedQ}%${lotNumberCondition}`)
+    }
     if (category) archiveQuery = archiveQuery.eq('category_id', category)
 
     const { data: archives, count: archiveCount } = await archiveQuery

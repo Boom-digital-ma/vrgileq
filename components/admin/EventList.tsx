@@ -263,8 +263,8 @@ export const EventList = () => {
                 <div><label className={labelClasses}>Location</label><input name="location" placeholder="e.g. Alexandria, VA" className={inputClasses} /></div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <div><label className={labelClasses}>Start Date</label><input name="start_at" type="datetime-local" className={inputClasses} /></div>
-                    <div><label className={labelClasses}>Closing Date</label><input name="ends_at" type="datetime-local" required className={inputClasses} /></div>
+                    <div><label className={labelClasses}>Start Date (Virginia Time)</label><input name="start_at" type="datetime-local" className={inputClasses} /></div>
+                    <div><label className={labelClasses}>Closing Date (Virginia Time)</label><input name="ends_at" type="datetime-local" required className={inputClasses} /></div>
                 </div>
 
                 <div><label className={labelClasses}>Deposit ($)</label><input name="deposit_amount" type="number" defaultValue={globalDefaultDeposit} key={globalDefaultDeposit} className={inputClasses} /></div>
@@ -330,8 +330,8 @@ export const EventList = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className={labelClasses}>Start Date</label><input name="start_at" type="datetime-local" defaultValue={formatDateForInput(editData?.start_at)} key={editData?.start_at} className={inputClasses} /></div>
-                                <div><label className={labelClasses}>End Date</label><input name="ends_at" type="datetime-local" defaultValue={formatDateForInput(editData?.ends_at)} key={editData?.ends_at} required className={inputClasses} /></div>
+                                <div><label className={labelClasses}>Start Date (Virginia Time)</label><input name="start_at" type="datetime-local" defaultValue={formatDateForInput(editData?.start_at)} key={editData?.start_at} className={inputClasses} /></div>
+                                <div><label className={labelClasses}>End Date (Virginia Time)</label><input name="ends_at" type="datetime-local" defaultValue={formatDateForInput(editData?.ends_at)} key={editData?.ends_at} required className={inputClasses} /></div>
                             </div>
 
                             <div><label className={labelClasses}>Deposit Amount ($)</label><input name="deposit_amount" type="number" defaultValue={editData?.deposit_amount} key={editData?.deposit_amount} className={inputClasses} /></div>
