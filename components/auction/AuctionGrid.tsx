@@ -64,8 +64,8 @@ export default function AuctionGrid({
                 supabase.from('bids').select('auction_id').eq('user_id', user.id)
             ]);
 
-            let watchIds = Array.from(new Set((watchRes.data || []).map((w: any) => w.auction_id as string)));
-            let bidIds = Array.from(new Set((bidRes.data || []).map((b: any) => b.auction_id as string)));
+            let watchIds: string[] = Array.from(new Set((watchRes.data || []).map((w: any) => w.auction_id as string)));
+            let bidIds: string[] = Array.from(new Set((bidRes.data || []).map((b: any) => b.auction_id as string)));
 
             // 2. If we are on an event page, filter these IDs to only keep those belonging to this event
             if (eventId && (watchIds.length > 0 || bidIds.length > 0)) {
@@ -85,8 +85,8 @@ export default function AuctionGrid({
                 }
             }
 
-            setWatchedLotIds(new Set(watchIds));
-            setBiddedLotIds(new Set(bidIds));
+            setWatchedLotIds(new Set<string>(watchIds));
+            setBiddedLotIds(new Set<string>(bidIds));
 
         } catch (err) {
             console.error("[AuctionGrid] Error fetching user data:", err);
