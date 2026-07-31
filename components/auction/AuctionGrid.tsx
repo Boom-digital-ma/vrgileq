@@ -33,6 +33,7 @@ export default function AuctionGrid({
   const [hasMore, setHasMore] = useState(initialTotalCount > products.length);
   const [watchedLotIds, setWatchedLotIds] = useState<Set<string>>(new Set());
   const [biddedLotIds, setBiddedLotIds] = useState<Set<string>>(new Set());
+  const [userBidsMap, setUserBidsMap] = useState<Record<string, { amount: number, max_amount: number }>>({});
   
   // Local filter states
   const [localSearchQuery, setLocalSearchQuery] = useState(initialSearchQuery);
@@ -58,10 +59,9 @@ export default function AuctionGrid({
     }
     async function fetchUserData() {
         try {
-            // 1. Fetch all Watchlist & Bids for this user globally
             const [watchRes, bidRes] = await Promise.all([
                 supabase.from('watchlist').select('auction_id').eq('user_id', user.id),
-                supabase.from('bids').select('auction_id').eq('user_id', user.id)
+                supabase.from('bids').select('auction_id, amount, max_amount').eq('user_id', user.id)
             ]);
 
             let watchIds: string[] = Array.from(new Set((watchRes.data || []).map((w: any) => w.auction_id as string)));
@@ -84,6 +84,12 @@ export default function AuctionGrid({
                     bidIds = bidIds.filter(id => validIds.has(id));
                 }
             }
+
+            const map: Record<string, { amount: number, max_amount: number }> = {};
+            (bidRes.data || []).forEach((b: any) => {
+                map[b.auction_id] = { amount: b.amount, max_amount: b.max_amount };
+            });
+            setUserBidsMap(map);
 
             setWatchedLotIds(new Set<string>(watchIds));
             setBiddedLotIds(new Set<string>(bidIds));
@@ -217,12 +223,17 @@ export default function AuctionGrid({
                     return;
                 }
                 
-                const { data: lots, error } = await supabase
+                let query = supabase
                     .from('auctions')
                     .select('*, categories(name), bids(count), auction_images(url), auction_events(location, start_at)')
-                    .eq('event_id', eventId)
                     .in('id', Array.from(targetIds))
                     .order('lot_number', { ascending: true });
+
+                if (eventId) {
+                    query = query.eq('event_id', eventId);
+                }
+                
+                const { data: lots, error } = await query;
 
                 if (error) throw error;
 
@@ -252,7 +263,9 @@ export default function AuctionGrid({
                         minIncrement: Number(lot.min_increment),
                         winner_id: lot.winner_id,
                         manufacturer: lot.manufacturer,
-                        model: lot.model
+                        model: lot.model,
+                        userCurrentBid: userBidsMap[lot.id]?.amount,
+                        userMaxBid: userBidsMap[lot.id]?.max_amount
                     };
                 });
 
@@ -310,7 +323,7 @@ export default function AuctionGrid({
     return () => {
         isCurrent = false;
     };
-  }, [debouncedSearchQuery, showFavoritesOnly, categoryId, eventId, status, watchedLotIds, supabase]);
+  }, [debouncedSearchQuery, showFavoritesOnly, showBiddedOnly, categoryId, eventId, status, watchedLotIds, biddedLotIds, userBidsMap, supabase]);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore || showFavoritesOnly) return;
