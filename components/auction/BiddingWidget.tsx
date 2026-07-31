@@ -399,9 +399,9 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           <div className="relative">
             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 text-xl font-bold font-display">$</span>
             <input
-              type="number" step="any" disabled={isAdmin} min={isWinning ? realtimePrice : minBid}
+              type="number" step="any" disabled={isAdmin || isEnded || !isStarted} min={isWinning ? realtimePrice : minBid}
               value={bidAmount} onChange={(e) => setBidAmount(Number(e.target.value))}
-              className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-5 pl-10 pr-6 text-2xl font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all font-display italic outline-none disabled:opacity-50"
+              className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-5 pl-10 pr-6 text-2xl font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all font-display italic outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>
