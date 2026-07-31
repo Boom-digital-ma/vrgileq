@@ -37,6 +37,7 @@ export default function AuctionGrid({
   const [localSearchQuery, setLocalSearchQuery] = useState(initialSearchQuery);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearchQuery);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
   
   const mountedRef = useRef(false);
   const prevWatchedIdsRef = useRef(watchedLotIds);
@@ -112,13 +113,23 @@ export default function AuctionGrid({
     setShowFavoritesOnly(false);
   }, [categoryId, eventId]);
 
+  useEffect(() => {
+    const handleReset = () => {
+        setLocalSearchQuery('');
+        setShowFavoritesOnly(false);
+        setResetKey(prev => prev + 1);
+    };
+    window.addEventListener('reset-auction-grid', handleReset);
+    return () => window.removeEventListener('reset-auction-grid', handleReset);
+  }, []);
+
   // Sync with initial props if filters change (Reset state)
-  const resetKey = `${eventId}-${categoryId}-${initialSearchQuery}-${JSON.stringify(status)}`;
+  const gridKey = `${eventId}-${categoryId}-${initialSearchQuery}-${JSON.stringify(status)}-${resetKey}`;
   useEffect(() => {
     setItems(products);
     setPage(1);
     setHasMore(initialTotalCount > products.length);
-  }, [resetKey]);
+  }, [gridKey]);
 
   // Sync fresh server props (such as updated prices, winner_id, and userMaxBid proxy limit)
   // into existing grid items without resetting pagination or filters

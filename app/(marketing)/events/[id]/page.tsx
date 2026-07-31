@@ -8,6 +8,7 @@ import EventReminderButton from '@/components/auction/EventReminderButton'
 import EventWatchlistDrawer from '@/components/auction/EventWatchlistDrawer'
 import ProtocolCards from '@/components/auction/ProtocolCards'
 import ImageGallery from '@/components/auction/ImageGallery'
+import ResetFiltersButton from '@/components/auction/ResetFiltersButton'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -252,27 +253,22 @@ export default async function EventPage({
                     </div>                </div>
 
                 <nav className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-                    <Link 
-                        href={`/events/${id}`}
-                        className={cn(
-                            "px-5 py-2 text-[10px] font-black uppercase tracking-widest border rounded-xl transition-all whitespace-nowrap",
-                            !category ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
-                        )}
-                    >
-                        All Items
-                    </Link>
-                    {uniqueCategories.map((cat: any) => (
-                        <Link 
-                            key={cat.id}
-                            href={`/events/${id}?category=${cat.id}`}
-                            className={cn(
-                                "px-5 py-2 text-[10px] font-black uppercase tracking-widest border rounded-xl transition-all whitespace-nowrap",
-                                category === cat.id ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
-                            )}
-                        >
-                            {cat.name}
-                        </Link>
-                    ))}
+                    <ResetFiltersButton id={id} isActive={!category} />
+                    {uniqueCategories.map((cat: any) => {
+                        const isActive = category === cat.id;
+                        return (
+                            <Link 
+                                key={cat.id}
+                                href={isActive ? `/events/${id}` : `/events/${id}?category=${cat.id}`}
+                                className={cn(
+                                    "px-5 py-2 text-[10px] font-black uppercase tracking-widest border rounded-xl transition-all whitespace-nowrap",
+                                    isActive ? "bg-zinc-900 text-white border-zinc-900 shadow-lg" : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
+                                )}
+                            >
+                                {cat.name}
+                            </Link>
+                        )
+                    })}
                 </nav>
             </div>
 
