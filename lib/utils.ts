@@ -65,6 +65,38 @@ export function formatDateForInput(date: string | Date | number | null | undefin
   return `${getPart('year')}-${getPart('month')}-${getPart('day')}T${getPart('hour')}:${getPart('minute')}`
 }
 
+/**
+ * Takes a local date string (e.g. "YYYY-MM-DDTHH:mm") from an input and treats it as New York time,
+ * returning an absolute ISO string (UTC) to send to the database.
+ */
+export function parseNYTimeToUTC(localString: string): string | null {
+  if (!localString) return null;
+  
+  // Create a UTC date just to ask the formatter what the NY offset was at that specific moment.
+  const tempDate = new Date(localString + "Z"); 
+  
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    timeZoneName: 'shortOffset',
+  });
+  
+  const parts = formatter.formatToParts(tempDate);
+  const tzName = parts.find(p => p.type === 'timeZoneName')?.value;
+  
+  if (!tzName) return new Date(localString).toISOString(); // fallback
+  
+  let isoOffset = "+00:00";
+  const match = tzName.match(/([+-])(\d+)(?::(\d+))?/);
+  if (match) {
+    const sign = match[1];
+    const hours = match[2].padStart(2, '0');
+    const minutes = match[3] || '00';
+    isoOffset = `${sign}${hours}:${minutes}`;
+  }
+  
+  return new Date(localString + isoOffset).toISOString();
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }

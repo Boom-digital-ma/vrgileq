@@ -2,7 +2,7 @@
 
 import { useTable, useNavigation, useDelete, useForm, useList } from "@refinedev/core"
 import { Edit, Trash2, Plus, Loader2, Calendar, DollarSign, Eye, Save, Gavel, ArrowLeft, Copy, AlertCircle } from "lucide-react"
-import { cn, formatEventDate, formatDateForInput } from "@/lib/utils"
+import { cn, formatEventDate, formatDateForInput, parseNYTimeToUTC } from "@/lib/utils"
 import { useState } from "react"
 import { Modal, ConfirmModal } from "./Modal"
 import { ImageUpload } from "./ImageUpload"
@@ -109,6 +109,8 @@ export const EventList = () => {
     const d = Object.fromEntries(new FormData(e.currentTarget))
     createForm.onFinish({
         ...d,
+        start_at: d.start_at ? parseNYTimeToUTC(d.start_at as string) : undefined,
+        ends_at: d.ends_at ? parseNYTimeToUTC(d.ends_at as string) : undefined,
         image_url: uploadedImages.length > 0 ? uploadedImages[0] : null
     })
   }
@@ -118,6 +120,8 @@ export const EventList = () => {
     const d = Object.fromEntries(new FormData(e.currentTarget))
     editForm.onFinish({
         ...d,
+        start_at: d.start_at ? parseNYTimeToUTC(d.start_at as string) : undefined,
+        ends_at: d.ends_at ? parseNYTimeToUTC(d.ends_at as string) : undefined,
         image_url: uploadedImages.length > 0 ? uploadedImages[0] : null
     })
   }
