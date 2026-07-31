@@ -156,11 +156,12 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
     };
   }, [lot.id, supabase]);
 
-  const secondaryImages = lot.auction_images?.map((img: any) => img.url) || [];
+  const secondaryImages = (lot.auction_images?.map((img: any) => img.url) || [])
+    .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
   const finalGallery = [
     ...(lot.image_url ? [lot.image_url] : []),
     ...secondaryImages
-  ].filter((url, index, self) => url && self.indexOf(url) === index).reverse();
+  ].filter((url, index, self) => url && self.indexOf(url) === index);
 
   const [isStarted, setIsStarted] = useState(!lot.auction_events?.start_at);
   const isLive = lot.status === 'live' && isStarted && !isAuctionEnded;

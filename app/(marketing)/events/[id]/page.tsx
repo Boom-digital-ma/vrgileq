@@ -111,6 +111,16 @@ export default async function EventPage({
 
   const mappedLots = lots?.map(lot => {
     const userBid = userBidsMap.get(lot.id);
+    
+    // Extract and sort gallery images, but always keep the explicitly chosen image_url (main image) first!
+    const sortedGallery = (lot.auction_images?.map((i: any) => i.url) || [])
+        .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
+
+    const allImages = [
+        ...(lot.image_url ? [lot.image_url] : []),
+        ...sortedGallery
+    ].filter((v, i, a) => a.indexOf(v) === i);
+
     return {
         id: lot.id,
         event_id: lot.event_id,
@@ -120,11 +130,8 @@ export default async function EventPage({
         price: Number(lot.current_price),
         endsAt: lot.ends_at,
         startAt: (lot.auction_events as any)?.start_at,
-        image: lot.image_url || "/images/placeholder.jpg",
-        images: [
-            ...(lot.image_url ? [lot.image_url] : []),
-            ...(lot.auction_images?.map((i: any) => i.url) || [])
-        ].filter((v, i, a) => a.indexOf(v) === i),
+        image: allImages[0] || "/images/placeholder.jpg",
+        images: allImages,
         bidCount: lot.bids?.[0]?.count || 0,
         pickupLocation: (lot.auction_events as any)?.location,
         description: lot.description,

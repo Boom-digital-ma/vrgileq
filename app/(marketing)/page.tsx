@@ -202,6 +202,13 @@ export default async function HomePage({
                                 <AuctionGrid 
                                     products={lots?.map(lot => {
                                         const userBid = userBidsMap.get(lot.id);
+                                        const sortedGallery = (lot.auction_images?.map((i: any) => i.url) || [])
+                                            .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
+                                        const allImages = [
+                                            ...(lot.image_url ? [lot.image_url] : []),
+                                            ...sortedGallery
+                                        ].filter((v, i, a) => a.indexOf(v) === i);
+
                                         return {
                                             id: lot.id,
                                             event_id: lot.auction_events?.id,
@@ -211,11 +218,8 @@ export default async function HomePage({
                                             price: Number(lot.current_price),
                                             endsAt: lot.ends_at || lot.auction_events?.ends_at,
                                             startAt: lot.auction_events?.start_at,
-                                            image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
-                                            images: [
-                                                ...(lot.image_url ? [lot.image_url] : []),
-                                                ...(lot.auction_images?.map((i: any) => i.url) || [])
-                                            ].filter((v, i, a) => a.indexOf(v) === i),
+                                            image: allImages[0] || "/images/placeholder.jpg",
+                                            images: allImages,
                                             bidCount: lot.bids?.[0]?.count || 0,
                                             pickupLocation: lot.auction_events?.location,
                                             description: lot.description,
@@ -252,20 +256,25 @@ export default async function HomePage({
 
                                 <div className="opacity-60 grayscale-[0.5] hover:grayscale-0 transition-all">
                                     <AuctionGrid 
-                                        products={archives.map((lot) => ({
-                                            id: lot.id,
-                                            event_id: lot.auction_events?.id,
-                                            lotNumber: lot.lot_number,
-                                            title: lot.title,
-                                            supplier: lot.categories?.name || 'General Industrial',
-                                            price: Number(lot.current_price),
-                                            endsAt: lot.ends_at || lot.auction_events?.ends_at,
-                                            startAt: lot.auction_events?.start_at,
-                                            image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
-                                            images: [
+                                        products={archives.map((lot) => {
+                                            const sortedGallery = (lot.auction_images?.map((i: any) => i.url) || [])
+                                                .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
+                                            const allImages = [
                                                 ...(lot.image_url ? [lot.image_url] : []),
-                                                ...(lot.auction_images?.map((i: any) => i.url) || [])
-                                            ].filter((v, i, a) => a.indexOf(v) === i),
+                                                ...sortedGallery
+                                            ].filter((v, i, a) => a.indexOf(v) === i);
+
+                                            return {
+                                                id: lot.id,
+                                                event_id: lot.auction_events?.id,
+                                                lotNumber: lot.lot_number,
+                                                title: lot.title,
+                                                supplier: lot.categories?.name || 'General Industrial',
+                                                price: Number(lot.current_price),
+                                                endsAt: lot.ends_at || lot.auction_events?.ends_at,
+                                                startAt: lot.auction_events?.start_at,
+                                                image: allImages[0] || "/images/placeholder.jpg",
+                                                images: allImages,
                                             bidCount: lot.bids?.[0]?.count || 0,
                                             pickupLocation: lot.auction_events?.location,
                                             description: lot.description,
@@ -273,8 +282,9 @@ export default async function HomePage({
                                             winner_id: lot.winner_id,
                                             manufacturer: lot.manufacturer,
                                             model: lot.model,
-                                            status: lot.status
-                                        }))}
+                                                status: lot.status
+                                            };
+                                        })}
                                         user={userProfile ? { ...user, ...userProfile } : user}
                                         searchQuery={q}
                                         categoryId={category}

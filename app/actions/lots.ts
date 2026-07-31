@@ -298,6 +298,15 @@ export async function fetchLots({
 
         const mappedLots = lots?.map(lot => {
             const userBid = userBidsMap.get(lot.id)
+            
+            const sortedGallery = (lot.auction_images?.map((i: any) => i.url) || [])
+                .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
+            
+            const allImages = [
+                ...(lot.image_url ? [lot.image_url] : []),
+                ...sortedGallery
+            ].filter((v, i, a) => a.indexOf(v) === i);
+
             return {
                 id: lot.id,
                 event_id: lot.event_id,
@@ -307,11 +316,8 @@ export async function fetchLots({
                 price: Number(lot.current_price),
                 endsAt: lot.ends_at || lot.auction_events?.ends_at,
                 startAt: lot.auction_events?.start_at,
-                image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
-                images: [
-                    ...(lot.image_url ? [lot.image_url] : []),
-                    ...(lot.auction_images?.map((i: any) => i.url) || [])
-                ].filter((v, i, a) => a.indexOf(v) === i),
+                image: allImages[0] || "/images/placeholder.jpg",
+                images: allImages,
                 bidCount: lot.bids?.[0]?.count || 0,
                 pickupLocation: lot.auction_events?.location,
                 description: lot.description,

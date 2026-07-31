@@ -99,7 +99,7 @@ export default function AuctionCard({
   
   const allImages = useMemo(() => {
     const list = product.images && product.images.length > 0 ? product.images : [product.image];
-    return [...list].reverse();
+    return [...list];
   }, [product.images, product.image]);
   const supabase = createClient();
 

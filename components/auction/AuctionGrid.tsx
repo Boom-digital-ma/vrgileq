@@ -184,28 +184,35 @@ export default function AuctionGrid({
 
                 if (error) throw error;
 
-                const mapped = (lots || []).map((lot: any) => ({
-                    id: lot.id,
-                    event_id: lot.event_id,
-                    lotNumber: lot.lot_number,
-                    title: lot.title,
-                    supplier: lot.categories?.name || "Industrial Liquidation",
-                    price: Number(lot.current_price),
-                    endsAt: lot.ends_at,
-                    startAt: lot.auction_events?.start_at,
-                    image: lot.image_url || lot.auction_images?.[0]?.url || "/images/placeholder.jpg",
-                    images: [
+                const mapped = (lots || []).map((lot: any) => {
+                    const sortedGallery = (lot.auction_images?.map((i: any) => i.url) || [])
+                        .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
+
+                    const allImages = [
                         ...(lot.image_url ? [lot.image_url] : []),
-                        ...(lot.auction_images?.map((i: any) => i.url) || [])
-                    ].filter((v, i, a) => a.indexOf(v) === i),
-                    bidCount: lot.bids?.[0]?.count || 0,
-                    pickupLocation: lot.auction_events?.location,
-                    description: lot.description,
-                    minIncrement: Number(lot.min_increment),
-                    winner_id: lot.winner_id,
-                    manufacturer: lot.manufacturer,
-                    model: lot.model
-                }));
+                        ...sortedGallery
+                    ].filter((v, i, a) => a.indexOf(v) === i);
+
+                    return {
+                        id: lot.id,
+                        event_id: lot.event_id,
+                        lotNumber: lot.lot_number,
+                        title: lot.title,
+                        supplier: lot.categories?.name || "Industrial Liquidation",
+                        price: Number(lot.current_price),
+                        endsAt: lot.ends_at,
+                        startAt: lot.auction_events?.start_at,
+                        image: allImages[0] || "/images/placeholder.jpg",
+                        images: allImages,
+                        bidCount: lot.bids?.[0]?.count || 0,
+                        pickupLocation: lot.auction_events?.location,
+                        description: lot.description,
+                        minIncrement: Number(lot.min_increment),
+                        winner_id: lot.winner_id,
+                        manufacturer: lot.manufacturer,
+                        model: lot.model
+                    };
+                });
 
                 let finalLots = mapped;
                 if (debouncedSearchQuery) {
