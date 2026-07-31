@@ -127,7 +127,7 @@ export const AdminSider = ({ isOpen, onClose }: { isOpen?: boolean, onClose?: ()
         {loading ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
                 <Loader2 className="h-5 w-5 text-zinc-300 animate-spin" />
-                <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest">Verifying Protocol</span>
+                <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest">Verifying Auth</span>
             </div>
         ) : (
             filteredGroups.map((group) => (

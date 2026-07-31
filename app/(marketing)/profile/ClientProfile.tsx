@@ -523,7 +523,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                           </div>
                           <div className="space-y-6">
                               <div className="bg-secondary p-10 rounded-[40px] text-white relative overflow-hidden shadow-2xl shadow-secondary/20">
-                                  <h3 className="text-sm font-bold uppercase tracking-widest mb-4">Password Protocol</h3>
+                                  <h3 className="text-sm font-bold uppercase tracking-widest mb-4">Password Requirements</h3>
                                   <p className="text-xs text-white/40 leading-relaxed uppercase mb-8">Execute a secure recovery sequence to modify your master password.</p>
                                   <Link href="/auth/forgot-password" className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10">
                                       Initiate Recovery <ArrowRight size={14} />

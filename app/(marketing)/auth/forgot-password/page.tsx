@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
             <KeyRound size={32} />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Account <span className="text-primary">Recovery</span>.</h1>
-          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4">Initiate Security Protocol</p>
+          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4">Initiate Password Reset</p>
         </div>
 
         {error && (

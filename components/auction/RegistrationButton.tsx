@@ -196,7 +196,7 @@ export default function RegistrationButton({
         </div>
         <div>
             <p className="font-bold uppercase text-[10px] tracking-wider leading-none">Admin Mode</p>
-            <p className="text-[10px] font-medium opacity-50 uppercase mt-1 italic">Protocol Access Only</p>
+            <p className="text-[10px] font-medium opacity-50 uppercase mt-1 italic">Registration Required</p>
         </div>
       </div>
     )
@@ -333,7 +333,7 @@ export default function RegistrationButton({
                     <div className="flex justify-between items-center italic">
                         <div className="flex items-center gap-2 text-primary">
                             <CreditCard size={16} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Financial Protocol</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Payment Setup</span>
                         </div>
                         <div className="flex items-center gap-4">
                             {!isProfileComplete(profile) && (

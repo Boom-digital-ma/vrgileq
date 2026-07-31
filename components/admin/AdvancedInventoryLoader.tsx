@@ -180,7 +180,7 @@ export const AdvancedInventoryLoader = () => {
                 className="bg-zinc-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:bg-primary transition-all active:scale-95 disabled:opacity-20 flex items-center gap-3"
             >
                 {importLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap size={16} className="text-primary" />}
-                {importLoading ? "Syncing Protocol..." : "Execute Sync Protocol"}
+                {importLoading ? "Syncing Data..." : "Execute Sync"}
             </button>
         )}
       </div>
@@ -233,7 +233,7 @@ export const AdvancedInventoryLoader = () => {
             <div className="bg-light/10 p-6 border-2 border-dashed border-zinc-100 rounded-3xl">
                 <div className="flex items-center gap-3 text-zinc-400 italic">
                     <CheckCircle2 size={16} />
-                    <span className="text-[10px] font-bold uppercase">Auto-Matching Protocol Active</span>
+                    <span className="text-[10px] font-bold uppercase">Auto-Matching Active</span>
                 </div>
                 <p className="mt-2 text-[9px] text-zinc-400 leading-relaxed uppercase">The engine will pair files matching the pattern <code>[LotNum]-index.jpg</code> automatically.</p>
             </div>
@@ -272,7 +272,7 @@ export const AdvancedInventoryLoader = () => {
         <div className="flex items-center gap-4 p-8 border-4 border-primary/10 rounded-3xl italic">
             <AlertCircle className="text-primary shrink-0" size={32} />
             <div>
-                <h4 className="text-xs font-black uppercase text-primary">Safety Protocol</h4>
+                <h4 className="text-xs font-black uppercase text-primary">Safety Check</h4>
                 <p className="text-[10px] text-zinc-400 font-medium uppercase leading-relaxed">Ensure your Excel file follows the standardized ManyFastScan format. Uploading will overwrite existing assets with the same Lot Number for this event.</p>
             </div>
         </div>

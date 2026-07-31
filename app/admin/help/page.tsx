@@ -52,7 +52,7 @@ export default function AdminHelpPage() {
             </div>
             <h1 className="text-3xl font-black uppercase tracking-tighter italic">Platform Knowledge Base</h1>
         </div>
-        <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] ml-14">Administrative Protocol & Operating Guide</p>
+        <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] ml-14">Administrative & Operating Guide</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -85,7 +85,7 @@ export default function AdminHelpPage() {
                 </div>
                 <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">Need direct assistance?</h2>
                 <p className="text-white/60 text-sm max-w-md uppercase font-medium leading-relaxed">
-                    If you encounter a technical anomaly or require protocol clarification, contact the system architects immediately.
+                    If you encounter a technical anomaly or require process clarification, contact the system architects immediately.
                 </p>
             </div>
             <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-6 rounded-3xl text-center min-w-[200px]">

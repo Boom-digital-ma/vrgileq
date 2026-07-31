@@ -87,7 +87,7 @@ export const UserShow = () => {
                     <div className="flex items-start gap-4 group">
                         <div className="p-2.5 bg-zinc-50 rounded-xl text-zinc-400 group-hover:text-primary transition-colors"><Mail size={18} /></div>
                         <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest mb-0.5">Email Protocol</span>
+                            <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest mb-0.5">Email Status</span>
                             <span className="text-sm font-bold text-zinc-600 truncate max-w-[180px]">{record?.email}</span>
                         </div>
                     </div>

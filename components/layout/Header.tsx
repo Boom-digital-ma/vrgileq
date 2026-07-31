@@ -346,7 +346,7 @@ export default function Header() {
       <AnnouncementModal 
           isOpen={isAnnouncementPopupOpen} 
           onClose={() => setIsAnnouncementPopupOpen(false)} 
-          title={announcement || "System Protocol Update"}
+          title={announcement || "System Update"}
           text={announcementPopupText || "No details provided for this announcement."}
       />
     </>
@@ -369,7 +369,7 @@ function AnnouncementModal({ isOpen, onClose, title, text }: { isOpen: boolean, 
                 
                 <div className="flex items-center gap-3 mb-6">
                     <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary italic">System Protocol</h2>
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary italic">System Notification</h2>
                 </div>
 
                 <h3 className="text-2xl font-black text-secondary uppercase tracking-tight italic mb-6 leading-none">
@@ -387,7 +387,7 @@ function AnnouncementModal({ isOpen, onClose, title, text }: { isOpen: boolean, 
                         onClick={onClose}
                         className="w-full bg-secondary text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-primary transition-all shadow-lg shadow-secondary/10 italic"
                     >
-                        Acknowledge Protocol
+                        Acknowledge
                     </button>
                 </div>
             </div>

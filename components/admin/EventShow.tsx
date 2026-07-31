@@ -216,7 +216,7 @@ export const EventShow = () => {
                           <Calendar size={20} />
                       </div>
                       <div className="text-left">
-                          <p className="text-xs font-black uppercase tracking-widest text-rose-600 leading-none mb-1">Action Required: Logistics Protocol</p>
+                          <p className="text-xs font-black uppercase tracking-widest text-rose-600 leading-none mb-1">Action Required: Logistics</p>
                           <p className="text-sm font-bold text-rose-900 uppercase italic tracking-tighter">No pickup slots have been generated for this event yet.</p>
                       </div>
                   </div>
@@ -272,7 +272,7 @@ export const EventShow = () => {
           <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-primary/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-primary/20 transition-all duration-700"></div>
       </div>
 
-      {/* NEW SETTLEMENT PROTOCOL HUB */}
+      {/* NEW SETTLEMENT HUB */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* STEP 1: INVOICING */}
           <div className={cn(

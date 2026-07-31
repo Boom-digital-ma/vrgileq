@@ -229,14 +229,14 @@ export default async function EventPage({
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-white px-4 py-2 rounded-xl border border-zinc-100 italic">
                             <Clock size={14} className="text-primary" />
-                            Official Protocol
+                            Official Rules
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {/* PROTOCOL CARDS GRID (Reactive) */}
+        {/* RULES CARDS GRID (Reactive) */}
         <ProtocolCards event={{
             id: event.id,
             start_at: event.start_at,
@@ -255,7 +255,7 @@ export default async function EventPage({
                     <div>
                         <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase">Catalogue</h2>
                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">
-                           {count === 0 ? "Awaiting Catalog Deployment" : `${count} Assets currently in protocol`}
+                           {count === 0 ? "Awaiting Catalog Deployment" : `${count} Assets currently active`}
                         </p>
                     </div>                </div>
 

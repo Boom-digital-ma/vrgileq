@@ -26,7 +26,7 @@ export default function ProtocolCards({ event }: ProtocolCardsProps) {
     const timer = setInterval(() => setNow(new Date()), 1000);
 
     const channel = supabase
-      .channel(`protocol-event-${event.id}`)
+      .channel(`rules-event-${event.id}`)
       .on('postgres_changes', { 
         event: 'UPDATE', 
         schema: 'public', 
@@ -94,7 +94,7 @@ export default function ProtocolCards({ event }: ProtocolCardsProps) {
                         <div>
                             <h3 className="text-lg font-bold uppercase tracking-widest font-display">Bidding Passport</h3>
                             <p className={cn("text-[9px] font-medium uppercase opacity-60 leading-none mt-1", isUpcoming ? "text-zinc-400" : "text-white")}>
-                                {isUpcoming ? "Protocols locked until live" : "Secure your bidding protocol capacity"}
+                                {isUpcoming ? "Bidding locked until live" : "Secure your bidding capacity"}
                             </p>
                         </div>
                     </div>
@@ -108,7 +108,7 @@ export default function ProtocolCards({ event }: ProtocolCardsProps) {
             <div className="md:col-span-6 bg-zinc-900 rounded-[24px] p-5 text-white flex items-center gap-4 grayscale">
                 <Lock size={22} className="text-zinc-500" />
                 <div>
-                    <p className="text-[9px] font-black uppercase text-zinc-500 tracking-[0.15em] mb-0.5">Status Protocol</p>
+                    <p className="text-[9px] font-black uppercase text-zinc-500 tracking-[0.15em] mb-0.5">Event Status</p>
                     <p className="text-sm font-bold uppercase leading-none">Bidding Closed</p>
                 </div>
             </div>

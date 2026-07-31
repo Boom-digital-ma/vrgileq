@@ -92,7 +92,7 @@ export default async function VerifyGatePass({ params }: VerifyGatePassProps) {
               {isPaid ? (isCollected ? "COLLECTED" : "VALID PASS") : "PAYMENT PENDING"}
             </h1>
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70">
-              Security Verification Protocol
+              Security Verification
             </p>
           </div>
           <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-white/10 blur-3xl rounded-full"></div>

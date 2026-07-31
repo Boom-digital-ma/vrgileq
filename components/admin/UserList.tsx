@@ -202,7 +202,7 @@ export const UserList = () => {
         <table className="w-full text-left">
           <thead>
             <tr className="text-zinc-400 font-bold border-b border-zinc-100 bg-zinc-50/50 text-[10px] uppercase tracking-widest font-sans italic">
-              <th className="px-8 py-5">Identity Protocol</th>
+              <th className="px-8 py-5">Identity Status</th>
               <th className="px-8 py-5">Contact Node</th>
               <th className="px-8 py-5 text-center">Authorization</th>
               <th className="px-8 py-5 text-right">Verification</th>

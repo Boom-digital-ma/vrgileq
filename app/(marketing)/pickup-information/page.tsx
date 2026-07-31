@@ -40,7 +40,7 @@ export default function PickupInformationPage() {
                 Local <br/> <span className="text-primary">Pickup</span>.
             </h1>
             <p className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg font-medium leading-relaxed uppercase">
-                Centralized collection protocol at our Beltsville, Maryland facility.
+                Centralized collection process at our Beltsville, Maryland facility.
             </p>
         </div>
         <div className="absolute top-0 right-0 h-full w-1/3 bg-primary/5 blur-[100px] rounded-full translate-x-1/2" />
@@ -125,7 +125,7 @@ export default function PickupInformationPage() {
       <section className="py-24 px-6 bg-white border-y border-zinc-100">
         <div className="max-w-7xl mx-auto">
             <div className="text-center mb-20">
-                <h2 className="text-4xl font-bold text-secondary font-display uppercase italic mb-4">The Collection Protocol</h2>
+                <h2 className="text-4xl font-bold text-secondary font-display uppercase italic mb-4">The Collection Process</h2>
                 <p className="text-zinc-400 font-medium uppercase tracking-widest text-sm">Systematic removal for high-speed logistics</p>
             </div>
 
@@ -139,7 +139,7 @@ export default function PickupInformationPage() {
                             <div className="h-10 w-10 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all border border-zinc-100">
                                 <step.icon size={20} />
                             </div>
-                            <span className="text-xs font-black text-secondary tabular-nums italic">PROTOCOL 0{i+1}</span>
+                            <span className="text-xs font-black text-secondary tabular-nums italic">STEP 0{i+1}</span>
                         </div>
                         <h3 className="text-xl font-bold text-secondary uppercase mb-4 leading-tight">{step.title}</h3>
                         <p className="text-zinc-400 text-[13px] font-medium leading-relaxed uppercase">

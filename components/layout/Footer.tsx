@@ -75,7 +75,7 @@ export default function Footer() {
                     <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-50">
                         <Link href="/about" className="text-zinc-500 hover:text-primary transition-colors uppercase">Our Mission</Link>
                         <Link href="/terms" className="text-zinc-500 hover:text-primary transition-colors uppercase">General Terms</Link>
-                        <Link href="/privacy" className="text-zinc-500 hover:text-primary transition-colors uppercase">Privacy Protocol</Link>
+                        <Link href="/privacy" className="text-zinc-500 hover:text-primary transition-colors uppercase">Privacy Policy</Link>
                     </nav>
                 </div>
 

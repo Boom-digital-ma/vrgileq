@@ -271,7 +271,7 @@ export default function SignUpPage() {
                     </Elements>
                 ) : (
                     <div className="p-8 text-center text-rose-500 font-bold uppercase text-xs italic">
-                        Stripe Financial Protocol not initialized. Check System Keys.
+                        Stripe Payment System not initialized. Check System Keys.
                     </div>
                 )}
             </div>

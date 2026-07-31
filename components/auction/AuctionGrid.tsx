@@ -59,20 +59,34 @@ export default function AuctionGrid({
     async function fetchUserData() {
         try {
             // Watchlist
-            const { data: watchData, error: watchErr } = await supabase
+            let watchQuery = supabase
                 .from('watchlist')
-                .select('auction_id')
+                .select(eventId ? 'auction_id, auctions!inner(event_id)' : 'auction_id')
                 .eq('user_id', user.id);
+            
+            if (eventId) {
+                watchQuery = watchQuery.eq('auctions.event_id', eventId);
+            }
+                
+            const { data: watchData, error: watchErr } = await watchQuery;
+            
             if (!watchErr) {
                 const ids = new Set<string>((watchData || []).map((w: any) => w.auction_id as string));
                 setWatchedLotIds(ids);
             }
 
             // Bids
-            const { data: bidData, error: bidErr } = await supabase
+            let bidQuery = supabase
                 .from('bids')
-                .select('auction_id')
+                .select(eventId ? 'auction_id, auctions!inner(event_id)' : 'auction_id')
                 .eq('user_id', user.id);
+                
+            if (eventId) {
+                bidQuery = bidQuery.eq('auctions.event_id', eventId);
+            }
+
+            const { data: bidData, error: bidErr } = await bidQuery;
+            
             if (!bidErr) {
                 const bids = new Set<string>((bidData || []).map((b: any) => b.auction_id as string));
                 setBiddedLotIds(bids);

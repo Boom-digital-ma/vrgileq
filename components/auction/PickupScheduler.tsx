@@ -124,7 +124,7 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title="Removal Protocol"
+        title="Removal Process"
         maxWidth="max-w-3xl"
       >
         <div className="p-8 sm:p-10 space-y-8 font-sans">

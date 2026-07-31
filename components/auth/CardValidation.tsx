@@ -75,7 +75,7 @@ export default function CardValidation({
                     <Lock size={20} className="sm:size-[22px]" />
                 </div>
                 <div>
-                    <h3 className="font-bold uppercase text-secondary font-display text-base sm:text-lg tracking-tight leading-tight">Payment Protocol</h3>
+                    <h3 className="font-bold uppercase text-secondary font-display text-base sm:text-lg tracking-tight leading-tight">Payment Verification</h3>
                     <p className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Stripe-encrypted verification</p>
                 </div>
             </div>
@@ -110,7 +110,7 @@ export default function CardValidation({
         
         <div className="pt-4 sm:pt-6 border-t border-zinc-100">
             <p className="text-[8px] font-bold text-zinc-300 uppercase text-center leading-loose italic">
-                By executing this protocol, you authorize Virginia Liquidation to perform a temporary $1 authorization to validate your credentials. Funds are never permanently withdrawn.
+                By verifying your card, you authorize Virginia Liquidation to perform a temporary $1 authorization to validate your credentials. Funds are never permanently withdrawn.
             </p>
         </div>
       </div>

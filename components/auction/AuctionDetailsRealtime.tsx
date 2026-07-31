@@ -247,7 +247,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
 
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 py-12 border-t border-zinc-100">
               {[
-                  { label: "Removal Protocol", value: "Pickup at event location. Logistics and extraction partners available upon request.", icon: MapPin },
+                  { label: "Removal Process", value: "Pickup at event location. Logistics and extraction partners available upon request.", icon: MapPin },
                   { label: "Asset Origin", value: lot.auction_events?.location || "Alexandria Regional Hub", icon: Clock },
               ].map((item, i) => (
                   <div key={i} className="flex items-start gap-4">
@@ -277,7 +277,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
           <div className="mt-6 flex items-center justify-center gap-3 px-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl">
               <ShieldCheck size={16} className="text-emerald-500" />
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
-                  Security protocol active • Stripe Verified
+                  Secure payment active • Stripe Verified
               </p>
           </div>
         </div>

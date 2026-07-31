@@ -92,7 +92,7 @@ export const AuctionEdit = () => {
                   <AlertCircle size={24} />
               </div>
               <div>
-                  <h3 className="text-sm font-bold text-amber-900 uppercase tracking-tight">Locked Asset Protocol</h3>
+                  <h3 className="text-sm font-bold text-amber-900 uppercase tracking-tight">Locked Asset</h3>
                   <p className="text-xs text-amber-700/80 font-medium leading-relaxed mt-1 max-w-2xl">
                       This lot has already reached <span className="font-bold underline">Final Status ({auction?.status})</span>. Modifying historical records is restricted to maintain transactional integrity. To reuse this lot, use the <strong>Duplicate</strong> action above.
                   </p>

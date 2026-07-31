@@ -282,7 +282,7 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
                   className="w-full flex items-center justify-between bg-secondary text-white p-6 rounded-3xl font-bold uppercase text-[11px] tracking-widest hover:bg-primary transition-all shadow-xl shadow-secondary/10 group italic" 
                   onClick={onClose}
                 >
-                  Initiate Bidding Protocol
+                  Place a Bid
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>

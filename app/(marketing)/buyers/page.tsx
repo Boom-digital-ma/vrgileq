@@ -43,7 +43,7 @@ export default function BuyersPage() {
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <div className="flex items-center justify-center gap-3 mb-8">
                 <div className="h-[1px] w-10 bg-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Protocol & Guidelines</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Rules & Guidelines</span>
                 <div className="h-[1px] w-10 bg-primary" />
             </div>
             <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">

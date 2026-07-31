@@ -32,13 +32,13 @@ export default function SellersPage() {
                 Seller's <br/> <span className="text-primary">Console</span>.
             </h1>
             <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
-                A 12-step professional protocol to maximize the value of your industrial surplus assets.
+                A 12-step professional process to maximize the value of your industrial surplus assets.
             </p>
         </div>
         <div className="absolute -top-24 -right-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />
       </section>
 
-      {/* The 12-Step Protocol Grid */}
+      {/* The 12-Step Process Grid */}
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-4 mb-16 border-b border-zinc-200 pb-8">
@@ -46,7 +46,7 @@ export default function SellersPage() {
                     <BarChart3 size={24} />
                 </div>
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none mb-2">The 12-Step Protocol</h2>
+                    <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none mb-2">The 12-Step Process</h2>
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">End-to-end management workflow</p>
                 </div>
             </div>

@@ -242,7 +242,7 @@ export default async function HomePage({
                         ) : (
                             <div className="py-24 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic mb-16 px-10">
                                 <Package size={48} className="mx-auto text-zinc-100 mb-6" />
-                                <p className="text-zinc-300 font-bold uppercase text-xl tracking-tighter max-w-sm mx-auto">No active assets matching your protocol in the current live inventory.</p>
+                                <p className="text-zinc-300 font-bold uppercase text-xl tracking-tighter max-w-sm mx-auto">No active assets matching your criteria in the current live inventory.</p>
                             </div>
                         )}
 
@@ -384,7 +384,7 @@ export default async function HomePage({
                     <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Market Registry</span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none">Market <span className="text-primary">Events</span>.</h2>
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-4">{eventCount} Events in this protocol window</p>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-4">{eventCount} Events currently active</p>
             </div>
 
             <div className="flex flex-col gap-6 items-end">
@@ -495,9 +495,9 @@ export default async function HomePage({
         {(!events || events.length === 0) && (
             <div className="py-32 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic px-10">
                 <Package size={48} className="mx-auto text-zinc-100 mb-6" />
-                <p className="text-zinc-300 font-bold uppercase text-2xl tracking-tighter max-w-sm mx-auto">No events found matching this protocol window.</p>
+                <p className="text-zinc-300 font-bold uppercase text-2xl tracking-tighter max-w-sm mx-auto">No events found matching this timeframe.</p>
                 <Link href="/?filter=live" className="mt-8 inline-flex items-center gap-2 bg-secondary text-white px-8 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary transition-all">
-                    Reset Protocol <ArrowRight size={14} />
+                    Reset Filters <ArrowRight size={14} />
                 </Link>
             </div>
         )}

@@ -257,7 +257,7 @@ export default function HowItWorksPage() {
                         <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                             <Zap size={20} />
                         </div>
-                        <span className="text-xs font-black text-secondary uppercase tracking-widest leading-tight">Real-Time Bidding Protocol</span>
+                        <span className="text-xs font-black text-secondary uppercase tracking-widest leading-tight">Real-Time Bidding System</span>
                     </div>
                 </div>
             </div>
