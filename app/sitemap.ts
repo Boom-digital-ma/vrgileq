@@ -25,12 +25,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 2. Fetch all live events
   const { data: events } = await supabase
     .from('auction_events')
-    .select('id, updated_at')
+    .select('id, created_at')
     .neq('status', 'draft')
 
   const eventRoutes = (events || []).map((event) => ({
     url: `${baseUrl}/events/${event.id}`,
-    lastModified: new Date(event.updated_at || Date.now()),
+    lastModified: new Date(event.created_at || Date.now()),
     changeFrequency: 'hourly' as const,
     priority: 0.7,
   }))
@@ -38,12 +38,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 3. Fetch all live auctions (lots)
   const { data: lots } = await supabase
     .from('auctions')
-    .select('id, updated_at')
+    .select('id, created_at')
     .eq('status', 'live')
 
   const lotRoutes = (lots || []).map((lot) => ({
     url: `${baseUrl}/auctions/${lot.id}`,
-    lastModified: new Date(lot.updated_at || Date.now()),
+    lastModified: new Date(lot.created_at || Date.now()),
     changeFrequency: 'hourly' as const,
     priority: 0.6,
   }))
