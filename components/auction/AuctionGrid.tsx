@@ -58,39 +58,36 @@ export default function AuctionGrid({
     }
     async function fetchUserData() {
         try {
-            // Watchlist
-            let watchQuery = supabase
-                .from('watchlist')
-                .select(eventId ? 'auction_id, auctions!inner(event_id)' : 'auction_id')
-                .eq('user_id', user.id);
-            
-            if (eventId) {
-                watchQuery = watchQuery.eq('auctions.event_id', eventId);
-            }
+            // 1. Fetch all Watchlist & Bids for this user globally
+            const [watchRes, bidRes] = await Promise.all([
+                supabase.from('watchlist').select('auction_id').eq('user_id', user.id),
+                supabase.from('bids').select('auction_id').eq('user_id', user.id)
+            ]);
+
+            let watchIds = Array.from(new Set((watchRes.data || []).map((w: any) => w.auction_id as string)));
+            let bidIds = Array.from(new Set((bidRes.data || []).map((b: any) => b.auction_id as string)));
+
+            // 2. If we are on an event page, filter these IDs to only keep those belonging to this event
+            if (eventId && (watchIds.length > 0 || bidIds.length > 0)) {
+                const allIds = Array.from(new Set([...watchIds, ...bidIds]));
                 
-            const { data: watchData, error: watchErr } = await watchQuery;
-            
-            if (!watchErr) {
-                const ids = new Set<string>((watchData || []).map((w: any) => w.auction_id as string));
-                setWatchedLotIds(ids);
+                // Fetch the event_id for all these lots
+                const { data: validAuctions, error: validErr } = await supabase
+                    .from('auctions')
+                    .select('id')
+                    .eq('event_id', eventId)
+                    .in('id', allIds);
+
+                if (!validErr && validAuctions) {
+                    const validIds = new Set(validAuctions.map(a => a.id));
+                    watchIds = watchIds.filter(id => validIds.has(id));
+                    bidIds = bidIds.filter(id => validIds.has(id));
+                }
             }
 
-            // Bids
-            let bidQuery = supabase
-                .from('bids')
-                .select(eventId ? 'auction_id, auctions!inner(event_id)' : 'auction_id')
-                .eq('user_id', user.id);
-                
-            if (eventId) {
-                bidQuery = bidQuery.eq('auctions.event_id', eventId);
-            }
+            setWatchedLotIds(new Set(watchIds));
+            setBiddedLotIds(new Set(bidIds));
 
-            const { data: bidData, error: bidErr } = await bidQuery;
-            
-            if (!bidErr) {
-                const bids = new Set<string>((bidData || []).map((b: any) => b.auction_id as string));
-                setBiddedLotIds(bids);
-            }
         } catch (err) {
             console.error("[AuctionGrid] Error fetching user data:", err);
         }
