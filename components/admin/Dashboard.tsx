@@ -9,13 +9,10 @@ import {
   Truck,
   FileText,
   Gavel,
-  Package,
   Flame,
-  AlertCircle,
   TrendingUp,
   ArrowUpRight,
   Clock,
-  ShieldCheck,
   CreditCard,
   Target,
   ChevronRight,
@@ -35,7 +32,7 @@ import {
   Bar, 
   Cell
 } from 'recharts'
-import { format, subDays, startOfDay, isSameDay } from 'date-fns'
+import { format, subDays, startOfMonth, subMonths, isSameDay } from 'date-fns'
 
 export const Dashboard = () => {
   // Fetching resources with strategic metadata
@@ -93,14 +90,13 @@ export const Dashboard = () => {
   
   // 3. New KPIs
   const activeHolds = registrations.filter((r: any) => r.status === 'authorized').length
-  const verifiedProfiles = profiles.filter((p: any) => p.is_verified).length
-  const verificationRate = profiles.length > 0 ? Math.round((verifiedProfiles / profiles.length) * 100) : 0
+  const clientProfiles = profiles.filter((profile: any) => profile.role === 'client')
+  const verifiedProfiles = clientProfiles.filter((profile: any) => profile.is_verified).length
   
   // 4. Logistics
   const collectedLotsCount = sales.filter((s: any) => !!s.collected_at).length
   const soldLotsCount = sales.length
   const pickupRate = soldLotsCount > 0 ? Math.round((collectedLotsCount / soldLotsCount) * 100) : 0
-  const coldLotsCount = liveLots.filter((a: any) => (a.bids?.length || 0) === 0).length
 
   // --- DATA TRANSFORMATION FOR CHARTS ---
 
@@ -114,7 +110,21 @@ export const Dashboard = () => {
     }
   })
 
-  // 2. Top Bidders Leaderboard
+  // 2. Client registrations grouped by calendar month.
+  const monthlyRegistrationTrend = Array.from({ length: 6 }, (_, i) => {
+    const monthStart = startOfMonth(subMonths(new Date(), 5 - i))
+    const nextMonthStart = startOfMonth(subMonths(new Date(), 4 - i))
+
+    return {
+      date: format(monthStart, 'MMM'),
+      count: profiles.filter((profile: any) => {
+        const createdAt = profile.created_at ? new Date(profile.created_at) : null
+        return profile.role === 'client' && createdAt && createdAt >= monthStart && createdAt < nextMonthStart
+      }).length,
+    }
+  })
+
+  // 3. Top Bidders Leaderboard
   const bidderStats = trendBids.reduce((acc: any, bid: any) => {
     const userId = bid.user_id
     if (!userId) return acc
@@ -164,9 +174,9 @@ export const Dashboard = () => {
         border: "border-amber-100"
     },
     { 
-        label: "Verified Accounts", 
-        value: `${verificationRate}%`, 
-        subValue: `${verifiedProfiles} of ${profiles.length} users`,
+        label: "Client Registrations",
+        value: clientProfiles.length.toLocaleString(),
+        subValue: `${verifiedProfiles} verified clients`,
         icon: UserCheck, 
         color: "text-violet-600", 
         bg: "bg-violet-50",
@@ -279,41 +289,25 @@ export const Dashboard = () => {
             </div>
         </div>
 
-        {/* Top Bidders Leaderboard */}
-        <div className="bg-white border border-zinc-200 rounded-[32px] p-8 shadow-sm flex flex-col">
-            <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
-                <Target size={14} className="text-amber-500" /> Top Participants
-            </h3>
-            <div className="space-y-4 flex-1">
-                {topBidders.map((bidder: any, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl hover:bg-zinc-100 transition-colors group cursor-pointer">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-black text-xs italic shadow-sm group-hover:bg-primary group-hover:text-white transition-colors">
-                                #{i+1}
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-xs font-black uppercase tracking-tight">{bidder.name}</span>
-                                <span className="text-[10px] font-bold text-zinc-400">{bidder.count} Total Bids</span>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-sm font-black text-secondary tabular-nums italic">${bidder.total.toLocaleString()}</span>
-                            <div className="flex items-center justify-end text-[9px] text-emerald-500 font-bold">
-                                <ArrowUpRight size={10} /> VIP
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                {topBidders.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-10 text-zinc-300 gap-2">
-                        <Users size={40} className="opacity-20" />
-                        <p className="text-[10px] font-black uppercase tracking-widest">No Bidders Yet</p>
-                    </div>
-                )}
+        {/* Monthly User Registration Chart */}
+        <div className="bg-white border border-zinc-200 rounded-[32px] p-8 shadow-sm">
+            <div className="mb-8">
+                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-1 flex items-center gap-2">
+                    <Users size={14} className="text-primary" /> User Growth
+                </h3>
+                <p className="text-sm font-bold italic">Client registrations by month (last 6 months)</p>
             </div>
-            <Link href="/admin/users" className="w-full mt-6 py-3 border border-zinc-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2">
-                Explore All Profiles <ChevronRight size={12} />
-            </Link>
+            <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={monthlyRegistrationTrend}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#A1A1AA' }} dy={10} />
+                        <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#A1A1AA' }} />
+                        <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }} />
+                        <Bar dataKey="count" name="Registrations" fill="#049A9E" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
         </div>
       </div>
 
@@ -365,31 +359,43 @@ export const Dashboard = () => {
             </div>
         </div>
 
-        {/* Operational Health (Revised) */}
+        {/* Participant and logistics insights */}
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Inventory & Financial Health */}
-            <div className="bg-white border border-zinc-200 rounded-[32px] p-8 shadow-sm">
+            {/* Top Bidders Leaderboard */}
+            <div className="bg-white border border-zinc-200 rounded-[32px] p-8 shadow-sm flex flex-col">
                 <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
-                    <ShieldCheck size={14} className="text-emerald-500" /> Operational Integrity
+                    <Target size={14} className="text-amber-500" /> Top Participants
                 </h3>
-                
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between p-5 bg-amber-50 rounded-2xl border border-amber-100 group hover:bg-amber-100 transition-colors">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-amber-900 uppercase tracking-widest">Pending Collections</span>
-                            <span className="text-xl font-black text-amber-600 tabular-nums italic">${pendingRevenue.toLocaleString()}</span>
+                <div className="space-y-4 flex-1">
+                    {topBidders.map((bidder: any, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl hover:bg-zinc-100 transition-colors group cursor-pointer">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-white border border-zinc-200 flex items-center justify-center font-black text-xs italic shadow-sm group-hover:bg-primary group-hover:text-white transition-colors">
+                                    #{i+1}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-black uppercase tracking-tight">{bidder.name}</span>
+                                    <span className="text-[10px] font-bold text-zinc-400">{bidder.count} Total Bids</span>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-sm font-black text-secondary tabular-nums italic">${bidder.total.toLocaleString()}</span>
+                                <div className="flex items-center justify-end text-[9px] text-emerald-500 font-bold">
+                                    <ArrowUpRight size={10} /> VIP
+                                </div>
+                            </div>
                         </div>
-                        <AlertCircle size={24} className="text-amber-400 group-hover:scale-110 transition-transform" />
-                    </div>
-
-                    <div className="flex items-center justify-between p-5 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:bg-zinc-100 transition-colors">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-zinc-900 uppercase tracking-widest">Cold Inventory (No Bids)</span>
-                            <span className="text-xl font-black text-zinc-900 tabular-nums italic">{coldLotsCount} Assets</span>
+                    ))}
+                    {topBidders.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-10 text-zinc-300 gap-2">
+                            <Users size={40} className="opacity-20" />
+                            <p className="text-[10px] font-black uppercase tracking-widest">No Bidders Yet</p>
                         </div>
-                        <Package size={24} className="text-zinc-300 group-hover:scale-110 transition-transform" />
-                    </div>
+                    )}
                 </div>
+                <Link href="/admin/users" className="w-full mt-6 py-3 border border-zinc-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-zinc-50 transition-colors flex items-center justify-center gap-2">
+                    Explore All Profiles <ChevronRight size={12} />
+                </Link>
             </div>
 
             {/* Logistics Engine (Revised) */}

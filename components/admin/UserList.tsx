@@ -1,22 +1,49 @@
 'use client'
 
-import { useTable, useNavigation, useDelete } from "@refinedev/core"
-import { BadgeCheck, ShieldAlert, User, Search, Plus, Trash2, ShieldCheck as StaffIcon, Loader2, Eye, Mail, Key, Save, ArrowLeft, Edit, Shield } from "lucide-react"
+import { useList, useTable, useNavigation, useDelete } from "@refinedev/core"
+import { BadgeCheck, ShieldAlert, User, UserPlus, Search, Plus, Trash2, ShieldCheck as StaffIcon, Loader2, Eye, Mail, Key, Save, ArrowLeft, Edit, Shield, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Modal, ConfirmModal } from "./Modal"
 import { adminCreateUser, adminUpdateUser } from "@/app/actions/users"
 import { toast } from "sonner"
+import { format, startOfDay, startOfMonth, subMonths } from "date-fns"
+
+type RegistrationPeriod = "day" | "thisMonth" | "lastMonth" | "all"
 
 export const UserList = () => {
+  const [registrationPeriod, setRegistrationPeriod] = useState<RegistrationPeriod>("thisMonth")
   const result = useTable({
     resource: "profiles",
     pagination: { pageSize: 10 }
+  })
+  const registrationPeriodStart = useMemo(() => {
+    const now = new Date()
+    if (registrationPeriod === "day") return startOfDay(now)
+    if (registrationPeriod === "thisMonth") return startOfMonth(now)
+    if (registrationPeriod === "lastMonth") return startOfMonth(subMonths(now, 1))
+    return null
+  }, [registrationPeriod])
+  const registrationFilters = useMemo(() => [
+    ...(registrationPeriodStart
+      ? [{ field: "created_at", operator: "gte" as const, value: registrationPeriodStart.toISOString() }]
+      : []),
+    ...(registrationPeriod === "lastMonth"
+      ? [{ field: "created_at", operator: "lt" as const, value: startOfMonth(new Date()).toISOString() }]
+      : []),
+    { field: "role", operator: "eq" as const, value: "client" },
+  ], [registrationPeriod, registrationPeriodStart])
+  const registrationsResult = useList({
+    resource: "profiles",
+    filters: registrationFilters,
+    pagination: { mode: "off" },
+    liveMode: "auto",
   })
 
   const tableQuery = (result as any).tableQuery;
   const profiles = tableQuery?.data?.data || []
   const isLoading = tableQuery?.isLoading
+  const registrations = registrationsResult.query.data?.data || []
 
   const { 
     current,
@@ -157,6 +184,48 @@ export const UserList = () => {
         </button>
       </div>
 
+      <div className="bg-white border border-teal-100 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-teal-50 text-primary flex items-center justify-center shrink-0">
+              <UserPlus size={22} />
+          </div>
+          <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                {registrationPeriod === "day" ? "Daily" : registrationPeriod === "thisMonth" ? "This Month" : registrationPeriod === "lastMonth" ? "Last Month" : "All-Time"} Registrations
+              </p>
+              <p className="text-2xl font-black tracking-tight text-zinc-900">{registrations.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-teal-700">
+                  {registrationPeriodStart
+                    ? registrationPeriod === "lastMonth"
+                      ? format(registrationPeriodStart, "MMMM yyyy")
+                      : `Since ${format(registrationPeriodStart, "MMM d, yyyy")}`
+                    : "All client accounts"}
+              </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 bg-zinc-50 p-1 rounded-xl border border-zinc-100 sm:ml-auto">
+          {([
+            ["day", "Daily"],
+            ["thisMonth", "This month"],
+            ["lastMonth", "Last month"],
+            ["all", "All time"],
+          ] as const).map(([period, label]) => (
+            <button
+              key={period}
+              onClick={() => setRegistrationPeriod(period)}
+              className={cn(
+                "px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                registrationPeriod === period
+                  ? "bg-zinc-900 text-white shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-900"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="bg-white p-4 rounded-3xl border border-zinc-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
         <div className="flex-1 flex items-center gap-3 bg-zinc-50 border border-zinc-100 rounded-2xl px-4 h-12 w-full">
             <Search className="text-zinc-400 shrink-0" size={18} />
@@ -206,6 +275,7 @@ export const UserList = () => {
               <th className="px-8 py-5">Contact Node</th>
               <th className="px-8 py-5 text-center">Authorization</th>
               <th className="px-8 py-5 text-right">Verification</th>
+              <th className="px-8 py-5 text-right">Registered</th>
               <th className="px-8 py-5 text-right">Actions</th>
             </tr>
           </thead>
@@ -252,6 +322,12 @@ export const UserList = () => {
                           <ShieldAlert size={14} /> PENDING REVIEW
                       </span>
                   )}
+                </td>
+                <td className="px-8 py-6 text-right">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                        <Calendar size={13} className="text-zinc-300" />
+                        {profile.created_at ? format(new Date(profile.created_at), "MMM d, yyyy") : "Not available"}
+                    </span>
                 </td>
                 <td className="px-8 py-6 text-right font-sans">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all font-sans">
