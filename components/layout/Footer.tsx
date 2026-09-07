@@ -1,6 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Phone, Mail, Instagram, Facebook, Twitter, Linkedin, ArrowRight, ShieldCheck } from "lucide-react";
+import type { SVGProps } from "react";
+import { Phone, Mail, Instagram, Facebook, Twitter, ArrowRight, ShieldCheck } from "lucide-react";
+
+function PinterestIcon({ size = 18, ...props }: SVGProps<SVGSVGElement> & { size?: number }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+            <text x="12" y="17" textAnchor="middle" fill="currentColor" stroke="none" fontSize="18" fontWeight="700">P</text>
+        </svg>
+    );
+}
+
+const socialLinks = [
+    { Icon: Instagram, href: "https://www.instagram.com/cannellapan/", label: "Instagram" },
+    { Icon: Facebook, href: "https://www.facebook.com/cannella.pan/", label: "Facebook" },
+    { Icon: Twitter, href: "https://x.com/LlcPan", label: "X" },
+    { Icon: PinterestIcon, href: "https://fr.pinterest.com/amandamcgraw125/", label: "Pinterest" },
+];
 
 export default function Footer() {
   return (
@@ -50,8 +66,8 @@ export default function Footer() {
                         Maryland&apos;s premier marketplace for inspected Home Depot returns, appliances, and overstock liquidation.
                     </p>
                     <div className="flex gap-3">
-                        {[Instagram, Facebook, Twitter, Linkedin].map((Icon, i) => (
-                            <a key={i} href="#" className="p-2.5 bg-zinc-50 rounded-xl text-zinc-400 hover:text-primary hover:bg-primary/10 transition-all border border-zinc-100" suppressHydrationWarning>
+                        {socialLinks.map(({ Icon, href, label }) => (
+                            <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="p-2.5 bg-zinc-50 rounded-xl text-zinc-400 hover:text-primary hover:bg-primary/10 transition-all border border-zinc-100" suppressHydrationWarning>
                                 <Icon size={18} suppressHydrationWarning />
                             </a>
                         ))}
