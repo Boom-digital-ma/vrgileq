@@ -10,7 +10,7 @@ export default function PickupInformationPage() {
     },
     {
       title: "Schedule a Window",
-      desc: "Log in to your profile to book a specific 15-minute pickup slot to avoid wait times.",
+      desc: "From your invoice, book a specific 15-minute pickup slot to avoid wait times.",
       icon: Clock
     },
     {
@@ -132,8 +132,7 @@ export default function PickupInformationPage() {
       <section className="py-24 px-6 bg-white border-y border-zinc-100">
         <div className="max-w-7xl mx-auto">
             <div className="text-center mb-20">
-                <h2 className="text-4xl font-bold text-secondary font-display uppercase italic mb-4">The Collection Process</h2>
-                <p className="text-zinc-400 font-medium uppercase tracking-widest text-sm">Systematic removal for high-speed logistics</p>
+                <h2 className="text-4xl font-bold text-secondary font-display uppercase italic mb-4">Pickup Process</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -165,13 +164,13 @@ export default function PickupInformationPage() {
                 <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
                         <h2 className="text-3xl md:text-4xl font-bold text-secondary font-display uppercase italic leading-none mb-8">
-                            Required for <br/> <span className="text-primary">Authorization</span>.
+                            Required Documentation <br/> <span className="text-primary">During Pickup</span>.
                         </h2>
                         <ul className="space-y-4">
                             {[
                                 "Valid Government Issued Identification",
                                 "Digital or Printed Gate Pass (QR Code)",
-                                "Confirmation of fully cleared funds",
+                                "Credit card used during the auction",
                                 "Appropriate vehicle for asset transport"
                             ].map((item, i) => (
                                 <li key={i} className="flex items-center gap-3 text-zinc-600 font-bold uppercase tracking-tight text-xs">
@@ -200,9 +199,9 @@ export default function PickupInformationPage() {
       <section className="py-16 px-6 bg-zinc-50 border-t border-zinc-100">
         <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-xl font-bold text-secondary font-display uppercase italic mb-6">Planning a Large Pickup?</h2>
-            <button className="inline-block bg-primary text-white px-10 py-5 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-secondary transition-all shadow-xl shadow-primary/10 italic">
-                Contact Facility Manager
-            </button>
+            <Link href="/contact" className="inline-block bg-primary text-white px-10 py-5 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-secondary transition-all shadow-xl shadow-primary/10 italic">
+                Contact Us
+            </Link>
         </div>
       </section>
     </div>

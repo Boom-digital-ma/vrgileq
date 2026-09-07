@@ -77,7 +77,7 @@ export default function ContactPage() {
                             <select className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none appearance-none">
                                 <option>BIDDING HELP</option>
                                 <option>SELLER SERVICES</option>
-                                <option>LOGISTICS & REMOVAL</option>
+                                <option>PICKUP & REMOVAL</option>
                                 <option>TECHNICAL SUPPORT</option>
                             </select>
                         </div>
