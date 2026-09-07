@@ -445,9 +445,9 @@ export default async function HomePage({
                   filter === 'past' && "grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100"
                 )}
               >
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-50 border-b border-zinc-100">
+                <div className="relative aspect-square w-full overflow-hidden border-b border-zinc-100 bg-white">
                   {event.image_url ? (
-                    <Image src={event.image_url} alt={event.title} fill className="object-cover transition-transform duration-300 group-hover:scale-110" sizes="(max-width: 768px) 100vw, 400px" />
+                    <Image src={event.image_url} alt={event.title} fill className="object-contain" sizes="(max-width: 768px) 100vw, 400px" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center italic font-bold text-zinc-200 text-xs p-10 text-center uppercase">
                       Inventory Preview Pending

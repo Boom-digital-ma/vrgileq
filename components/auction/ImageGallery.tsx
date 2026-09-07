@@ -85,14 +85,14 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
       <div 
         ref={containerRef}
         onClick={() => { if (isOpen === undefined) setInternalShowLightbox(true); else if (onClose) setInternalShowLightbox(true); }}
-        className="relative aspect-[4/3] w-full overflow-hidden rounded-[32px] bg-zinc-50 border border-zinc-100 cursor-pointer group shadow-xl shadow-black/5"
+        className="relative aspect-[4/3] w-full overflow-hidden rounded-[32px] border border-zinc-100 bg-white cursor-pointer group shadow-xl shadow-black/5"
       >
         <Image
           src={currentImage}
           alt={`${title} - Main Image`}
           fill
           className={cn(
-            "object-cover transition-all duration-300 ease-out",
+            "object-contain transition-all duration-300 ease-out",
             imageLoading ? "blur-xl opacity-0 scale-105" : "blur-0 opacity-100 scale-100"
           )}
           onLoad={() => setImageLoading(false)}
@@ -101,7 +101,7 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
         />
 
         {imageLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-zinc-50/50 backdrop-blur-sm z-10">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/75 backdrop-blur-sm">
             <Loader2 className="h-10 w-10 text-primary animate-spin" />
           </div>
         )}
@@ -166,7 +166,7 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
             </button>
 
             {/* Main Image */}
-            <div className="relative aspect-[4/3] w-full bg-zinc-50">
+            <div className="relative aspect-[4/3] w-full bg-white">
                 <Image
                   src={validImages[selectedIndex]}
                   alt={title}
