@@ -23,7 +23,7 @@ export default function ContactPage() {
     { label: "Bidding Support", value: "support@virginialiquidation.com", icon: Mail },
     { label: "Direct Phone", value: "+1 (703) 869-1965", icon: Phone },
     { label: "Office Location", value: "6415 Virginia Manor Rd, Beltsville, MD 20705", icon: MapPin },
-    { label: "Availability", value: "Mon - Fri, 9am - 5pm EST", icon: Clock },
+    { label: "Availability", value: "Tue - Sat, 11am - 5pm EST", icon: Clock },
   ];
 
   return (

@@ -114,7 +114,7 @@ export default function PickupInformationPage() {
                                     <div className="h-10 w-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
                                         <Clock size={18} />
                                     </div>
-                                    <span className="text-sm font-bold uppercase tracking-widest italic">Mon - Fri, 9am - 5pm EST</span>
+                                    <span className="text-sm font-bold uppercase tracking-widest italic">Tue - Sat, 11am - 5pm EST</span>
                                 </div>
                             </div>
                         </div>
