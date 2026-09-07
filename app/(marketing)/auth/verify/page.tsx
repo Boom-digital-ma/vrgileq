@@ -57,7 +57,7 @@ function VerifyContent() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Verify Your <span className="text-primary">Email</span>.</h1>
           <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4 max-w-[240px] leading-relaxed">
-            Enter the verification code sent to <br/><span className="text-secondary font-black">{email}</span>
+            Enter the code sent to <br/><span className="text-secondary font-black">{email}</span>
           </p>
         </div>
 

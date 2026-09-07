@@ -122,9 +122,9 @@ export default function ContactPage() {
                             <div className="h-12 w-12 bg-primary/20 rounded-2xl flex items-center justify-center text-primary mb-6 border border-primary/20">
                                 <ShieldCheck size={24} />
                             </div>
-                            <h4 className="text-xl font-bold font-display uppercase mb-4">Enterprise Grade</h4>
+                            <h4 className="text-xl font-bold font-display uppercase mb-4">Business Services</h4>
                             <p className="text-sm text-white/40 leading-relaxed uppercase font-medium">
-                                Direct consultation for high-value industrial asset liquidation and corporate recovery strategies.
+                                Talk with our team about selling equipment, inventory, or other business assets.
                             </p>
                         </div>
                         <div className="absolute -bottom-8 -right-8 h-32 w-32 bg-primary/10 blur-2xl rounded-full" />
