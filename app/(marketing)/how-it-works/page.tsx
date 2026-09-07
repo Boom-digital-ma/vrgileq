@@ -201,69 +201,6 @@ export default function HowItWorksPage() {
         <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
       </section>
 
-      {/* Video Guides Section */}
-      <section className="py-24 px-6 bg-zinc-50 border-b border-zinc-100 italic">
-        <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                {/* How to Register */}
-                <div className="space-y-8">
-                    <div className="flex items-center gap-3">
-                        <div className="h-1 w-8 bg-primary rounded-full" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Guide 01</span>
-                    </div>
-                    <h2 className="text-3xl md:text-5xl font-black text-secondary uppercase font-display italic tracking-tighter leading-none">
-                        How to <span className="text-primary">Register.</span>
-                    </h2>
-                    <div className="aspect-video bg-secondary rounded-[40px] border border-zinc-200 shadow-2xl overflow-hidden relative group">
-                        <video 
-                            className="absolute inset-0 w-full h-full object-cover"
-                            controls
-                            preload="metadata"
-                        >
-                            <source src="https://buybest4less.com/assets/video/BB4LWebVideo.mp4" type="video/mp4" />
-                            Your browser does not support the video tag.
-                        </video>
-                        <div className="absolute inset-0 bg-secondary/10 pointer-events-none group-hover:bg-transparent transition-colors duration-500 z-10" />
-                    </div>
-                    <div className="flex items-center gap-4 bg-white p-6 rounded-3xl border border-zinc-100 shadow-sm w-fit">
-                        <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                            <ShieldCheck size={20} />
-                        </div>
-                        <span className="text-xs font-black text-secondary uppercase tracking-widest leading-tight">Identity Verification Powered by Stripe</span>
-                    </div>
-                </div>
-
-                {/* How to Bid */}
-                <div className="space-y-8">
-                    <div className="flex items-center gap-3">
-                        <div className="h-1 w-8 bg-primary rounded-full" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Guide 02</span>
-                    </div>
-                    <h2 className="text-3xl md:text-5xl font-black text-secondary uppercase font-display italic tracking-tighter leading-none">
-                        How to <span className="text-primary">Place Bids.</span>
-                    </h2>
-                    <div className="aspect-video bg-secondary rounded-[40px] border border-zinc-200 shadow-2xl overflow-hidden relative group">
-                        <video 
-                            className="absolute inset-0 w-full h-full object-cover"
-                            controls
-                            preload="metadata"
-                        >
-                            <source src="https://buybest4less.com/assets/video/BB4LWebVideo.mp4" type="video/mp4" />
-                            Your browser does not support the video tag.
-                        </video>
-                        <div className="absolute inset-0 bg-secondary/10 pointer-events-none group-hover:bg-transparent transition-colors duration-500 z-10" />
-                    </div>
-                    <div className="flex items-center gap-4 bg-white p-6 rounded-3xl border border-zinc-100 shadow-sm w-fit">
-                        <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                            <Zap size={20} />
-                        </div>
-                        <span className="text-xs font-black text-secondary uppercase tracking-widest leading-tight">Real-Time Bidding System</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-16 px-6 bg-white border-t border-zinc-100">
         <div className="max-w-2xl mx-auto text-center italic">

@@ -1,6 +1,5 @@
-import { MapPin, Clock, FileText, UserCheck, Phone, Mail, ArrowRight, ExternalLink, Calendar, Truck } from "lucide-react";
+import { MapPin, Clock, FileText, UserCheck, Phone, Mail, ExternalLink, Calendar, Truck } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 export default function PickupInformationPage() {
   const pickupSteps = [
@@ -65,7 +64,7 @@ export default function PickupInformationPage() {
                     </div>
                     
                     <div className="flex flex-wrap gap-4 pt-10 border-t border-zinc-50">
-                        <a href="https://maps.google.com" target="_blank" className="bg-secondary text-white px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-primary transition-all">
+                        <a href="https://maps.app.goo.gl/aQMddztNZFg9tPwC8" target="_blank" rel="noopener noreferrer" className="bg-secondary text-white px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-primary transition-all">
                             Open in Maps <ExternalLink size={14} />
                         </a>
                         <Link href="/contact" className="bg-zinc-50 text-zinc-400 border border-zinc-100 px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-100 transition-all">
@@ -77,37 +76,45 @@ export default function PickupInformationPage() {
                 {/* Contact/Hours Card */}
                 <div className="bg-secondary text-white rounded-[48px] p-10 md:p-12 shadow-2xl shadow-secondary/20 italic flex flex-col justify-between relative overflow-hidden">
                     <div className="relative z-10">
-                        <h3 className="text-2xl font-bold font-display uppercase text-primary mb-8 italic">Operating Windows</h3>
+                        <h3 className="text-2xl font-bold font-display uppercase text-primary mb-8 italic">Bidding Support</h3>
                         <div className="space-y-8">
                             <div>
-                                <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-3">Pickup Hours</div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center text-sm font-bold uppercase tracking-tight">
-                                        <span>Mon - Fri</span>
-                                        <span className="text-primary">09:00 AM - 05:00 PM</span>
+                                <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-3">Email</div>
+                                <a href="mailto:support@virginialiquidation.com" className="flex items-center gap-4 group">
+                                    <div className="h-10 w-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-primary group-hover:border-primary transition-all">
+                                        <Mail size={18} />
                                     </div>
-                                    <div className="flex justify-between items-center text-sm font-bold uppercase tracking-tight text-white/40">
-                                        <span>Sat - Sun</span>
-                                        <span>Closed</span>
+                                    <span className="text-sm font-bold tracking-tight">support@virginialiquidation.com</span>
+                                </a>
+                            </div>
+
+                            <div>
+                                <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-3">Direct Phone</div>
+                                <a href="tel:+17038691965" className="flex items-center gap-4 group">
+                                    <div className="h-10 w-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-primary group-hover:border-primary transition-all">
+                                        <Phone size={18} />
                                     </div>
+                                    <span className="text-sm font-bold uppercase tracking-widest italic">+1 (703) 869-1965</span>
+                                </a>
+                            </div>
+
+                            <div>
+                                <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-3">Office Location</div>
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
+                                        <MapPin size={18} />
+                                    </div>
+                                    <span className="text-sm font-bold uppercase tracking-widest italic">6415 Virginia Manor Rd, Beltsville, MD 20705</span>
                                 </div>
                             </div>
-                            
+
                             <div>
-                                <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-3">Contact Registry</div>
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-4 group">
-                                        <div className="h-10 w-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-primary group-hover:border-primary transition-all">
-                                            <Phone size={18} />
-                                        </div>
-                                        <span className="text-sm font-bold uppercase tracking-widest italic">(240) 555-0123</span>
+                                <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-3">Availability</div>
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
+                                        <Clock size={18} />
                                     </div>
-                                    <div className="flex items-center gap-4 group">
-                                        <div className="h-10 w-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-primary group-hover:border-primary transition-all">
-                                            <Mail size={18} />
-                                        </div>
-                                        <span className="text-sm font-bold uppercase tracking-widest italic">logistics@vrgileq.com</span>
-                                    </div>
+                                    <span className="text-sm font-bold uppercase tracking-widest italic">Mon - Fri, 9am - 5pm EST</span>
                                 </div>
                             </div>
                         </div>

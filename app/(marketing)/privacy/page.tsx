@@ -1,4 +1,4 @@
-import { Lock, Eye, Database, UserCheck, ShieldCheck, FileText, Globe2, Mail, Phone, MapPin } from "lucide-react";
+import { Lock, Eye, UserCheck, ShieldCheck, Mail, Phone, MapPin } from "lucide-react";
 
 export default function PrivacyPage() {
   const principles = [
@@ -189,7 +189,7 @@ export default function PrivacyPage() {
                             <div className="flex items-center gap-2 text-primary font-bold">
                                 <MapPin size={14} /> OFFICE
                             </div>
-                            <p>Cannella Pan LLC<br/>Attn: Privacy Officer<br/>6415 Virginia Mannor Rd<br/>Beltsville MD</p>
+                            <p>Cannella Pan LLC<br/>Attn: Privacy Officer<br/>6415 Virginia Manor Rd<br/>Beltsville, MD 20705</p>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-primary font-bold">
@@ -201,7 +201,7 @@ export default function PrivacyPage() {
                             <div className="flex items-center gap-2 text-primary font-bold">
                                 <Phone size={14} /> SUPPORT
                             </div>
-                            <p>6142054356</p>
+                            <p>+1 (703) 869-1965</p>
                         </div>
                     </div>
                 </div>

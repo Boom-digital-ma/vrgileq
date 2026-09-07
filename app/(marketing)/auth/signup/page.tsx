@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { signup } from '@/app/actions/auth'
-import Link from 'next/link'
-import { Gavel, Loader2, CreditCard, ShieldCheck, ArrowRight, ArrowLeft, MapPin, User, FileText, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Loader2, CreditCard, ArrowRight, ArrowLeft, MapPin, User, FileText, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import CardValidation from '@/components/auth/CardValidation'
@@ -70,11 +69,11 @@ export default function SignUpPage() {
         }
     }
     setError(null)
-    setStep(s => (s < 4 ? (s + 1) as any : s))
+    setStep((currentStep) => Math.min(currentStep + 1, 4) as 1 | 2 | 3 | 4)
   }
   const prevStep = () => {
     setError(null)
-    setStep(s => (s > 1 ? (s - 1) as any : s))
+    setStep((currentStep) => Math.max(currentStep - 1, 1) as 1 | 2 | 3 | 4)
   }
 
   const skipPayment = () => {
@@ -104,7 +103,7 @@ export default function SignUpPage() {
       } else {
         router.push(`/auth/verify?email=${encodeURIComponent(formData.email)}&type=signup`)
       }
-    } catch (err: any) {
+    } catch {
       setError("Critical network or system failure. Please retry.")
     } finally {
       setLoading(false)
@@ -148,8 +147,8 @@ export default function SignUpPage() {
                     <User size={24} className="sm:size-7" />
                 </div>
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Identity</h1>
-                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Personal Access Protocols</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Create Account</h1>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Enter your details</p>
                 </div>
             </div>
 
@@ -166,8 +165,8 @@ export default function SignUpPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className={labelClasses}>Digital Mail</label>
-                  <input type="email" value={formData.email} onChange={e => updateForm({ email: e.target.value })} className={inputClasses} placeholder="EMAIL@DOMAIN.COM" />
+                  <label className={labelClasses}>Email Address</label>
+                  <input type="email" value={formData.email} onChange={e => updateForm({ email: e.target.value })} className={inputClasses} placeholder="you@example.com" />
                 </div>
                 <div className="space-y-2">
                     <label className={labelClasses}>Mobile Phone</label>
@@ -257,7 +256,7 @@ export default function SignUpPage() {
                 </div>
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Security</h1>
-                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2 italic">Bidder Credit Authorization</p>
+                    <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2 italic">Add a payment method</p>
                 </div>
             </div>
 
@@ -278,7 +277,7 @@ export default function SignUpPage() {
 
             <div className="flex flex-col gap-4">
               <button onClick={skipPayment} className="w-full bg-zinc-50 border-2 border-zinc-100 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest text-zinc-400 hover:bg-white hover:text-secondary transition-all">
-                  Skip for later
+                  Add Later
               </button>
               <button onClick={prevStep} className="w-full text-zinc-300 hover:text-primary py-2 font-bold uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3">
                   <ArrowLeft size={14} /> Back to Address
@@ -295,7 +294,7 @@ export default function SignUpPage() {
                     <FileText size={24} className="sm:size-7" />
                 </div>
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Agreements</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Terms & Conditions</h1>
                 </div>
             </div>
 
@@ -348,7 +347,7 @@ Continued use of the Website or participation in auctions constitutes acceptance
 
 10. Contact & Support
 Email: support@virginialiquidation.com
-Phone: 7038691965
+Phone: +1 (703) 869-1965
 Resources for first-time bidders and FAQs are available on the Website.
             </div>
 
@@ -363,7 +362,7 @@ Resources for first-time bidders and FAQs are available on the Website.
                     {acceptedTerms && <CheckCircle2 size={14} strokeWidth={3} />}
                 </div>
                 <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} className="hidden" />
-                <span className="text-[10px] font-bold uppercase tracking-widest">Execute Agreement Signature</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">I agree to the Terms & Conditions</span>
             </label>
 
             <div className="flex gap-4">
@@ -375,7 +374,7 @@ Resources for first-time bidders and FAQs are available on the Website.
                     disabled={loading || !acceptedTerms}
                     className="flex-1 bg-secondary text-white py-5 sm:py-6 rounded-[32px] font-bold text-[11px] sm:text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
                 >
-                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><CheckCircle2 size={18} /> Finalize Account Execution</>}
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><CheckCircle2 size={18} /> Create Account</>}
                 </button>
             </div>
           </div>

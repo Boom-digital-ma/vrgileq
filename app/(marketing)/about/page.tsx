@@ -103,7 +103,9 @@ export default function AboutPage() {
                                 ))}
                             </div>
                         </div>
-                        <p className="mt-8 text-primary font-black text-base tracking-tighter italic">👉 Bid with confidence.</p>
+                        <Link href="/" className="mt-8 w-fit text-primary font-black text-base tracking-tighter italic hover:text-secondary transition-colors">
+                            Bid with confidence.
+                        </Link>
                     </div>
                 </div>
                 
@@ -136,9 +138,9 @@ export default function AboutPage() {
       {/* CTA Final */}
       <section className="py-16 px-6 bg-zinc-50 border-t border-zinc-100">
         <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-2xl font-bold text-secondary font-display uppercase italic mb-6">Ready to Engage Our Services?</h2>
-            <Link href="/engage" className="inline-block bg-primary text-white px-10 py-5 rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-secondary transition-all shadow-xl shadow-primary/10 italic">
-                Get Strategic Consultation
+            <h2 className="text-2xl font-bold text-secondary font-display uppercase italic mb-6">Ready to Start Bidding?</h2>
+            <Link href="/auctions" className="inline-block bg-primary text-white px-10 py-5 rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-secondary transition-all shadow-xl shadow-primary/10 italic">
+                Browse Auctions
             </Link>
         </div>
       </section>

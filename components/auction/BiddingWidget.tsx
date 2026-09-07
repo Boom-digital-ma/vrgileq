@@ -290,11 +290,6 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   };
 
   const premiumPercent = settings?.buyers_premium || 15;
-  const taxRate = settings?.tax_rate || 0;
-  const currentHammer = bidAmount > minBid ? minBid : bidAmount;
-  const premiumAmount = currentHammer * (premiumPercent / 100);
-  const taxAmount = (currentHammer + premiumAmount) * (taxRate / 100);
-  const totalAuth = currentHammer + premiumAmount + taxAmount;
 
   return (
     <div className="sticky top-24 flex flex-col bg-white border border-zinc-200/80 rounded-[32px] p-8 shadow-[0_20px_50px_rgba(11,43,83,0.05)]">
@@ -416,6 +411,12 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
              </button>
         )}
 
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-center">
+          <p className="text-xs font-black uppercase tracking-widest text-secondary">
+            {premiumPercent}% Buyer&apos;s Premium <span className="mx-1.5 text-primary">—</span> Your total = Winning Bid + {premiumPercent}%
+          </p>
+        </div>
+
         <button type="submit" disabled={loading || isEnded || !isStarted || isAdmin} className={cn(
             "w-full py-5 rounded-[20px] font-bold text-base transition-all active:scale-[0.98] shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale font-display italic uppercase tracking-tight",
             isAdmin ? "bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none" : "bg-secondary text-white hover:bg-primary shadow-secondary/10"
@@ -424,13 +425,6 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           {isAdmin ? "ADMIN MODE: CANNOT BID" : (isEnded ? "Bidding Closed" : (!isStarted ? "Bidding Not Started" : (userProfile ? `Place Bid $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}` : "Sign In to Bid")))}
         </button>
       </form>
-
-      <div className="bg-zinc-50 rounded-2xl p-5 text-center mb-10 border border-zinc-100">
-        <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest leading-relaxed">
-            * A {premiumPercent}% Buyer's Premium {taxRate > 0 ? `& ${taxRate}% Tax` : ''} is applied.<br />
-            <span className="text-secondary font-bold" suppressHydrationWarning>Est. Auth Total: ${mounted ? Math.round(totalAuth).toLocaleString() : Math.round(totalAuth).toString()}</span>
-        </p>
-      </div>
 
       <div>
         <div className="flex items-center justify-between mb-6 px-2">

@@ -22,19 +22,20 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ q?: string, category?: string, page?: string, filter?: 'live' | 'upcoming' | 'past' | 'draft' }>
 }) {
-  const supabase = await createClient()
-  const params = await searchParams
+  const [supabase, params] = await Promise.all([createClient(), searchParams])
   const { q, category, page } = params
   let filter = params.filter
   const currentPage = parseInt(page || '1')
   const PAGE_SIZE_LOTS = 12
   const PAGE_SIZE_EVENTS = 9
 
-  // Fetch all categories for the sidebar
-  const { data: categories } = await supabase.from('categories').select('*').order('name')
-  
+  // Categories and the current session are independent requests.
+  const [{ data: categories }, { data: { user } }] = await Promise.all([
+    supabase.from('categories').select('*').order('name'),
+    supabase.auth.getUser(),
+  ])
+
   // Fetch user and profile for role check
-  const { data: { user } } = await supabase.auth.getUser()
   let userRole = 'client'
   let userProfile = null
 
@@ -304,12 +305,17 @@ export default async function HomePage({
   // 2. DEFAULT VIEW: Home Page with Hero & Events Catalog
   const now = new Date().toISOString()
 
-  // Pre-fetch counts to determine default tab if none or if current is empty
-  const { count: liveCount } = await fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live')
-  const { count: upcomingCount } = await fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
-  const { count: draftCount } = isAdmin 
-    ? await fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'draft')
-    : { count: 0 }
+  // Pre-fetch counts concurrently to determine the default tab.
+  const [liveCountResult, upcomingCountResult, draftCountResult] = await Promise.all([
+    fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live'),
+    fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`),
+    isAdmin
+      ? fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'draft')
+      : Promise.resolve({ count: 0 }),
+  ])
+  const liveCount = liveCountResult.count
+  const upcomingCount = upcomingCountResult.count
+  const draftCount = draftCountResult.count
   
   // Auto-fallback logic
   if (!filter || (filter === 'live' && !liveCount)) {
@@ -381,9 +387,9 @@ export default async function HomePage({
             <div>
                 <div className="flex items-center gap-3 mb-4">
                     <span className="h-[1px] w-10 bg-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Market Registry</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Auctions</span>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none">Market <span className="text-primary">Events</span>.</h2>
+                <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none">Current <span className="text-primary">Auctions</span>.</h2>
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-4">{eventCount} Events currently active</p>
             </div>
 
@@ -531,17 +537,17 @@ export default async function HomePage({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {[
-                        { title: "Individual Items", icon: Package, desc: "Never forced to buy a full pallet of junk." },
-                        { title: "Inspected Stock", icon: Zap, desc: "Functional verification on major appliances." },
-                        { title: "Local Beltsville", icon: MapPin, desc: "Fast, organized local pickup in Maryland." },
-                        { title: "Simple Bidding", icon: Gavel, desc: "Modern real-time bidding for everyone." },
+                        { title: "Individual Items", icon: Package, desc: "Buy only what you need." },
+                        { title: "Inspected Stock", icon: Zap, desc: "Checked before listing." },
+                        { title: "Local Beltsville", icon: MapPin, desc: "Easy local pickup." },
+                        { title: "Simple Bidding", icon: Gavel, desc: "Bid in real time." },
                     ].map((item, i) => (
-                        <div key={i} className="bg-white border border-zinc-100 p-8 rounded-[40px] flex flex-col italic hover:border-primary/20 transition-all shadow-sm hover:shadow-xl hover:shadow-secondary/5 group">
-                            <div className="h-12 w-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all mb-6 border border-zinc-100">
-                                <item.icon size={22} />
+                        <div key={i} className="bg-white border border-zinc-100 p-8 md:p-10 rounded-[40px] flex flex-col italic hover:border-primary/20 transition-all shadow-sm hover:shadow-xl hover:shadow-secondary/5 group">
+                            <div className="h-14 w-14 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all mb-8 border border-zinc-100">
+                                <item.icon size={26} />
                             </div>
-                            <h4 className="text-lg font-black text-secondary mb-2 uppercase italic leading-none">{item.title}</h4>
-                            <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-tight leading-relaxed">{item.desc}</p>
+                            <h4 className="text-xl md:text-2xl font-black text-secondary mb-3 uppercase italic leading-none">{item.title}</h4>
+                            <p className="text-xs text-zinc-400 font-bold uppercase tracking-tight leading-relaxed">{item.desc}</p>
                         </div>
                     ))}
                 </div>

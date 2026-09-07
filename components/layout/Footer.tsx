@@ -74,6 +74,7 @@ export default function Footer() {
                     <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Institutional</h4>
                     <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-50">
                         <Link href="/about" className="text-zinc-500 hover:text-primary transition-colors uppercase">Our Mission</Link>
+                        <Link href="/engage" className="text-zinc-500 hover:text-primary transition-colors uppercase">Enterprise Services</Link>
                         <Link href="/terms" className="text-zinc-500 hover:text-primary transition-colors uppercase">General Terms</Link>
                         <Link href="/privacy" className="text-zinc-500 hover:text-primary transition-colors uppercase">Privacy Policy</Link>
                     </nav>
@@ -81,13 +82,13 @@ export default function Footer() {
 
                 {/* Contact */}
                 <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Direct Registry</h4>
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Customer Support</h4>
                     <div className="space-y-6">
-                        <a href="tel:7038691965" className="flex items-center gap-4 group">
+                        <a href="tel:+17038691965" className="flex items-center gap-4 group">
                             <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-all">
                                 <Phone className="w-4 h-4 text-zinc-400 group-hover:text-primary" />
                             </div>
-                            <span className="text-[13px] font-bold text-zinc-500 tracking-wider italic">703-869-1965</span>
+                            <span className="text-[13px] font-bold text-zinc-500 tracking-wider italic">+1 (703) 869-1965</span>
                         </a>
                         <a href="mailto:support@virginialiquidation.com" className="flex items-center gap-4 group">
                             <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-all">
@@ -106,7 +107,7 @@ export default function Footer() {
                 </p>
                 <div className="flex items-center gap-2 bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                    <span className="text-[9px] font-bold uppercase text-emerald-700 tracking-wider italic">Registry Network Live</span>
+                    <span className="text-[9px] font-bold uppercase text-emerald-700 tracking-wider italic">Live</span>
                 </div>
             </div>
         </div>

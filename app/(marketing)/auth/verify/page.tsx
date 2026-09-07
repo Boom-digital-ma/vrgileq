@@ -3,9 +3,7 @@
 import { useState, Suspense } from 'react'
 import { verifyOTP, resendOTP } from '@/app/actions/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ShieldCheck, Loader2, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { ShieldCheck, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 function VerifyContent() {
   const [loading, setLoading] = useState(false)
@@ -44,7 +42,7 @@ function VerifyContent() {
     if (result?.error) {
       setError(result.error)
     } else {
-      setSuccess("Code renvoyé avec succès !")
+      setSuccess("Verification code sent successfully.")
     }
     setResending(false)
   }
@@ -57,9 +55,9 @@ function VerifyContent() {
           <div className="h-16 w-16 bg-primary/10 rounded-[24px] flex items-center justify-center text-primary mb-8 shadow-inner">
             <ShieldCheck size={32} />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Verify <span className="text-primary">Identity</span>.</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Verify Your <span className="text-primary">Email</span>.</h1>
           <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4 max-w-[240px] leading-relaxed">
-            Enter the transmission code sent to <br/><span className="text-secondary font-black">{email}</span>
+            Enter the verification code sent to <br/><span className="text-secondary font-black">{email}</span>
           </p>
         </div>
 
@@ -79,7 +77,9 @@ function VerifyContent() {
 
         <form action={handleSubmit} className="space-y-8 relative z-10">
           <div className="group/input">
+            <label htmlFor="verification-code" className="sr-only">Verification Code</label>
             <input 
+              id="verification-code"
               name="otp" 
               type="text" 
               required 
@@ -93,13 +93,13 @@ function VerifyContent() {
             disabled={loading}
             className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Authorize Access"}
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify Code"}
           </button>
         </form>
 
         <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
             <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-300">
-                Didn't receive the code? <button 
+                Didn&apos;t receive the code? <button
                   type="button"
                   onClick={handleResend}
                   disabled={resending}
@@ -119,7 +119,7 @@ function VerifyContent() {
 
 export default function VerifyPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-zinc-50 flex items-center justify-center italic text-[10px] font-bold uppercase tracking-widest text-zinc-300">Synchronizing...</div>}>
+        <Suspense fallback={<div className="min-h-screen bg-zinc-50 flex items-center justify-center italic text-[10px] font-bold uppercase tracking-widest text-zinc-300">Loading...</div>}>
             <VerifyContent />
         </Suspense>
     )

@@ -4,15 +4,11 @@ import { useState, useRef } from 'react'
 import { login } from '@/app/actions/auth'
 import Link from 'next/link'
 import { Gavel, Loader2, AlertCircle, User, ArrowRight, Terminal } from 'lucide-react'
-import { cn } from '@/lib/utils'
-
-import { useRouter } from 'next/navigation'
 
 export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
-  const router = useRouter()
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
@@ -56,8 +52,8 @@ export default function SignInPage() {
           <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
             <User size={24} />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Bidder <span className="text-primary">Login</span>.</h1>
-          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-3">Secure Access Gateway</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Sign <span className="text-primary">In</span>.</h1>
+          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-3">Access your account</p>
         </div>
 
         {error && (
@@ -69,20 +65,20 @@ export default function SignInPage() {
 
         <form ref={formRef} action={handleSubmit} className="space-y-8 relative z-10">
           <div className="space-y-2">
-            <label className={labelClasses}>Digital Mail</label>
+            <label className={labelClasses}>Email Address</label>
             <input 
               name="email" 
               type="email" 
               required 
               className={inputClasses}
-              placeholder="EMAIL@DOMAIN.COM"
+              placeholder="you@example.com"
             />
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between items-center px-4">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Credentials</label>
-              <Link href="/auth/forgot-password" className="text-[9px] font-bold uppercase tracking-widest text-primary hover:text-secondary transition-colors underline underline-offset-4 decoration-primary/20">Recovery?</Link>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Password</label>
+              <Link href="/auth/forgot-password" className="text-[9px] font-bold uppercase tracking-widest text-primary hover:text-secondary transition-colors underline underline-offset-4 decoration-primary/20">Forgot password?</Link>
             </div>
             <input 
               name="password" 
@@ -98,7 +94,7 @@ export default function SignInPage() {
             className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Gavel size={18} />}
-            Enter Auction Room
+            Sign In
           </button>
         </form>
 
@@ -123,9 +119,9 @@ export default function SignInPage() {
         )}
 
         <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 mb-4">New to the platform?</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 mb-4">New here?</p>
             <Link href="/auth/signup" className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-secondary transition-all group">
-                Create Bidder Account <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                Create Free Account <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </Link>
         </div>
 

@@ -43,8 +43,8 @@ export default function ResetPasswordPage() {
           <div className="h-16 w-16 bg-primary/10 rounded-[24px] flex items-center justify-center text-primary mb-8 shadow-inner">
             <Lock size={32} />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">New <span className="text-primary">Credentials</span>.</h1>
-          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4">Secure Password Re-Entry</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Reset <span className="text-primary">Password</span>.</h1>
+          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4">Choose a new password</p>
         </div>
 
         {error && (
@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
 
         <form action={handleSubmit} className="space-y-8 relative z-10">
           <div className="space-y-2">
-            <label className={labelClasses}>New Security Code</label>
+            <label className={labelClasses}>New Password</label>
             <input 
               name="password" 
               type="password" 
@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
             />
           </div>
           <div className="space-y-2">
-            <label className={labelClasses}>Confirm Logic</label>
+            <label className={labelClasses}>Confirm Password</label>
             <input 
               name="confirm" 
               type="password" 
@@ -81,12 +81,12 @@ export default function ResetPasswordPage() {
             className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck size={18} />}
-            Execute Credentials Update
+            Reset Password
           </button>
         </form>
 
         <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-300 italic">Virginia Liquidation • Security Infrastructure active</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-300 italic">Virginia Liquidation</p>
         </div>
 
         {/* Decorative background element */}

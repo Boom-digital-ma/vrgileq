@@ -233,7 +233,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
                   { label: "Manufacturer", value: lot.manufacturer || "Certified OEM", icon: Package },
                   { label: "Model Reference", value: lot.model || "Industrial Standard", icon: Info },
                   { label: "Bidding Increment", value: `$${mounted ? calculateNextIncrement(lot.current_price).toLocaleString() : calculateNextIncrement(lot.current_price).toFixed(2).replace('.00', '')}`, icon: Gavel },
-                  { label: "Asset Condition", value: "Verified / In-situ", icon: ShieldCheck },
+                  { label: "Condition", value: "Verified / In-situ", icon: ShieldCheck },
               ].map((spec, i) => (
                   <div key={i} className="flex items-start gap-4">
                       <div className="p-2 bg-zinc-50 rounded-xl text-zinc-400 border border-zinc-100"><spec.icon size={18} /></div>
@@ -247,8 +247,8 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
 
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 py-12 border-t border-zinc-100">
               {[
-                  { label: "Removal Process", value: "Pickup at event location. Logistics and extraction partners available upon request.", icon: MapPin },
-                  { label: "Asset Origin", value: lot.auction_events?.location || "Alexandria Regional Hub", icon: Clock },
+                  { label: "Pickup Information", value: "Pickup at event location. Logistics and extraction partners available upon request.", icon: MapPin },
+                  { label: "Pickup Location", value: lot.auction_events?.location || "6415 Virginia Manor Rd, Beltsville, MD 20705", icon: Clock },
               ].map((item, i) => (
                   <div key={i} className="flex items-start gap-4">
                       <div className="p-2 bg-zinc-50 rounded-xl text-zinc-400 border border-zinc-100"><item.icon size={18} /></div>

@@ -191,10 +191,10 @@ export default function Header() {
                 <nav className="hidden lg:flex items-center gap-1">
                     {[
                         { name: 'Auctions', href: '/' },
-                        { name: 'How it works', href: '/how-it-works' },
-                        { name: 'Blog', href: '/blog' },
+                        { name: 'How It Works', href: '/how-it-works' },
+                        { name: 'Pickup', href: '/pickup-information' },
                         { name: 'About', href: '/about' },
-                        { name: 'Contact us', href: '/contact' },
+                        { name: 'Contact', href: '/contact' },
                     ].map((item) => {
                         const isActive = item.href === '/' 
                             ? pathname === '/' 
@@ -254,7 +254,7 @@ export default function Header() {
                                 href="/auth/signup" 
                                 className="bg-secondary text-white px-5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-primary transition-all shadow-lg shadow-secondary/5 italic"
                             >
-                                Join
+                                Register Free
                             </Link>
                         </div>
                     )}
@@ -297,10 +297,10 @@ export default function Header() {
             <nav className="flex flex-col gap-1 mb-auto">
               {[
                 { name: 'Auctions', href: '/' },
-                { name: 'How it works', href: '/how-it-works' },
-                { name: 'Blog', href: '/blog' },
+                { name: 'How It Works', href: '/how-it-works' },
+                { name: 'Pickup', href: '/pickup-information' },
                 { name: 'About', href: '/about' },
-                { name: 'Contact us', href: '/contact' },
+                { name: 'Contact', href: '/contact' },
               ].map((item) => {
                 const isActive = item.href === '/' 
                     ? pathname === '/' 
@@ -335,7 +335,7 @@ export default function Header() {
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <Link href="/auth/signin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center py-4 rounded-xl font-bold bg-zinc-50 text-secondary border border-zinc-100">Sign In</Link>
-                  <Link href="/auth/signup" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center py-4 rounded-xl font-bold bg-primary text-white">Join</Link>
+                  <Link href="/auth/signup" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center py-4 rounded-xl font-bold bg-primary text-white">Register Free</Link>
                 </div>
               )}
             </div>

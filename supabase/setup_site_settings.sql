@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
     buyers_premium NUMERIC DEFAULT 15,
     default_deposit NUMERIC DEFAULT 500,
     support_email TEXT DEFAULT 'support@virginialiquidation.com',
-    support_phone TEXT DEFAULT '(703) 555-0123',
+    support_phone TEXT DEFAULT '+1 (703) 869-1965',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT one_row CHECK (id = 'global')
@@ -43,7 +43,7 @@ USING (true);
 
 -- 4. Initial Seed
 INSERT INTO public.site_settings (id, buyers_premium, default_deposit, support_email, support_phone)
-VALUES ('global', 15, 500, 'support@virginialiquidation.com', '(703) 555-0123')
+VALUES ('global', 15, 500, 'support@virginialiquidation.com', '+1 (703) 869-1965')
 ON CONFLICT (id) DO NOTHING;
 
 -- 5. Helper function for updated_at

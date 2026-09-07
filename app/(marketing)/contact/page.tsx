@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, MessageSquare, Clock, ArrowRight, ShieldCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Mail, Phone, MapPin, Send, MessageSquare, Clock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ContactPage() {
@@ -22,8 +21,8 @@ export default function ContactPage() {
 
   const contactInfo = [
     { label: "Bidding Support", value: "support@virginialiquidation.com", icon: Mail },
-    { label: "Direct Phone", value: "(703) 768-9000", icon: Phone },
-    { label: "Office Location", value: "Alexandria, VA 22301", icon: MapPin },
+    { label: "Direct Phone", value: "+1 (703) 869-1965", icon: Phone },
+    { label: "Office Location", value: "6415 Virginia Manor Rd, Beltsville, MD 20705", icon: MapPin },
     { label: "Availability", value: "Mon - Fri, 9am - 5pm EST", icon: Clock },
   ];
 
@@ -41,7 +40,7 @@ export default function ContactPage() {
                 Reach <br/> <span className="text-primary">Contact</span>.
             </h1>
             <p className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg font-medium leading-relaxed uppercase">
-                Technical support and strategic consulting for Northern Virginia's premier industrial marketplace.
+                Technical support and strategic consulting for Northern Virginia&apos;s premier industrial marketplace.
             </p>
         </div>
         <div className="absolute -top-24 -left-24 h-64 w-64 bg-primary/5 blur-[100px] rounded-full" />
@@ -58,25 +57,25 @@ export default function ContactPage() {
                         <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                             <MessageSquare size={20} />
                         </div>
-                        <h2 className="text-2xl font-bold font-display uppercase text-secondary">Transmit Message</h2>
+                        <h2 className="text-2xl font-bold font-display uppercase text-secondary">Send a Message</h2>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Identity Name</label>
-                                <input required type="text" placeholder="FULL NAME" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none" />
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Full Name</label>
+                                <input required type="text" placeholder="Your full name" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Digital Mail</label>
-                                <input required type="email" placeholder="EMAIL@DOMAIN.COM" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none" />
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Email Address</label>
+                                <input required type="email" placeholder="you@example.com" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none" />
                             </div>
                         </div>
                         
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Inquiry Subject</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Subject</label>
                             <select className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none appearance-none">
-                                <option>BIDDING ASSISTANCE</option>
+                                <option>BIDDING HELP</option>
                                 <option>SELLER SERVICES</option>
                                 <option>LOGISTICS & REMOVAL</option>
                                 <option>TECHNICAL SUPPORT</option>
@@ -84,8 +83,8 @@ export default function ContactPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Detailed Inquiry</label>
-                            <textarea required rows={5} placeholder="DESCRIBE YOUR REQUEST IN DETAIL..." className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none resize-none"></textarea>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Message</label>
+                            <textarea required rows={5} placeholder="How can we help?" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none resize-none"></textarea>
                         </div>
 
                         <button 
@@ -94,7 +93,7 @@ export default function ContactPage() {
                             className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50 italic"
                         >
                             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send size={18} />}
-                            Contact Us
+                            Send Message
                         </button>
                     </form>
                 </div>
@@ -102,7 +101,7 @@ export default function ContactPage() {
                 {/* Sidebar Info */}
                 <div className="space-y-8 italic">
                     <div className="bg-white border border-zinc-100 rounded-[40px] p-10 shadow-sm">
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900 mb-10 border-b border-zinc-50 pb-4">Contact Matrix</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900 mb-10 border-b border-zinc-50 pb-4">Contact Information</h3>
                         <div className="space-y-10">
                             {contactInfo.map((info, i) => (
                                 <div key={i} className="flex items-start gap-5 group">
@@ -139,7 +138,7 @@ export default function ContactPage() {
   );
 }
 
-function Loader2(props: any) {
+function Loader2(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}

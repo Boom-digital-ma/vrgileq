@@ -501,40 +501,40 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                   {activeTab === 'security' && (
                     <div className="space-y-10">
                       <div className="border-b border-zinc-100 pb-6">
-                          <h2 className="text-2xl font-bold uppercase tracking-tight font-display text-secondary">Security Protocols</h2>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Credentials & System Access</p>
+                          <h2 className="text-2xl font-bold uppercase tracking-tight font-display text-secondary">Account Security</h2>
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Manage your email, password, and account</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                           <div className="bg-white border border-zinc-100 p-10 rounded-[40px] shadow-sm">
-                              <h3 className="text-sm font-bold uppercase tracking-widest text-secondary mb-8 border-b border-zinc-50 pb-4">Email Synchronization</h3>
+                              <h3 className="text-sm font-bold uppercase tracking-widest text-secondary mb-8 border-b border-zinc-50 pb-4">Change Email</h3>
                               <form onSubmit={handleEmailChange} className="space-y-6">
                                   <div className="space-y-2">
-                                      <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-300 ml-4">Current Verified Mail</label>
+                                      <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-300 ml-4">Current Email Address</label>
                                       <input disabled defaultValue={user?.email} className="w-full bg-zinc-50/50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-zinc-300 italic cursor-not-allowed" />
                                   </div>
                                   <div className="space-y-2">
-                                      <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 ml-4">New Digital Mail</label>
-                                      <input name="email" type="email" required className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none" />
+                                      <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 ml-4">New Email Address</label>
+                                      <input name="email" type="email" required placeholder="you@example.com" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none" />
                                   </div>
                                   <button disabled={emailLoading} className="w-full bg-secondary text-white py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-primary transition-all active:scale-[0.98] shadow-lg shadow-secondary/10">
-                                      {emailLoading ? <Loader2 size={16} className="animate-spin mx-auto" /> : "Initiate Change"}
+                                      {emailLoading ? <Loader2 size={16} className="animate-spin mx-auto" /> : "Change Email"}
                                   </button>
                               </form>
                           </div>
                           <div className="space-y-6">
                               <div className="bg-secondary p-10 rounded-[40px] text-white relative overflow-hidden shadow-2xl shadow-secondary/20">
-                                  <h3 className="text-sm font-bold uppercase tracking-widest mb-4">Password Requirements</h3>
-                                  <p className="text-xs text-white/40 leading-relaxed uppercase mb-8">Execute a secure recovery sequence to modify your master password.</p>
+                                  <h3 className="text-sm font-bold uppercase tracking-widest mb-4">Change Password</h3>
+                                  <p className="text-xs text-white/40 leading-relaxed uppercase mb-8">Reset your password securely using your email address.</p>
                                   <Link href="/auth/forgot-password" className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10">
-                                      Initiate Recovery <ArrowRight size={14} />
+                                      Reset Password <ArrowRight size={14} />
                                   </Link>
                                   <div className="absolute -bottom-8 -right-8 h-32 w-32 bg-primary/10 blur-2xl rounded-full" />
                               </div>
                               <div className="bg-rose-50 border border-rose-100 p-10 rounded-[40px]">
-                                  <h3 className="text-sm font-bold uppercase tracking-widest text-rose-600 mb-4">Decommission Account</h3>
-                                  <p className="text-xs text-rose-400 leading-relaxed uppercase mb-8">Permanently archive all bidder data and acquisitions. This process is irreversible.</p>
+                                  <h3 className="text-sm font-bold uppercase tracking-widest text-rose-600 mb-4">Delete Account</h3>
+                                  <p className="text-xs text-rose-400 leading-relaxed uppercase mb-8">Permanently delete your account and account data. This cannot be undone.</p>
                                   <button onClick={handleDeleteAccount} className="text-[10px] font-bold uppercase tracking-widest text-rose-600 border-b-2 border-rose-200 hover:border-rose-600 transition-all pb-1">
-                                      Execute Archive Sequence
+                                      Delete Account
                                   </button>
                               </div>
                           </div>

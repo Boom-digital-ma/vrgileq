@@ -34,13 +34,13 @@ export default function ForgotPasswordPage() {
         
         <div className="flex flex-col items-center mb-12 relative z-10">
           <Link href="/auth/signin" className="self-start mb-10 text-[9px] font-bold uppercase tracking-widest text-zinc-300 flex items-center gap-2 hover:text-primary transition-colors group">
-            <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> Return to Access Room
+            <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> Back to Sign In
           </Link>
           <div className="h-16 w-16 bg-primary/10 rounded-[24px] flex items-center justify-center text-primary mb-8 shadow-inner">
             <KeyRound size={32} />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Account <span className="text-primary">Recovery</span>.</h1>
-          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4">Initiate Password Reset</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Reset <span className="text-primary">Password</span>.</h1>
+          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4">Enter your email to continue</p>
         </div>
 
         {error && (
@@ -52,13 +52,13 @@ export default function ForgotPasswordPage() {
 
         <form action={handleSubmit} className="space-y-8 relative z-10">
           <div className="space-y-2">
-            <label className={labelClasses}>Registered Mail</label>
+            <label className={labelClasses}>Email Address</label>
             <input 
               name="email" 
               type="email" 
               required 
               className={inputClasses}
-              placeholder="EMAIL@DOMAIN.COM"
+              placeholder="you@example.com"
             />
           </div>
 
@@ -66,12 +66,12 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Transmit Recovery Link"}
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send Reset Code"}
           </button>
         </form>
 
         <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-300 italic">Virginia Liquidation • Identity Protection active</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-300 italic">Virginia Liquidation</p>
         </div>
 
         {/* Decorative background element */}

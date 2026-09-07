@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Gavel, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import SLIDES from "@/data/slides.json";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ export default function HeroSlider() {
           {/* Content */}
           <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-6 z-10" suppressHydrationWarning>
             <div className={cn(
-                "max-w-4xl transition-all duration-1000 delay-300",
+                "max-w-5xl transition-all duration-1000 delay-300",
                 index === current ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
             )}>
               <div className="mb-6 flex items-center gap-3">
@@ -60,8 +60,10 @@ export default function HeroSlider() {
               </div>
               
               <h1 className="mb-8 text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl leading-[0.9] text-white font-display italic uppercase">
-                {slide.title.split(' ').map((word, i) => (
-                    <span key={i} className={i === 1 ? "text-primary block" : "block"}>{word}</span>
+                {slide.title.split(' ').map((word, i, words) => (
+                    <span key={i} className={i === 1 ? "text-primary" : ""}>
+                      {word}{i < words.length - 1 && " "}
+                    </span>
                 ))}
               </h1>
               
@@ -77,11 +79,11 @@ export default function HeroSlider() {
                 >
                   {slide.cta} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" suppressHydrationWarning />
                 </Link>
-                <Link 
-                  href="/contact" 
+                <Link
+                  href="/auth/signup"
                   className="bg-white/5 backdrop-blur-md text-white border border-white/10 px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all hover:bg-white/10"
                 >
-                  Contact Us
+                  Register Free
                 </Link>
               </div>
             </div>
