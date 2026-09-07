@@ -6,7 +6,8 @@
     "title": "Online Liquidation Auctions in Maryland, DC & Northern Virginia",
     "description": "Shop for overstock and returned merchandise at the price you set from the largest retail national retail destination",
     "cta": "Browse Auctions",
-    "link": "/"
+    "link": "/",
+    "showPrimaryCta": true
   },
   {
     "id": 2,
@@ -15,6 +16,7 @@
     "title": "Direct From Major Retailers",
     "description": "Access exclusive inventory from overstocked manufacturers and verified suppliers across Maryland and the East Coast.",
     "cta": "Sell with us",
-    "link": "/sellers"
+    "link": "/sellers",
+    "showPrimaryCta": false
   }
 ]

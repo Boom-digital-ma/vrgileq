@@ -71,6 +71,12 @@ export async function signup(formData: FormData, paymentMethodId?: string) {
     return { error: error.message }
   }
 
+  // Supabase returns an obfuscated user with no identities for an existing email
+  // when email confirmation is enabled. Do not continue with payment setup for it.
+  if (!data.user || data.user.identities?.length === 0) {
+    return { error: "An account with this email already exists. Please sign in or reset your password." }
+  }
+
   // If a payment method was provided during signup, attach it now
   if (paymentMethodId && data.user) {
     try {
@@ -128,6 +134,36 @@ export async function signup(formData: FormData, paymentMethodId?: string) {
   }
 
   return { success: "Check your email to confirm your account!" }
+}
+
+export async function checkSignupEmail(email: string) {
+  const normalizedEmail = email.trim().toLowerCase()
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return { available: false, error: "Please enter a valid email address." }
+  }
+
+  const adminSupabase = createAdminClient()
+  const { data, error } = await adminSupabase
+    .from('profiles')
+    .select('id')
+    .ilike('email', normalizedEmail)
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    console.error("Signup: Email availability check failed", error.message)
+    return { available: false, error: "We could not verify this email. Please try again." }
+  }
+
+  if (data) {
+    return {
+      available: false,
+      error: "An account with this email already exists. Please sign in or reset your password."
+    }
+  }
+
+  return { available: true }
 }
 
 export async function requestPasswordReset(email: string) {

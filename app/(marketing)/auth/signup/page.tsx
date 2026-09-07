@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signup } from '@/app/actions/auth'
+import { checkSignupEmail, signup } from '@/app/actions/auth'
 import Link from 'next/link'
 import { Loader2, CreditCard, ArrowRight, ArrowLeft, MapPin, User, FileText, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Elements } from '@stripe/react-stripe-js'
@@ -24,7 +24,9 @@ const US_STATES = [
 export default function SignUpPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
   const [loading, setLoading] = useState(false)
+  const [checkingEmail, setCheckingEmail] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const router = useRouter()
 
@@ -47,7 +49,26 @@ export default function SignUpPage() {
     setFormData(prev => ({ ...prev, ...fields }))
   }
 
-  const nextStep = () => {
+  const validateSignupEmail = async () => {
+    if (!formData.email) {
+      return false
+    }
+
+    setCheckingEmail(true)
+    setEmailError(null)
+
+    const result = await checkSignupEmail(formData.email)
+    setCheckingEmail(false)
+
+    if (!result.available) {
+      setEmailError(result.error || "This email is unavailable.")
+      return false
+    }
+
+    return true
+  }
+
+  const nextStep = async () => {
     if (step === 1) {
         if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password) {
             setError("All identity fields are required.")
@@ -60,6 +81,9 @@ export default function SignUpPage() {
         const phoneRegex = /[+]?[0-9\s\-()]{10,20}/
         if (!phoneRegex.test(formData.phone)) {
             setError("Please enter a valid mobile phone number.")
+            return
+        }
+        if (!await validateSignupEmail()) {
             return
         }
     }
@@ -167,7 +191,19 @@ export default function SignUpPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className={labelClasses}>Email Address</label>
-                  <input type="email" value={formData.email} onChange={e => updateForm({ email: e.target.value })} className={inputClasses} placeholder="you@example.com" />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={e => {
+                      updateForm({ email: e.target.value })
+                      setEmailError(null)
+                    }}
+                    onBlur={() => { void validateSignupEmail() }}
+                    className={inputClasses}
+                    placeholder="you@example.com"
+                  />
+                  {checkingEmail && <p className="ml-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Checking email...</p>}
+                  {emailError && <p className="ml-4 text-[10px] font-bold uppercase tracking-widest text-rose-600">{emailError}</p>}
                 </div>
                 <div className="space-y-2">
                     <label className={labelClasses}>Mobile Phone</label>
