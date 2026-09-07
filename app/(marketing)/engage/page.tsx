@@ -16,11 +16,11 @@ export default function EngagePage() {
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <div className="flex items-center justify-center gap-3 mb-8">
                 <div className="h-[1px] w-10 bg-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Enterprise Solutions</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Business Services</span>
                 <div className="h-[1px] w-10 bg-primary" />
             </div>
             <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
-                Strategic <br/> <span className="text-primary">Engagement</span>.
+                Turn Your Extra <br/> Inventory &amp; Equipment <br/> <span className="text-primary">Into Cash</span>
             </h1>
             <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
                 We help large companies and organizations sell off valuable equipment, inventory, or other assets using a customized process.
