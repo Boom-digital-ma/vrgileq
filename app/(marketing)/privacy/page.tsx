@@ -195,7 +195,7 @@ export default function PrivacyPage() {
                             <div className="flex items-center gap-2 text-primary font-bold">
                                 <Mail size={14} /> DIGITAL
                             </div>
-                            <p>wb@cannellapan.com</p>
+                            <p>support@virginialiquidation.com</p>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-primary font-bold">

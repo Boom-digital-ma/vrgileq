@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { signup } from '@/app/actions/auth'
+import Link from 'next/link'
 import { Loader2, CreditCard, ArrowRight, ArrowLeft, MapPin, User, FileText, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
@@ -306,8 +307,7 @@ By placing a bid on VirginiaLiquidation.com, you agree to:
 - Follow all payment and pickup instructions
 
 2. Binding Agreement
-A successful bid constitutes a legally binding contract between you and VirginiaLiquidation.com.
-You are responsible for all bids placed under your account.
+A successful bid constitutes a legally binding agreement between you and Cannella Pan LLC, doing business as VirginiaLiquidation.com (&quot;VirginiaLiquidation.com&quot;). You are responsible for all bids placed through your account, whether placed personally or by anyone accessing your account with your authorization.
 
 3. Payment Terms
 Payment must be made via credit card at the end of the auction.
@@ -331,15 +331,14 @@ Requests must be made within 48 hours of pickup.
 Refund is limited to the purchase price only.
 
 7. Indemnification
-Users agree to indemnify and hold harmless VirginiaLiquidation.com, its affiliates, and employees against any claims arising from:
-- Breach of these Terms
-- Misuse of the Website
-- Violation of applicable laws
+You agree to indemnify and hold harmless Cannella Pan LLC, doing business as VirginiaLiquidation.com, and its owners, officers, employees, agents, contractors, and affiliates from and against any claims, losses, liabilities, damages, costs, or expenses, including reasonable attorneys&apos; fees, arising out of or relating to:
+- Your breach of these Terms and Conditions;
+- Your misuse of the VirginiaLiquidation.com website or auction services;
+- Your violation of any applicable law or regulation; or
+- Your violation of the rights of any third party.
 
 8. Legal Compliance
 You agree to abide by all local, state, and federal laws regarding auctions, bidding, and resale.
-Virginia law governs all disputes.
-Jurisdiction: Fairfax County state courts or Eastern District of Virginia – Alexandria Division.
 
 9. Amendment & Updates
 VirginiaLiquidation.com may update these Terms at any time.
@@ -350,6 +349,9 @@ Email: support@virginialiquidation.com
 Phone: +1 (703) 869-1965
 Resources for first-time bidders and FAQs are available on the Website.
             </div>
+            <Link href="/bid-terms" className="mb-8 inline-flex text-[10px] font-bold uppercase tracking-widest text-primary hover:text-secondary transition-colors">
+                Read Full Bid Terms
+            </Link>
 
             <label className={cn(
                 "flex items-center gap-4 p-5 sm:p-6 rounded-[24px] border-2 transition-all cursor-pointer mb-8 group",

@@ -1,6 +1,5 @@
-import { Building2, ShieldCheck, Zap, BarChart3, Globe2, ChevronRight, MessageSquare, ArrowRight } from "lucide-react";
+import { Building2, ShieldCheck, Zap, BarChart3, Globe2, ChevronRight, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 export default function EngagePage() {
   const services = [
@@ -24,7 +23,7 @@ export default function EngagePage() {
                 Strategic <br/> <span className="text-primary">Engagement</span>.
             </h1>
             <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
-                Customized liquidation protocols for high-value industrial and institutional stakeholders.
+                We help large companies and organizations sell off valuable equipment, inventory, or other assets using a customized process.
             </p>
         </div>
         <div className="absolute -bottom-24 -right-24 h-96 w-96 bg-primary/5 blur-[120px] rounded-full" />

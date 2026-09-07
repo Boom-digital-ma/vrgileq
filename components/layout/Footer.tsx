@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Phone, Mail, MapPin, Instagram, Facebook, Twitter, Linkedin, ArrowRight, ShieldCheck } from "lucide-react";
+import { Phone, Mail, Instagram, Facebook, Twitter, Linkedin, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -14,7 +14,7 @@ export default function Footer() {
                 </div>
                 <div>
                     <h3 className="text-xl md:text-2xl font-bold font-display uppercase italic leading-tight tracking-tight">
-                        Maryland's trusted <br className="hidden md:block"/> liquidation auction <span className="text-primary">partner.</span>
+                        Maryland&apos;s trusted <br className="hidden md:block"/> liquidation auction <span className="text-primary">partner.</span>
                     </h3>
                 </div>
             </div>
@@ -47,7 +47,7 @@ export default function Footer() {
                         />
                     </div>
                     <p className="text-sm font-medium leading-relaxed text-zinc-400 italic max-w-xs uppercase">
-                        Maryland's premier marketplace for inspected Home Depot returns, appliances, and overstock liquidation.
+                        Maryland&apos;s premier marketplace for inspected Home Depot returns, appliances, and overstock liquidation.
                     </p>
                     <div className="flex gap-3">
                         {[Instagram, Facebook, Twitter, Linkedin].map((Icon, i) => (
@@ -76,6 +76,7 @@ export default function Footer() {
                         <Link href="/about" className="text-zinc-500 hover:text-primary transition-colors uppercase">Our Mission</Link>
                         <Link href="/engage" className="text-zinc-500 hover:text-primary transition-colors uppercase">Enterprise Services</Link>
                         <Link href="/terms" className="text-zinc-500 hover:text-primary transition-colors uppercase">General Terms</Link>
+                        <Link href="/bid-terms" className="text-zinc-500 hover:text-primary transition-colors uppercase">Bid Terms</Link>
                         <Link href="/privacy" className="text-zinc-500 hover:text-primary transition-colors uppercase">Privacy Policy</Link>
                     </nav>
                 </div>
