@@ -413,7 +413,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
         <div className="rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-center">
           <p className="text-xs font-black uppercase tracking-widest text-secondary">
-            {premiumPercent}% Buyer&apos;s Premium <span className="mx-1.5 text-primary">—</span> Your total = Winning Bid + {premiumPercent}%
+            <span className="block">{premiumPercent}% Buyer&apos;s Premium</span>
+            <span className="mt-1 block">Your total = Winning Bid + {premiumPercent}%</span>
           </p>
         </div>
 

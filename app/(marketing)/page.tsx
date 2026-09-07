@@ -356,7 +356,7 @@ export default async function HomePage({
     { id: 'live', label: 'Live Now', available: !!liveCount },
     { id: 'upcoming', label: 'Upcoming', available: !!upcomingCount },
     ...(isAdmin ? [{ id: 'draft', label: 'Drafts (Admin)', available: !!draftCount }] : []),
-    { id: 'past', label: 'Recent Archives', available: true }
+    { id: 'past', label: 'Closed Events', available: true }
   ]
 
   return (
