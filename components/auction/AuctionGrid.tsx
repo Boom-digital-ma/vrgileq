@@ -251,7 +251,7 @@ export default function AuctionGrid({
                         event_id: lot.event_id,
                         lotNumber: lot.lot_number,
                         title: lot.title,
-                        supplier: lot.categories?.name || "Industrial Liquidation",
+                        supplier: lot.categories?.name || "",
                         price: Number(lot.current_price),
                         endsAt: lot.ends_at,
                         startAt: lot.auction_events?.start_at,

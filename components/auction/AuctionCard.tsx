@@ -492,11 +492,12 @@ export default function AuctionCard({
                     #{product.lotNumber || product.id.slice(0,4)}
                 </div>
                 
-                {/* Category with SVG Icon */}
-                <div className="flex items-center gap-1.5 text-zinc-400">
-                    <Building2 className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[150px]">{product.supplier}</span>
-                </div>
+                {product.supplier && (
+                    <div className="flex items-center gap-1.5 text-zinc-400">
+                        <Building2 className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[150px]">{product.supplier}</span>
+                    </div>
+                )}
             </div>
             
             <div className="flex gap-1">

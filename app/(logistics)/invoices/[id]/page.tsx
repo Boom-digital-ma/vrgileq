@@ -158,7 +158,7 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
               <div className="sm:text-right">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-4">Auction Details</h3>
                 <div className="space-y-1">
-                  <p className="font-bold text-prussian-blue">{(sale.event as any)?.title || 'Industrial Liquidation'}</p>
+                  <p className="font-bold text-prussian-blue">{(sale.event as any)?.title || 'Auction Event'}</p>
                   <p className="text-neutral-500 text-sm">{(sale.event as any)?.location || 'Online Auction'}</p>
                   <div className="mt-4 inline-block px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-bold uppercase tracking-tight border border-teal-100">
                     Status: {sale.status.toUpperCase()}

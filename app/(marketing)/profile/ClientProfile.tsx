@@ -579,7 +579,7 @@ function AcquisitionRow({ sale }: { sale: any }) {
           )}>{sale.status}</span>
         </div>
         <h3 className="text-xl font-bold text-secondary uppercase truncate group-hover:text-primary transition-colors font-display leading-tight">
-            {(sale.event as any)?.title || 'Industrial Liquidation Event'}
+            {(sale.event as any)?.title || 'Auction Event'}
         </h3>
         <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-3">
             <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-zinc-400">
