@@ -398,7 +398,7 @@ export default function AuctionCard({
       )}>
         {/* Media Container */}
         <div 
-          className="block relative w-full pt-[75%] overflow-hidden bg-zinc-100 cursor-pointer"
+          className="block relative w-full pt-[75%] overflow-hidden bg-white cursor-pointer"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -410,7 +410,7 @@ export default function AuctionCard({
               alt={`${product.title} ${product.manufacturer ? `by ${product.manufacturer}` : ''} ${product.model ? `(${product.model})` : ''} - Virginia Liquidation`}
               fill
               className={cn(
-                "object-cover transition-all duration-700",
+                "object-contain transition-all duration-700",
                 imageLoading ? "opacity-0 blur-lg" : "opacity-100 blur-0"
               )}
               onLoad={() => setImageLoading(false)}

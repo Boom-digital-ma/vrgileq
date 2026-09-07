@@ -389,7 +389,7 @@ export default async function HomePage({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pt-8 pb-16 md:pt-10 md:pb-20">
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-1 md:pt-10 md:pb-1">
         {/* Tab Selection & Header */}
         <div className="mb-10 flex flex-col justify-between gap-4 pb-1 md:flex-row md:items-center md:gap-6">
             <div>
