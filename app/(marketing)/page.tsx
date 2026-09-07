@@ -381,9 +381,9 @@ export default async function HomePage({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-24">
+      <div className="max-w-7xl mx-auto px-6 py-16 md:py-20">
         {/* Tab Selection & Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 border-b border-zinc-200 pb-12">
+        <div className="flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 mb-10 md:flex-row md:items-center">
             <div>
                 <div className="flex items-center gap-3 mb-4">
                     <span className="h-[1px] w-10 bg-primary" />
@@ -393,7 +393,7 @@ export default async function HomePage({
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-4">{eventCount} Events currently active</p>
             </div>
 
-            <div className="flex flex-col gap-6 items-end">
+            <div className="flex flex-col items-end gap-4">
                 <div className="w-full md:w-[400px]">
                     <SearchBar />
                 </div>
@@ -422,7 +422,7 @@ export default async function HomePage({
             </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-20">
+        <div className="grid grid-cols-1 gap-6 mb-10 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
           {events?.map((event) => {
             const now = new Date();
             const isEnded = event.status === 'closed' || (event.status !== 'live' && event.status !== 'draft' && new Date(event.ends_at) <= now);
@@ -448,7 +448,7 @@ export default async function HomePage({
                       Inventory Preview Pending
                     </div>
                   )}
-                  <div className="absolute top-8 left-8 flex flex-col gap-2 items-start z-10">
+                  <div className="absolute top-6 left-6 z-10 flex flex-col items-start gap-2">
                     <EventStatusBadge 
                         eventId={event.id}
                         initialStatus={event.status}
@@ -461,8 +461,8 @@ export default async function HomePage({
                   </div>
                 </div>
 
-                <div className="p-10 flex flex-col flex-1">
-                    <div className="flex items-center gap-2 mb-6 text-zinc-400">
+                <div className="flex flex-1 flex-col p-7 md:p-8">
+                    <div className="mb-4 flex items-center gap-2 text-zinc-400">
                         <Calendar size={14} className="text-primary" />
                         <span className="text-[10px] font-black uppercase tracking-widest italic">
                             {isEnded 
@@ -473,11 +473,11 @@ export default async function HomePage({
                             }
                         </span>
                     </div>
-                  <h3 className="text-2xl font-black text-secondary mb-6 group-hover:text-primary transition-colors italic font-display uppercase leading-tight line-clamp-2 h-16">
+                  <h3 className="mb-4 h-16 text-2xl font-black leading-tight text-secondary font-display uppercase italic transition-colors line-clamp-2 group-hover:text-primary">
                     {event.title}
                   </h3>
                   
-                  <div className="mt-auto pt-8 border-t border-zinc-50 flex justify-between items-center">
+                  <div className="mt-auto flex items-center justify-between border-t border-zinc-50 pt-6">
                       <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} status={event.status} />
                       <div className="bg-primary/10 text-primary p-4 rounded-2xl transition-all group-hover:bg-primary group-hover:text-white shadow-sm">
                           <ArrowRight size={20} strokeWidth={3} />
@@ -510,18 +510,18 @@ export default async function HomePage({
       </div>
 
       {/* WHY BUYERS CHOOSE US - Value Prop */}
-      <section className="px-6 py-12">
+      <section className="px-6 py-8 md:py-10">
         <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div className="bg-primary/5 rounded-[48px] p-12 md:p-16 text-secondary italic relative overflow-hidden flex flex-col justify-between border border-primary/10">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                <div className="relative flex flex-col justify-between overflow-hidden rounded-[48px] border border-primary/10 bg-primary/5 p-8 text-secondary italic md:p-10">
                     <div className="relative z-10">
-                        <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/10 shadow-sm">
+                        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/10 bg-white text-primary shadow-sm">
                             <ShieldCheck size={28} />
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black uppercase font-display leading-none mb-8 tracking-tighter italic">
+                        <h2 className="mb-5 text-4xl font-black leading-none tracking-tighter font-display uppercase italic md:text-5xl">
                             Maryland's No-Pallet <br/> <span className="text-primary">Promise.</span>
                         </h2>
-                        <p className="text-lg text-zinc-500 font-medium leading-relaxed mb-12 uppercase">
+                        <p className="mb-6 text-lg font-medium leading-relaxed text-zinc-500 uppercase">
                             We’re not a warehouse of mystery pallets. Every item is sold individually and most inventory is inspected before listing.
                         </p>
                     </div>
@@ -535,15 +535,15 @@ export default async function HomePage({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     {[
                         { title: "Individual Items", icon: Package, desc: "Buy only what you need." },
                         { title: "Inspected Stock", icon: Zap, desc: "Checked before listing." },
                         { title: "Local Beltsville", icon: MapPin, desc: "Easy local pickup." },
                         { title: "Simple Bidding", icon: Gavel, desc: "Bid in real time." },
                     ].map((item, i) => (
-                        <div key={i} className="bg-white border border-zinc-100 p-8 md:p-10 rounded-[40px] flex flex-col italic hover:border-primary/20 transition-all shadow-sm hover:shadow-xl hover:shadow-secondary/5 group">
-                            <div className="h-14 w-14 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all mb-8 border border-zinc-100">
+                        <div key={i} className="group flex flex-col rounded-[40px] border border-zinc-100 bg-white p-6 italic shadow-sm transition-all hover:border-primary/20 hover:shadow-xl hover:shadow-secondary/5 md:p-8">
+                            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 text-zinc-400 transition-all group-hover:bg-primary/10 group-hover:text-primary">
                                 <item.icon size={26} />
                             </div>
                             <h4 className="text-xl md:text-2xl font-black text-secondary mb-3 uppercase italic leading-none">{item.title}</h4>
@@ -556,10 +556,10 @@ export default async function HomePage({
       </section>
 
       {/* HOW IT WORKS MINI - Rebranded */}
-      <section className="px-6 py-24 bg-white border-y border-zinc-100">
+      <section className="px-6 py-16 md:py-20 bg-white border-y border-zinc-100">
         <div className="mx-auto max-w-7xl">
-            <div className="text-center mb-20">
-                <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="mb-12 text-center">
+                <div className="mb-4 flex items-center justify-center gap-3">
                     <div className="h-1 w-8 bg-primary rounded-full" />
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Simple process</span>
                     <div className="h-1 w-8 bg-primary rounded-full" />
@@ -567,7 +567,7 @@ export default async function HomePage({
                 <h2 className="text-4xl md:text-6xl font-black text-secondary uppercase font-display italic tracking-tighter">Fast-Track <span className="text-primary text-glow">Success.</span></h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                 {[
                     { step: "01", title: "Register Free", desc: "Create your bidder account in seconds with secure verification." },
                     { step: "02", title: "Place Bids", desc: "Bid from anywhere in Maryland, DC, or Virginia in real-time." },
@@ -583,7 +583,7 @@ export default async function HomePage({
                 ))}
             </div>
             
-            <div className="mt-20 text-center">
+            <div className="mt-12 text-center">
                 <Link href="/auth/signup" className="bg-primary text-white px-12 py-6 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-2xl shadow-primary/30 inline-flex items-center gap-3 active:scale-95 italic">
                     Start Bidding Today <ArrowRight size={18} />
                 </Link>
@@ -592,17 +592,17 @@ export default async function HomePage({
       </section>
 
       {/* FINAL FAQ / TRUST MINI - Premium SaaS UI */}
-      <section className="px-6 py-24 bg-white border-t border-zinc-100">
+      <section className="px-6 pt-10 pb-16 md:pt-12 md:pb-20 bg-white border-t border-zinc-100">
         <div className="mx-auto max-w-5xl">
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-20 items-start">
+            <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1fr_2fr]">
                 <div className="lg:sticky lg:top-32 italic">
-                    <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8 border border-primary/20 shadow-sm">
+                    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
                         <Globe2 size={28} />
                     </div>
-                    <h2 className="text-4xl font-black text-secondary uppercase font-display leading-[0.9] mb-6 tracking-tighter">
+                    <h2 className="mb-5 text-4xl font-black leading-[0.9] tracking-tighter text-secondary font-display uppercase">
                         Frequent <br/> <span className="text-primary">Questions.</span>
                     </h2>
-                    <p className="text-sm text-zinc-400 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                    <p className="mb-5 text-sm font-bold leading-relaxed tracking-widest text-zinc-400 uppercase">
                         Important information for Maryland, DC, and Virginia bidders.
                     </p>
                     <Link href="/contact" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary border-b-2 border-primary pb-1 hover:text-secondary hover:border-secondary transition-all">
