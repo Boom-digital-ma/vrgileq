@@ -111,22 +111,6 @@ export default function HeroSlider() {
         </button>
       </div>
 
-      {/* Modern Progress Indicators */}
-      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-4 md:bottom-6 md:left-12">
-        <div className="flex gap-2">
-            {SLIDES.map((_, i) => (
-            <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={cn(
-                    "h-1 rounded-full transition-all duration-500",
-                    i === current ? "w-8 bg-primary md:w-12" : "w-3 bg-white/10 hover:bg-white/20 md:w-4"
-                )}
-            />
-            ))}
-        </div>
-        <span className="hidden text-[10px] font-bold text-white/20 tabular-nums md:block">0{current + 1} / 0{SLIDES.length}</span>
-      </div>
     </section>
   );
 }

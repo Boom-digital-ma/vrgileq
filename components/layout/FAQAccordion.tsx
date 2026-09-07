@@ -33,7 +33,7 @@ export default function FAQAccordion({ items }: FAQAccordionProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-1 gap-1">
       {items.map((item, i) => {
         const Icon = ICON_MAP[item.iconName] || Package;
         return (
@@ -46,7 +46,7 @@ export default function FAQAccordion({ items }: FAQAccordionProps) {
           >
             <button 
               onClick={() => toggle(i)}
-              className="w-full flex items-center gap-6 p-8 text-left transition-colors"
+              className="flex w-full items-center gap-4 px-6 py-4 text-left transition-colors"
             >
               <div className={cn(
                 "h-10 w-10 rounded-xl flex items-center justify-center border transition-all shrink-0",
@@ -74,10 +74,10 @@ export default function FAQAccordion({ items }: FAQAccordionProps) {
             <div 
               className={cn(
                   "transition-all duration-500 ease-in-out",
-                  openIndex === i ? "max-h-[500px] opacity-100 pb-8 px-8 ml-16" : "max-h-0 opacity-0 pointer-events-none"
+                  openIndex === i ? "ml-14 max-h-[500px] px-6 pb-1 opacity-100" : "max-h-0 pointer-events-none opacity-0"
               )}
             >
-              <div className="text-[13px] text-zinc-500 font-medium uppercase leading-relaxed whitespace-pre-line pr-8">
+              <div className="text-[13px] font-medium uppercase leading-relaxed whitespace-pre-line text-zinc-500">
                 {item.a}
               </div>
             </div>

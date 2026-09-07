@@ -307,7 +307,12 @@ export default async function HomePage({
 
   // Pre-fetch counts concurrently to determine the default tab.
   const [liveCountResult, upcomingCountResult, draftCountResult] = await Promise.all([
-    fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'live'),
+    fetchClient
+      .from('auction_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'live')
+      .lte('start_at', now)
+      .gt('ends_at', now),
     fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`),
     isAdmin
       ? fetchClient.from('auction_events').select('*', { count: 'exact', head: true }).eq('status', 'draft')
@@ -337,7 +342,10 @@ export default async function HomePage({
   }
 
   if (filter === 'live') {
-    eventQuery = eventQuery.eq('status', 'live')
+    eventQuery = eventQuery
+      .eq('status', 'live')
+      .lte('start_at', now)
+      .gt('ends_at', now)
   } else if (filter === 'upcoming') {
     eventQuery = eventQuery.or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
   } else if (filter === 'past') {
@@ -381,44 +389,41 @@ export default async function HomePage({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-16 md:py-20">
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-16 md:pt-10 md:pb-20">
         {/* Tab Selection & Header */}
-        <div className="flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 mb-10 md:flex-row md:items-center">
+        <div className="mb-10 flex flex-col justify-between gap-1 pb-1 md:flex-row md:items-center">
             <div>
-                <div className="flex items-center gap-3 mb-4">
-                    <span className="h-[1px] w-10 bg-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Auctions</span>
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none">Current <span className="text-primary">Auctions</span>.</h2>
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-4">{eventCount} Events currently active</p>
+                <h2 className="text-2xl font-bold leading-none tracking-tight text-secondary font-display uppercase italic md:text-3xl">Current <span className="text-primary">Auctions</span>.</h2>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400">{liveCount || 0} {liveCount === 1 ? 'Active Event' : 'Active Events'}</p>
             </div>
-
-            <div className="flex flex-col items-end gap-4">
-                <div className="w-full md:w-[400px]">
-                    <SearchBar />
+            <div className="flex flex-col items-end gap-1 lg:flex-row lg:items-center">
+                <div className="w-full rounded-[24px] border border-zinc-200 bg-white p-1.5 shadow-xl shadow-secondary/5 lg:flex lg:w-auto lg:items-center">
+                    <div className="w-full lg:w-[300px]">
+                        <SearchBar className="border-0 p-0 shadow-none focus-within:ring-0" />
+                    </div>
+                    <nav className="mt-1 flex items-center rounded-2xl bg-zinc-50 p-1 lg:mt-0 lg:ml-2 lg:border-l lg:border-zinc-100 lg:bg-transparent lg:pl-2">
+                        {tabs.map((tab) => (
+                            <Link
+                                key={tab.id}
+                                href={`/?filter=${tab.id}`}
+                                className={cn(
+                                    "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all relative",
+                                    filter === tab.id
+                                        ? "bg-secondary text-white shadow-lg shadow-secondary/20 italic"
+                                        : "text-zinc-400 hover:text-secondary hover:bg-zinc-50"
+                                )}
+                            >
+                                {tab.label}
+                                {tab.id === 'live' && tab.available && (
+                                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                    </span>
+                                )}
+                            </Link>
+                        ))}
+                    </nav>
                 </div>
-                <nav className="flex items-center bg-white p-1.5 rounded-2xl border border-zinc-100 shadow-sm">
-                    {tabs.map((tab) => (
-                        <Link
-                            key={tab.id}
-                            href={`/?filter=${tab.id}`}
-                            className={cn(
-                                "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all relative",
-                                filter === tab.id 
-                                    ? "bg-secondary text-white shadow-lg shadow-secondary/20 italic" 
-                                    : "text-zinc-400 hover:text-secondary hover:bg-zinc-50"
-                            )}
-                        >
-                            {tab.label}
-                            {tab.id === 'live' && tab.available && (
-                                <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                </span>
-                            )}
-                        </Link>
-                    ))}
-                </nav>
             </div>
         </div>
 
@@ -592,7 +597,7 @@ export default async function HomePage({
       </section>
 
       {/* FINAL FAQ / TRUST MINI - Premium SaaS UI */}
-      <section className="px-6 pt-10 pb-16 md:pt-12 md:pb-20 bg-white border-t border-zinc-100">
+      <section className="px-6 pt-10 pb-1 md:pt-12 md:pb-1 bg-white border-t border-zinc-100">
         <div className="mx-auto max-w-5xl">
             <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1fr_2fr]">
                 <div className="lg:sticky lg:top-32 italic">

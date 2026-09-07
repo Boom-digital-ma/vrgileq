@@ -5,7 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export default function SearchBar() {
+interface SearchBarProps {
+  className?: string
+}
+
+export default function SearchBar({ className }: SearchBarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') || '')
@@ -26,7 +30,10 @@ export default function SearchBar() {
   return (
     <form 
       onSubmit={handleSearch}
-      className="flex items-center bg-white rounded-2xl p-1.5 border border-zinc-200 shadow-xl shadow-secondary/5 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 transition-all duration-300"
+      className={cn(
+        "flex items-center bg-white rounded-2xl p-1.5 border border-zinc-200 shadow-xl shadow-secondary/5 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 transition-all duration-300",
+        className
+      )}
     >
       <div className="flex flex-1 items-center px-4">
         <Search className="mr-3 h-5 w-5 text-zinc-400" />
