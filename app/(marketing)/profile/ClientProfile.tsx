@@ -271,7 +271,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
               {[
                 { id: 'bids', label: 'Live Bids', icon: Gavel },
                 { id: 'won', label: 'Won Items', icon: Trophy },
-                { id: 'invoices', label: 'Official Invoices', icon: FileText },
+                { id: 'invoices', label: 'My Invoices', icon: FileText },
                 { id: 'watchlist', label: 'Watchlist', icon: Star },
                 { id: 'payment', label: 'Secure Wallet', icon: CreditCard },
                 { id: 'info', label: 'Identity', icon: User },
@@ -465,7 +465,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                     <div className="space-y-4">
                       <div className="mb-5 flex items-center gap-3 border-b border-zinc-100 pb-4">
                         <FileText size={20} className="text-primary" />
-                        <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Official Billing</h2>
+                        <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Billing</h2>
                       </div>
                       {data.invoices.length === 0 ? (
                         <EmptyState message="No invoices generated yet" link="/auctions" linkText="Participate in Events" />

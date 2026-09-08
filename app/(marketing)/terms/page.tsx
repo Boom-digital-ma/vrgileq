@@ -1,4 +1,5 @@
 import { ShieldAlert, Gavel, Clock, CreditCard } from "lucide-react";
+import LegalNavigation from "@/components/legal/LegalNavigation";
 
 export default function TermsPage() {
   const highlights = [
@@ -26,6 +27,10 @@ export default function TermsPage() {
             </p>
         </div>
       </section>
+
+      <div className="border-b border-zinc-100 bg-white px-6 py-4">
+        <LegalNavigation current="terms" />
+      </div>
 
       {/* Highlights Grid */}
       <section className="px-6 py-10 md:py-12">

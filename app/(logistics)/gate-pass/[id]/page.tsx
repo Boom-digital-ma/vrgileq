@@ -109,7 +109,7 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
       <div className="max-w-2xl mx-auto print:max-w-none">
         {/* Actions - Hidden on print */}
         <div className="mb-5 flex items-center justify-between print:hidden">
-          <h1 className="text-2xl font-bold text-prussian-blue font-geist italic uppercase tracking-tighter">Gate Pass / Bon de Sortie</h1>
+          <h1 className="text-2xl font-bold text-prussian-blue font-geist italic uppercase tracking-tighter">Gate Pass</h1>
           <PrintInvoiceButton />
         </div>
 

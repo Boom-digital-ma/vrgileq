@@ -1,5 +1,6 @@
 import { CreditCard, FileText, Gavel, MapPin, Scale, ShieldAlert } from "lucide-react";
 import Link from "next/link";
+import LegalNavigation from "@/components/legal/LegalNavigation";
 
 const terms = [
   {
@@ -59,6 +60,10 @@ export default function BidTermsPage() {
         </div>
         <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/5 blur-[100px]" />
       </section>
+
+      <div className="border-b border-zinc-100 bg-white px-6 py-4">
+        <LegalNavigation current="bid-terms" />
+      </div>
 
       <section className="px-6 py-10 md:py-12">
         <div className="mx-auto max-w-4xl space-y-4">

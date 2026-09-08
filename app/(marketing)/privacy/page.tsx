@@ -1,4 +1,5 @@
 import { Lock, Eye, UserCheck, ShieldCheck, Mail, Phone, MapPin } from "lucide-react";
+import LegalNavigation from "@/components/legal/LegalNavigation";
 
 export default function PrivacyPage() {
   const principles = [
@@ -26,6 +27,10 @@ export default function PrivacyPage() {
             </p>
         </div>
       </section>
+
+      <div className="border-b border-zinc-100 bg-white px-6 py-4">
+        <LegalNavigation current="privacy" />
+      </div>
 
       {/* Principles Grid */}
       <section className="px-6 py-10 md:py-12">
