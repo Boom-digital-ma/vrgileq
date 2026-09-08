@@ -45,25 +45,25 @@ export default function SignInPage() {
   const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none"
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 font-sans text-secondary italic">
-      <div className="w-full max-w-md bg-white rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-10 md:p-12 relative overflow-hidden">
+    <div className="flex w-full items-center justify-center bg-zinc-50 p-4 font-sans text-secondary italic">
+      <div className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-zinc-100 bg-white p-6 shadow-2xl shadow-secondary/5 md:p-8">
         
-        <div className="flex flex-col items-center mb-12 relative z-10">
-          <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
+        <div className="relative z-10 mb-6 flex flex-col items-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <User size={24} />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Sign <span className="text-primary">In</span>.</h1>
-          <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-3">Access your account</p>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Access your account</p>
         </div>
 
         {error && (
-          <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-bold uppercase flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 p-4 text-[10px] font-bold uppercase text-rose-600 animate-in fade-in slide-in-from-top-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
           </div>
         )}
 
-        <form ref={formRef} action={handleSubmit} className="space-y-8 relative z-10">
+        <form ref={formRef} action={handleSubmit} className="relative z-10 space-y-5">
           <div className="space-y-2">
             <label className={labelClasses}>Email Address</label>
             <input 
@@ -91,7 +91,7 @@ export default function SignInPage() {
 
           <button 
             disabled={loading}
-            className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-3 rounded-2xl bg-secondary py-4 text-sm font-bold uppercase tracking-[0.2em] text-white shadow-2xl shadow-secondary/10 transition-all hover:bg-primary active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Gavel size={18} />}
             Sign In
@@ -99,8 +99,8 @@ export default function SignInPage() {
         </form>
 
         {process.env.NODE_ENV !== 'production' && (
-            <div className="mt-8 pt-6 border-t border-zinc-50 relative z-10">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-300 mb-3 flex items-center gap-2">
+            <div className="relative z-10 mt-5 border-t border-zinc-50 pt-5">
+                <p className="mb-3 flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-zinc-300">
                     <Terminal size={12} /> Dev Quick Access
                 </p>
                 <div className="space-y-2">
@@ -118,8 +118,8 @@ export default function SignInPage() {
             </div>
         )}
 
-        <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 mb-4">New here?</p>
+        <div className="relative z-10 mt-6 border-t border-zinc-50 pt-5 text-center">
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-zinc-300">New here?</p>
             <Link href="/auth/signup" className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-secondary transition-all group">
                 Create Free Account <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </Link>

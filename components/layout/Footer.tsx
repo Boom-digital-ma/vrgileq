@@ -18,15 +18,39 @@ const socialLinks = [
     { Icon: PinterestIcon, href: "https://fr.pinterest.com/amandamcgraw125/", label: "Pinterest" },
 ];
 
-export default function Footer() {
+interface FooterProps {
+  hideBanner?: boolean;
+  minimal?: boolean;
+}
+
+export default function Footer({ hideBanner = false, minimal = false }: FooterProps) {
+  if (minimal) {
+    return (
+      <footer className="border-t border-zinc-100 bg-white px-6 py-6 print:hidden">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center md:flex-row md:text-left">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">
+            © 2026 Virginia Liquidation
+          </p>
+          <nav className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest">
+            <Link href="/privacy" className="text-zinc-400 transition-colors hover:text-primary">Privacy</Link>
+            <Link href="/terms" className="text-zinc-400 transition-colors hover:text-primary">Terms</Link>
+            <Link href="/bid-terms" className="text-zinc-400 transition-colors hover:text-primary">Bid Terms</Link>
+          </nav>
+        </div>
+      </footer>
+    );
+  }
+
   return (
-    <footer className="mt-20 print:hidden">
+    <footer className="mt-8 print:hidden">
+      {!hideBanner && (
+        <>
       {/* SaaS Premium High-Contrast Banner */}
       <div className="bg-secondary text-white overflow-hidden relative">
-        <div className="mx-auto max-w-7xl px-6 py-10 md:py-12 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20" suppressHydrationWarning>
-                    <ShieldCheck size={32} className="text-primary" suppressHydrationWarning />
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 py-8 md:flex-row md:py-9">
+            <div className="flex flex-col items-center gap-4 text-center md:flex-row md:text-left">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10" suppressHydrationWarning>
+                    <ShieldCheck size={28} className="text-primary" suppressHydrationWarning />
                 </div>
                 <div>
                     <h3 className="text-xl md:text-2xl font-bold font-display uppercase italic leading-tight tracking-tight">
@@ -36,7 +60,7 @@ export default function Footer() {
             </div>
             <Link 
                 href="/how-it-works" 
-                className="group bg-white text-secondary px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center gap-3 shadow-xl shadow-black/20"
+                className="group flex items-center gap-3 rounded-2xl bg-white px-6 py-3 text-xs font-bold uppercase tracking-widest text-secondary shadow-xl shadow-black/20 transition-all hover:bg-primary hover:text-white"
                 suppressHydrationWarning
             >
                 How It Works <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" suppressHydrationWarning />
@@ -46,13 +70,15 @@ export default function Footer() {
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/10 to-transparent pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
       </div>
+        </>
+      )}
 
       {/* Main Footer Links */}
-      <div className="bg-white py-20 px-6 border-t border-zinc-100">
+      <div className="border-t border-zinc-100 bg-white px-6 py-12">
         <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-16 md:grid-cols-[1.5fr_1fr_1fr_1.2fr]">
+            <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.5fr_1fr_1fr_1.2fr]">
                 {/* Brand */}
-                <div className="space-y-8">
+                <div className="space-y-5">
                     <div className="relative h-10 w-48">
                         <Image
                             src="/images/logo-virginia-transparent.png"
@@ -76,9 +102,9 @@ export default function Footer() {
 
                 {/* Navigation */}
                 <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Auction Guide</h4>
-                    <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-50">
-                        <Link href="/how-it-works" className="text-zinc-500 hover:text-primary transition-colors uppercase">How it works</Link>
+                    <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 italic">Auction Guide</h4>
+                    <nav className="flex flex-col gap-3 text-[13px] font-bold text-zinc-50">
+                        {!hideBanner && <Link href="/how-it-works" className="text-zinc-500 hover:text-primary transition-colors uppercase">How it works</Link>}
                         <Link href="/pickup-information" className="text-zinc-500 hover:text-primary transition-colors uppercase">Local Pickup</Link>
                         <Link href="/blog" className="text-zinc-500 hover:text-primary transition-colors uppercase">Blog</Link>
                         <Link href="/contact" className="text-zinc-500 hover:text-primary transition-colors uppercase">Contact Us</Link>
@@ -87,8 +113,8 @@ export default function Footer() {
 
                 {/* Support */}
                 <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Institutional</h4>
-                    <nav className="flex flex-col gap-4 text-[13px] font-bold text-zinc-50">
+                    <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 italic">Institutional</h4>
+                    <nav className="flex flex-col gap-3 text-[13px] font-bold text-zinc-50">
                         <Link href="/about" className="text-zinc-500 hover:text-primary transition-colors uppercase">Our Mission</Link>
                         <Link href="/engage" className="text-zinc-500 hover:text-primary transition-colors uppercase">Enterprise Services</Link>
                         <Link href="/terms" className="text-zinc-500 hover:text-primary transition-colors uppercase">General Terms</Link>
@@ -99,8 +125,8 @@ export default function Footer() {
 
                 {/* Contact */}
                 <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 mb-8 italic">Customer Support</h4>
-                    <div className="space-y-6">
+                    <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 italic">Customer Support</h4>
+                    <div className="space-y-4">
                         <a href="tel:+17038691965" className="flex items-center gap-4 group">
                             <div className="bg-zinc-50 p-2.5 rounded-xl border border-zinc-100 group-hover:bg-primary/10 transition-all">
                                 <Phone className="w-4 h-4 text-zinc-400 group-hover:text-primary" />
@@ -118,7 +144,7 @@ export default function Footer() {
             </div>
 
             {/* Bottom Bar */}
-            <div className="mt-20 pt-8 border-t border-zinc-100 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-zinc-100 pt-5 md:flex-row">
                 <p className="text-[11px] font-medium text-zinc-400 italic uppercase">
                     © 2026 Virginia Liquidation. Serving Maryland, DC & Northern Virginia.
                 </p>

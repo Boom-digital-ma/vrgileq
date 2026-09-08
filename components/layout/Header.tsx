@@ -3,15 +3,20 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, User, LogOut, ChevronRight, Bell, Shield } from "lucide-react";
+import { Menu, X, LogOut, ChevronDown, ChevronRight, Bell, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
-export default function Header() {
+interface HeaderProps {
+  minimal?: boolean;
+}
+
+export default function Header({ minimal = false }: HeaderProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -125,6 +130,33 @@ export default function Header() {
   };
 
   const isAdmin = profile?.role === 'admin';
+  const accountInitial = (profile?.full_name || user?.user_metadata?.full_name || 'Account').trim().charAt(0).toUpperCase();
+
+  if (minimal) {
+    const isSignIn = pathname === '/auth/signin';
+    const isProfilePage = pathname === '/profile';
+    const actionHref = isProfilePage ? '/' : (isSignIn ? '/auth/signup' : '/auth/signin');
+    const actionLabel = isProfilePage ? 'Browse Auctions' : (isSignIn ? 'Create Account' : 'Sign In');
+
+    return (
+      <header className="border-b border-zinc-100 bg-white py-4 print:hidden">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
+          <Link href="/" className="relative h-8 w-32 shrink-0 transition-opacity hover:opacity-80 md:h-9 md:w-40">
+            <Image
+              src="/images/logo-virginia-transparent.png"
+              alt="Virginia Liquidation"
+              fill
+              className="object-contain object-left"
+              priority
+            />
+          </Link>
+          <Link href={actionHref} className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 transition-colors hover:text-primary">
+            {actionLabel}
+          </Link>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>
@@ -146,7 +178,7 @@ export default function Header() {
                             Details
                         </button>
                     ) : announcementLink ? (
-                        <Link 
+                        <Link
                             href={announcementLink} 
                             className="text-[8px] md:text-[9px] font-black uppercase text-primary hover:text-white transition-colors border-b border-primary/30"
                         >
@@ -222,28 +254,73 @@ export default function Header() {
                         <div className="h-8 w-24 bg-zinc-50 animate-pulse rounded-lg" suppressHydrationWarning />
                     ) : user ? (
                         <div className="flex items-center gap-3" suppressHydrationWarning>
-                            <Link 
-                                href={isAdmin ? "/admin" : "/profile"} 
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-50 border border-zinc-100 hover:border-primary/20 transition-all group" 
-                                suppressHydrationWarning
-                            >
-                                {isAdmin ? (
+                            {isAdmin ? (
+                                <Link
+                                    href="/admin"
+                                    className="flex items-center gap-2 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-1.5 transition-all hover:border-primary/20 group"
+                                    suppressHydrationWarning
+                                >
                                     <Shield size={14} className="text-zinc-400 group-hover:text-primary" suppressHydrationWarning />
-                                ) : (
-                                    <User size={14} className="text-zinc-400 group-hover:text-primary" suppressHydrationWarning />
-                                )}
-                                <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tight italic">
-                                    {isAdmin ? 'Console' : (profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Account')}
-                                </span>
-                            </Link>
-                            <button 
-                                onClick={handleLogout} 
-                                aria-label="Logout"
-                                className="text-zinc-300 hover:text-rose-500 transition-colors"
-                                suppressHydrationWarning
-                            >
-                                <LogOut size={16} suppressHydrationWarning />
-                            </button>
+                                    <span className="text-[10px] font-bold uppercase tracking-tight text-zinc-600 italic">Console</span>
+                                </Link>
+                            ) : (
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAccountMenuOpen((open) => !open)}
+                                        aria-expanded={isAccountMenuOpen}
+                                        aria-haspopup="menu"
+                                        className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-2 py-1.5 text-zinc-700 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+                                    >
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-[11px] font-black text-white">
+                                            {accountInitial}
+                                        </span>
+                                        <span className="hidden text-[10px] font-black uppercase tracking-widest sm:inline">My Account</span>
+                                        <ChevronDown size={14} className={cn("text-zinc-400 transition-transform", isAccountMenuOpen && "rotate-180")} />
+                                    </button>
+
+                                    {isAccountMenuOpen && (
+                                        <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-52 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-900/10">
+                                            {[
+                                                { label: 'Profile', href: '/profile#info' },
+                                                { label: 'My Bids', href: '/profile#bids' },
+                                                { label: 'Invoices', href: '/profile#invoices' },
+                                                { label: 'Watchlist', href: '/profile#watchlist' },
+                                            ].map((item) => (
+                                                <Link
+                                                    key={item.label}
+                                                    href={item.href}
+                                                    role="menuitem"
+                                                    onClick={() => setIsAccountMenuOpen(false)}
+                                                    className="block rounded-xl px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-primary"
+                                                >
+                                                    {item.label}
+                                                </Link>
+                                            ))}
+                                            <div className="my-1 border-t border-zinc-100" />
+                                            <button
+                                                type="button"
+                                                onClick={handleLogout}
+                                                role="menuitem"
+                                                className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest text-rose-500 transition-colors hover:bg-rose-50"
+                                            >
+                                                <LogOut size={14} />
+                                                Sign Out
+                                            </button>
+                                        </div>
+                                    )}
+                                    {isAdmin && (
+                                        <button
+                                            type="button"
+                                            onClick={handleLogout}
+                                            aria-label="Sign out"
+                                            className="text-zinc-300 transition-colors hover:text-rose-500"
+                                        >
+                                            <LogOut size={16} />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">

@@ -15,9 +15,11 @@ import { cn, getOptimizedImageUrl, formatEventDate } from '@/lib/utils'
 import { toast } from 'sonner'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const profileTabIds = ['bids', 'won', 'watchlist', 'payment', 'security', 'info', 'invoices'] as const
+type ProfileTab = typeof profileTabIds[number]
 
 export default function ProfilePage({ targetUserId }: { targetUserId?: string }) {
-  const [activeTab, setActiveTab] = useState<'bids' | 'won' | 'watchlist' | 'payment' | 'security' | 'info' | 'invoices'>('bids')
+  const [activeTab, setActiveTab] = useState<ProfileTab>('bids')
   const [data, setData] = useState<{ bids: any[], wonLots: any[], invoices: any[], watchlist: any[], profile: any, cards: any[] }>({ 
     bids: [], wonLots: [], invoices: [], watchlist: [], profile: null, cards: [] 
   })
@@ -28,6 +30,17 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
   const [showAddCard, setShowAddCard] = useState(false)
   const [user, setUser] = useState<any>(null)
   const supabase = createClient()
+
+  useEffect(() => {
+    const syncTabFromHash = () => {
+      const tab = profileTabIds.find((tabId) => tabId === window.location.hash.slice(1))
+      if (tab) setActiveTab(tab)
+    }
+
+    syncTabFromHash()
+    window.addEventListener('hashchange', syncTabFromHash)
+    return () => window.removeEventListener('hashchange', syncTabFromHash)
+  }, [])
 
   async function fetchData() {
     const { data: { user: currentUser } } = await supabase.auth.getUser()
@@ -209,7 +222,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
   const isAdminViewing = !!(targetUserId && user?.user_metadata?.role === 'admin')
 
   return (
-    <div className="bg-zinc-50 min-h-screen font-sans antialiased text-secondary italic">
+    <div className="bg-zinc-50 font-sans antialiased text-secondary italic">
       {/* Admin Mode Indicator */}
       {isAdminViewing && (
         <div className="bg-primary text-white py-2 px-6 text-center text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3">
@@ -217,14 +230,14 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
         </div>
       )}
       {/* SaaS Premium Header */}
-      <div className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden">
-        <div className="mx-auto max-w-7xl px-6 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
+      <div className="relative overflow-hidden border-b border-zinc-100 bg-white px-6 py-10 md:py-12">
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <div className="flex items-center gap-2 mb-4">
                 <div className="h-1 w-8 bg-primary rounded-full" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Bidder Dashboard</span>
             </div>
-            <h1 className="text-5xl font-bold tracking-tight text-secondary font-display uppercase leading-none">
+            <h1 className="text-4xl font-bold leading-none tracking-tight text-secondary font-display uppercase">
               {data.profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'My Account'}.
             </h1>
             <div className="flex items-center gap-3 mt-4">
@@ -236,12 +249,12 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                 <span className="text-zinc-300 text-[10px] font-bold uppercase tracking-widest">{user?.email}</span>
             </div>
           </div>
-          <div className="flex gap-4">
-            <div className="bg-zinc-50 p-6 rounded-3xl border border-zinc-100 min-w-[140px] shadow-sm">
+          <div className="flex gap-3">
+            <div className="min-w-[120px] rounded-2xl border border-zinc-100 bg-zinc-50 p-4 shadow-sm">
                 <div className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest mb-1">Active Bids</div>
                 <div className="text-3xl font-bold text-secondary font-display tabular-nums leading-none">{loading ? '---' : data.bids.length}</div>
             </div>
-            <div className="bg-secondary p-6 rounded-3xl min-w-[140px] shadow-xl shadow-secondary/10 text-white italic">
+            <div className="min-w-[120px] rounded-2xl bg-secondary p-4 text-white italic shadow-xl shadow-secondary/10">
                 <div className="text-[9px] font-bold uppercase text-white/40 tracking-widest mb-1">Lots Won</div>
                 <div className="text-3xl font-bold font-display tabular-nums leading-none">{loading ? '---' : data.wonLots.length}</div>
             </div>
@@ -250,8 +263,8 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent opacity-50" />
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="flex flex-col lg:flex-row gap-12">
+      <div className="mx-auto max-w-7xl px-6 py-8 md:py-10">
+        <div className="flex flex-col gap-7 lg:flex-row">
           {/* SaaS Sidebar Nav */}
           <aside className="lg:w-64 shrink-0">
             <nav className="flex flex-col gap-1.5 sticky top-32">
@@ -287,16 +300,16 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
           {/* Main Content Area */}
           <div className="flex-1 min-w-0">
             {loading ? (
-                <div className="py-24 text-center">
+                <div className="py-14 text-center">
                     <Loader2 size={32} className="mx-auto text-primary animate-spin mb-4" />
                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-300">Synchronizing records...</p>
                 </div>
             ) : (
-                <div className="space-y-8 animate-in fade-in duration-700">
+                <div className="space-y-5 animate-in fade-in duration-700">
                   
                   {activeTab === 'payment' && (
-                    <div className="space-y-8">
-                      <div className="flex justify-between items-end border-b border-zinc-100 pb-6">
+                    <div className="space-y-5">
+                      <div className="flex items-end justify-between border-b border-zinc-100 pb-4">
                           <div>
                               <h2 className="text-2xl font-bold uppercase tracking-tight font-display text-secondary">Secure Wallet</h2>
                               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Manage verified payment protocols</p>
@@ -312,8 +325,8 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                       </div>
 
                       {showAddCard ? (
-                          <div className="bg-white p-10 rounded-[40px] border border-zinc-100 shadow-sm max-w-2xl animate-in slide-in-from-top-4 duration-500">
-                              <div className="flex justify-between items-center mb-10">
+                          <div className="max-w-2xl rounded-[32px] border border-zinc-100 bg-white p-6 shadow-sm animate-in slide-in-from-top-4 duration-500">
+                              <div className="mb-6 flex items-center justify-between">
                                   <div className="flex items-center gap-2 text-primary">
                                     <Lock size={16} />
                                     <span className="text-[10px] font-bold uppercase tracking-widest">Encrypted Card Entry</span>
@@ -353,7 +366,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                                 </div>
                               ))}
                               {data.cards.length === 0 && (
-                                  <div className="py-20 text-center bg-white rounded-[40px] border border-zinc-100 shadow-sm border-dashed">
+                                  <div className="rounded-[32px] border border-dashed border-zinc-100 bg-white py-12 text-center shadow-sm">
                                       <ShieldAlert size={48} className="mx-auto text-zinc-100 mb-4" />
                                       <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">No payment methods registered</p>
                                   </div>
@@ -364,15 +377,15 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                   )}
 
                   {activeTab === 'info' && (
-                    <div className="space-y-10">
-                      <div className="border-b border-zinc-100 pb-6">
+                    <div className="space-y-5">
+                      <div className="border-b border-zinc-100 pb-4">
                           <h2 className="text-2xl font-bold uppercase tracking-tight font-display text-secondary">Identity Registry</h2>
                           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Official contact & location data</p>
                       </div>
 
-                      <form onSubmit={handleProfileUpdate} className="space-y-8">
-                          <div className="bg-white p-10 rounded-[40px] border border-zinc-100 shadow-sm space-y-10">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <form onSubmit={handleProfileUpdate} className="space-y-5">
+                          <div className="space-y-5 rounded-[32px] border border-zinc-100 bg-white p-6 shadow-sm">
+                              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                   <div className="space-y-2">
                                       <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Full Legal Name</label>
                                       <input disabled={isAdminViewing} name="fullName" type="text" defaultValue={data.profile?.full_name} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none disabled:opacity-50" />
@@ -386,7 +399,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                                   <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Physical Address</label>
                                   <input disabled={isAdminViewing} name="address" type="text" defaultValue={data.profile?.address_line} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none disabled:opacity-50" />
                               </div>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+                              <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
                                   <div className="space-y-2">
                                       <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">City</label>
                                       <input disabled={isAdminViewing} name="city" type="text" defaultValue={data.profile?.city} className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none disabled:opacity-50" />
@@ -402,7 +415,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                               </div>
                           </div>
                           {!isAdminViewing && (
-                            <button disabled={profileLoading} className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-widest hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50 italic">
+                            <button disabled={profileLoading} className="flex w-full items-center justify-center gap-3 rounded-2xl bg-secondary py-4 text-sm font-bold uppercase tracking-widest text-white italic shadow-2xl shadow-secondary/10 transition-all hover:bg-primary active:scale-[0.98] disabled:opacity-50">
                                 {profileLoading ? <Loader2 size={18} className="animate-spin" /> : <Settings size={18} />} Save Registry Update
                             </button>
                           )}
@@ -412,7 +425,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
 
                   {activeTab === 'bids' && (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3 mb-8 border-b border-zinc-100 pb-6">
+                      <div className="mb-5 flex items-center gap-3 border-b border-zinc-100 pb-4">
                         <Gavel size={20} className="text-primary" />
                         <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Active Participations</h2>
                       </div>
@@ -428,7 +441,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
 
                   {activeTab === 'won' && (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3 mb-8 border-b border-zinc-100 pb-6">
+                      <div className="mb-5 flex items-center gap-3 border-b border-zinc-100 pb-4">
                         <Trophy size={20} className="text-primary" />
                         <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Won Assets</h2>
                       </div>
@@ -450,7 +463,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
 
                   {activeTab === 'invoices' && (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3 mb-8 border-b border-zinc-100 pb-6">
+                      <div className="mb-5 flex items-center gap-3 border-b border-zinc-100 pb-4">
                         <FileText size={20} className="text-primary" />
                         <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Official Billing</h2>
                       </div>
@@ -468,8 +481,8 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                   )}
 
                   {activeTab === 'watchlist' && (
-                    <div className="space-y-8">
-                      <div className="flex items-center gap-3 mb-8 border-b border-zinc-100 pb-6">
+                    <div className="space-y-5">
+                      <div className="mb-5 flex items-center gap-3 border-b border-zinc-100 pb-4">
                         <Star size={20} className="text-primary" />
                         <h2 className="text-2xl font-bold uppercase font-display text-secondary italic">Saved for Review</h2>
                       </div>
@@ -499,15 +512,15 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                   )}
 
                   {activeTab === 'security' && (
-                    <div className="space-y-10">
-                      <div className="border-b border-zinc-100 pb-6">
+                    <div className="space-y-5">
+                      <div className="border-b border-zinc-100 pb-4">
                           <h2 className="text-2xl font-bold uppercase tracking-tight font-display text-secondary">Account Security</h2>
                           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Manage your email, password, and account</p>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                          <div className="bg-white border border-zinc-100 p-10 rounded-[40px] shadow-sm">
-                              <h3 className="text-sm font-bold uppercase tracking-widest text-secondary mb-8 border-b border-zinc-50 pb-4">Change Email</h3>
-                              <form onSubmit={handleEmailChange} className="space-y-6">
+                      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
+                          <div className="rounded-[32px] border border-zinc-100 bg-white p-6 shadow-sm">
+                              <h3 className="mb-5 border-b border-zinc-50 pb-3 text-sm font-bold uppercase tracking-widest text-secondary">Change Email</h3>
+                              <form onSubmit={handleEmailChange} className="space-y-4">
                                   <div className="space-y-2">
                                       <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-300 ml-4">Current Email Address</label>
                                       <input disabled defaultValue={user?.email} className="w-full bg-zinc-50/50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-zinc-300 italic cursor-not-allowed" />
@@ -521,8 +534,8 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                                   </button>
                               </form>
                           </div>
-                          <div className="space-y-6">
-                              <div className="bg-secondary p-10 rounded-[40px] text-white relative overflow-hidden shadow-2xl shadow-secondary/20">
+                          <div className="space-y-5">
+                              <div className="relative overflow-hidden rounded-[32px] bg-secondary p-6 text-white shadow-2xl shadow-secondary/20">
                                   <h3 className="text-sm font-bold uppercase tracking-widest mb-4">Change Password</h3>
                                   <p className="text-xs text-white/40 leading-relaxed uppercase mb-8">Reset your password securely using your email address.</p>
                                   <Link href="/auth/forgot-password" className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10">
@@ -530,7 +543,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
                                   </Link>
                                   <div className="absolute -bottom-8 -right-8 h-32 w-32 bg-primary/10 blur-2xl rounded-full" />
                               </div>
-                              <div className="bg-rose-50 border border-rose-100 p-10 rounded-[40px]">
+                              <div className="rounded-[32px] border border-rose-100 bg-rose-50 p-6">
                                   <h3 className="text-sm font-bold uppercase tracking-widest text-rose-600 mb-4">Delete Account</h3>
                                   <p className="text-xs text-rose-400 leading-relaxed uppercase mb-8">Permanently delete your account and account data. This cannot be undone.</p>
                                   <button onClick={handleDeleteAccount} className="text-[10px] font-bold uppercase tracking-widest text-rose-600 border-b-2 border-rose-200 hover:border-rose-600 transition-all pb-1">
@@ -556,7 +569,7 @@ function AcquisitionRow({ sale }: { sale: any }) {
   const imgUrl = firstItem?.auction_images?.[0]?.url || firstItem?.image_url || "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad";
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-8 bg-white border border-zinc-100 p-6 rounded-[32px] group hover:border-primary/20 transition-all hover:shadow-xl hover:shadow-secondary/5 italic">
+    <div className="group flex flex-col items-center gap-5 rounded-[28px] border border-zinc-100 bg-white p-5 italic transition-all hover:border-primary/20 hover:shadow-xl hover:shadow-secondary/5 md:flex-row">
       <div className="relative h-24 w-full md:w-40 shrink-0 overflow-hidden rounded-2xl border border-zinc-50 bg-zinc-50 flex items-center justify-center">
         {lotCount > 0 ? (
             <>
@@ -581,7 +594,7 @@ function AcquisitionRow({ sale }: { sale: any }) {
         <h3 className="text-xl font-bold text-secondary uppercase truncate group-hover:text-primary transition-colors font-display leading-tight">
             {(sale.event as any)?.title || 'Auction Event'}
         </h3>
-        <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-3">
+        <div className="mt-2 flex flex-wrap justify-center gap-4 md:justify-start">
             <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-zinc-400">
                 <Package size={12} className="text-primary" /> {lotCount} Lots Included
             </div>
@@ -614,7 +627,7 @@ function AcquisitionRow({ sale }: { sale: any }) {
         </div>
       </div>
 
-      <Link href={`/invoices/${sale.id}`} className="bg-zinc-50 text-zinc-400 p-5 rounded-[20px] hover:bg-primary hover:text-white transition-all border border-zinc-100 group-hover:border-primary">
+      <Link href={`/invoices/${sale.id}`} className="rounded-[20px] border border-zinc-100 bg-zinc-50 p-4 text-zinc-400 transition-all hover:bg-primary hover:text-white group-hover:border-primary">
         <ArrowRight size={24} />
       </Link>
     </div>
@@ -626,7 +639,7 @@ function AuctionRow({ auction, bidAmount, maxBid, status, isWon, saleId, current
   const imgUrl = auction.auction_images?.[0]?.url || auction.image_url || "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad";
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-8 bg-white border border-zinc-100 p-6 rounded-[32px] group hover:border-primary/20 transition-all hover:shadow-xl hover:shadow-secondary/5 italic">
+    <div className="group flex flex-col items-center gap-5 rounded-[28px] border border-zinc-100 bg-white p-5 italic transition-all hover:border-primary/20 hover:shadow-xl hover:shadow-secondary/5 md:flex-row">
       <div className="relative h-24 w-full md:w-40 shrink-0 overflow-hidden rounded-2xl border border-zinc-50">
         <Image src={getOptimizedImageUrl(imgUrl, { width: 200 })} alt={auction.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="200px" />
       </div>
@@ -642,7 +655,7 @@ function AuctionRow({ auction, bidAmount, maxBid, status, isWon, saleId, current
           )}
         </div>
         <h3 className="text-xl font-bold text-secondary uppercase truncate group-hover:text-primary transition-colors font-display leading-tight">{auction.title}</h3>
-        <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-3">
+        <div className="mt-2 flex flex-wrap justify-center gap-4 md:justify-start">
             <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-zinc-400">
                 <Clock size={12} className="text-primary" /> Ends {formatEventDate(auction.ends_at)}
             </div>
@@ -695,7 +708,7 @@ function AuctionRow({ auction, bidAmount, maxBid, status, isWon, saleId, current
         )}
       </div>
 
-      <Link href={`/auctions/${auction.id}`} className="bg-zinc-50 text-zinc-400 p-5 rounded-[20px] hover:bg-primary hover:text-white transition-all border border-zinc-100 group-hover:border-primary">
+      <Link href={`/auctions/${auction.id}`} className="rounded-[20px] border border-zinc-100 bg-zinc-50 p-4 text-zinc-400 transition-all hover:bg-primary hover:text-white group-hover:border-primary">
         <ArrowRight size={24} />
       </Link>
     </div>
@@ -704,12 +717,12 @@ function AuctionRow({ auction, bidAmount, maxBid, status, isWon, saleId, current
 
 function EmptyState({ message, link, linkText }: { message: string, link: string, linkText: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[48px] border border-zinc-100 shadow-sm italic text-center">
-      <div className="h-20 w-20 bg-zinc-50 rounded-[32px] flex items-center justify-center text-zinc-100 mb-8 border border-zinc-50">
+    <div className="flex flex-col items-center justify-center rounded-[32px] border border-zinc-100 bg-white py-14 text-center italic shadow-sm">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-[24px] border border-zinc-50 bg-zinc-50 text-zinc-100">
         <Package size={40} strokeWidth={1} />
       </div>
-      <h3 className="text-2xl font-bold uppercase font-display text-zinc-200 mb-8 tracking-tighter">{message}</h3>
-      <Link href={link} className="bg-secondary text-white px-10 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary transition-all shadow-xl shadow-secondary/10">
+      <h3 className="mb-5 text-2xl font-bold tracking-tighter text-zinc-200 font-display uppercase">{message}</h3>
+      <Link href={link} className="rounded-2xl bg-secondary px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-white shadow-xl shadow-secondary/10 transition-all hover:bg-primary">
         {linkText}
       </Link>
     </div>

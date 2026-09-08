@@ -19,16 +19,16 @@ export default function SellersPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
+    <div className="bg-zinc-50 font-sans antialiased text-secondary">
       {/* SaaS Premium Header */}
-      <section className="bg-white border-b border-zinc-100 pt-16 pb-12 relative overflow-hidden italic">
+      <section className="relative overflow-hidden border-b border-zinc-100 bg-white pb-8 pt-10 italic">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="mb-5 flex items-center justify-center gap-3">
                 <div className="h-[1px] w-10 bg-primary" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Liquidation Strategy</span>
                 <div className="h-[1px] w-10 bg-primary" />
             </div>
-            <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
+            <h1 className="mb-5 text-5xl font-bold leading-[0.85] tracking-tight text-secondary font-display uppercase md:text-7xl">
                 Seller's <br/> <span className="text-primary">Console</span>.
             </h1>
             <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
@@ -39,22 +39,22 @@ export default function SellersPage() {
       </section>
 
       {/* The 12-Step Process Grid */}
-      <section className="py-24 px-6">
+      <section className="px-6 py-12">
         <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-4 mb-16 border-b border-zinc-200 pb-8">
+            <div className="mb-8 flex items-center gap-4 border-b border-zinc-200 pb-5">
                 <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
                     <BarChart3 size={24} />
                 </div>
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-secondary font-display uppercase italic leading-none mb-2">The 12-Step Process</h2>
+                    <h2 className="mb-2 text-3xl font-bold leading-none tracking-tight text-secondary font-display uppercase italic">The 12-Step Process</h2>
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">End-to-end management workflow</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
                 {steps.map((step, i) => (
-                    <div key={i} className="group bg-white p-8 rounded-[32px] border border-zinc-100 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(11,43,83,0.05)] hover:border-primary/20 flex flex-col italic h-full">
-                        <div className="flex justify-between items-start mb-8">
+                    <div key={i} className="group flex h-full flex-col rounded-[28px] border border-zinc-100 bg-white p-6 italic transition-all duration-500 hover:border-primary/20 hover:shadow-[0_20px_40px_rgba(11,43,83,0.05)]">
+                        <div className="mb-5 flex items-start justify-between">
                             <div className="h-12 w-12 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all border border-zinc-100 group-hover:border-primary/20">
                                 <step.icon size={22} strokeWidth={1.5} />
                             </div>
@@ -71,37 +71,37 @@ export default function SellersPage() {
       </section>
 
       {/* Corporate Reach - Modern SaaS Banner */}
-      <section className="px-6 pb-24">
+      <section className="px-6 pb-12">
         <div className="max-w-7xl mx-auto">
-            <div className="bg-secondary rounded-[48px] p-10 md:p-14 text-white relative overflow-hidden italic shadow-2xl shadow-secondary/20">
-                <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-16">
+            <div className="relative overflow-hidden rounded-[40px] bg-secondary p-7 text-white italic shadow-2xl shadow-secondary/20 md:p-9">
+                <div className="relative z-10 flex flex-col items-center justify-between gap-8 lg:flex-row">
                     <div className="max-w-2xl">
-                        <div className="flex items-center gap-3 mb-8">
+                        <div className="mb-5 flex items-center gap-3">
                             <span className="h-[1px] w-10 bg-primary" />
                             <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Strategic Partnership</span>
                         </div>
-                        <h2 className="text-4xl md:text-6xl font-bold tracking-tight uppercase font-display leading-[0.85] mb-8">
+                        <h2 className="mb-5 text-3xl font-bold leading-[0.85] tracking-tight font-display uppercase md:text-5xl">
                             Ready to <span className="text-primary">Liquidate</span>? <br/> Partner with us.
                         </h2>
-                        <p className="text-lg text-white/50 font-medium mb-12 max-w-xl uppercase tracking-tight">
+                        <p className="mb-7 max-w-xl text-base font-medium uppercase tracking-tight text-white/50">
                             Leverage our network of nationwide industrial buyers and our technical cataloging expertise to secure maximum market value.
                         </p>
-                        <div className="flex flex-wrap gap-6">
-                            <Link href="/contact" className="bg-primary text-white px-12 py-6 rounded-3xl font-bold text-sm uppercase tracking-widest transition-all hover:bg-white hover:text-secondary shadow-2xl shadow-primary/30 flex items-center gap-3 group">
+                        <div className="flex flex-wrap gap-4">
+                            <Link href="/contact" className="group flex items-center gap-3 rounded-2xl bg-primary px-7 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-2xl shadow-primary/30 transition-all hover:bg-white hover:text-secondary">
                                 Start Assessment <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
                         </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 w-full lg:w-[400px]">
+                    <div className="grid w-full grid-cols-2 gap-3 lg:w-[360px]">
                         {[
                             { label: "Market Reach", val: "Global", icon: Globe },
                             { label: "Financials", val: "Secure", icon: ShieldCheck },
                             { label: "Cataloging", val: "Tech-Led", icon: BarChart3 },
                             { label: "Settlement", val: "Fast", icon: DollarSign },
                         ].map((item, i) => (
-                            <div key={i} className="p-6 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10">
-                                <item.icon className="text-primary mb-4" size={24} />
+                            <div key={i} className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
+                                <item.icon className="mb-3 text-primary" size={22} />
                                 <div className="text-[8px] font-bold text-white/40 uppercase mb-1">{item.label}</div>
                                 <div className="text-sm font-bold text-white uppercase">{item.val}</div>
                             </div>

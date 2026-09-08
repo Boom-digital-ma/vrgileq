@@ -15,6 +15,7 @@ interface AuctionGridProps {
   searchQuery?: string;
   initialTotalCount?: number;
   status?: string | string[] | null;
+  hidePersonalFilters?: boolean;
 }
 
 export default function AuctionGrid({ 
@@ -24,7 +25,8 @@ export default function AuctionGrid({
     categoryId, 
     searchQuery: initialSearchQuery = "",
     initialTotalCount = 0,
-    status = null // Default to null (all statuses)
+    status = null, // Default to null (all statuses)
+    hidePersonalFilters = false
 }: AuctionGridProps) {
   const [items, setItems] = useState<Product[]>(products);
   const [user, setUser] = useState(initialUser);
@@ -475,7 +477,7 @@ export default function AuctionGrid({
             </div>
 
             {/* Filter toggles */}
-            {user && (
+            {user && !hidePersonalFilters && (
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
                         type="button"

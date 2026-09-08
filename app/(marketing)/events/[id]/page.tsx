@@ -177,7 +177,7 @@ export default async function EventPage({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 pb-20 font-sans antialiased text-secondary italic">
+    <div className="bg-zinc-50 pb-10 font-sans antialiased text-secondary italic">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -190,20 +190,20 @@ export default async function EventPage({
           </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-6 py-10 md:py-14">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-10">
         
         {/* REFINED HEADER SECTION */}
-        <div className="space-y-10 mb-8">
-            <div className="flex flex-col md:flex-row gap-8 items-start">
+        <div className="mb-6 space-y-6">
+            <div className="flex flex-col items-start gap-6 md:flex-row">
                 {/* Thumbnail */}
                 {event.image_url && (
-                    <div className="relative h-48 w-48 md:h-72 md:w-72 rounded-[32px] overflow-hidden border border-zinc-200 shadow-2xl shrink-0 group">
+                    <div className="group relative h-40 w-40 shrink-0 overflow-hidden rounded-[28px] border border-zinc-200 shadow-xl md:h-56 md:w-56">
                         <Image src={event.image_url} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
                         <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[32px]" />
                     </div>
                 )}
                 
-                <div className="flex-1 space-y-5">
+                <div className="flex-1 space-y-4">
                     <div className="flex items-center gap-2">
                         <div className="h-[1px] w-6 bg-primary" />
                         <EventStatusBadge 
@@ -222,7 +222,7 @@ export default async function EventPage({
                     <p className="text-zinc-500 font-bold text-sm md:text-base leading-relaxed max-w-2xl uppercase tracking-tight">
                         {event.description}
                     </p>
-                    <div className="flex flex-wrap gap-4 pt-4">
+                    <div className="flex flex-wrap gap-3 pt-2">
                         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-white px-4 py-2 rounded-xl border border-zinc-100 italic">
                             <MapPin size={14} className="text-primary" />
                             {event.location}
@@ -246,8 +246,8 @@ export default async function EventPage({
         }} />
 
         {/* FULL WIDTH CATALOG SECTION */}
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200 pb-5">
+        <div className="space-y-5">
+            <div className="flex flex-col justify-between gap-5 border-b border-zinc-200 pb-4 md:flex-row md:items-center">
                 <div className="flex items-center gap-4">
                     <div className="bg-primary/10 p-2.5 rounded-2xl text-primary">
                         <LayoutGrid size={24} />
@@ -285,13 +285,14 @@ export default async function EventPage({
                 eventId={id} 
                 categoryId={category}
                 initialTotalCount={count || 0}
+                hidePersonalFilters={isEnded}
             />
         </div>
 
       </div>
 
       {/* Floating Watchlist Drawer */}
-      <EventWatchlistDrawer eventId={id} user={user} />
+      {!isEnded && <EventWatchlistDrawer eventId={id} user={user} />}
     </div>
   )
 }

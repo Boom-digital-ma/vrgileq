@@ -1,4 +1,4 @@
-import { ShieldAlert, Scale, FileText, Gavel, Clock, CreditCard, ChevronRight } from "lucide-react";
+import { ShieldAlert, Gavel, Clock, CreditCard } from "lucide-react";
 
 export default function TermsPage() {
   const highlights = [
@@ -9,16 +9,16 @@ export default function TermsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary italic">
+    <div className="bg-zinc-50 font-sans antialiased text-secondary italic">
       {/* SaaS Premium Header */}
-      <section className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="flex items-center justify-center gap-2 mb-6">
+      <section className="relative overflow-hidden border-b border-zinc-100 bg-white px-6 py-10 md:py-12">
+        <div className="relative z-10 mx-auto max-w-7xl text-center">
+            <div className="mb-4 flex items-center justify-center gap-2">
                 <div className="h-[1px] w-6 bg-primary" />
                 <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Rules & Protocols</span>
                 <div className="h-[1px] w-6 bg-primary" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-secondary leading-none font-display uppercase mb-6">
+            <h1 className="mb-4 text-4xl font-black leading-none tracking-tighter text-secondary font-display uppercase md:text-5xl">
                 Terms of <br/> <span className="text-primary">Service</span>.
             </h1>
             <p className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg font-medium leading-relaxed uppercase">
@@ -28,12 +28,12 @@ export default function TermsPage() {
       </section>
 
       {/* Highlights Grid */}
-      <section className="py-16 px-6">
+      <section className="px-6 py-10 md:py-12">
         <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {highlights.map((h, i) => (
-                    <div key={i} className="bg-white p-6 rounded-[24px] border border-zinc-100 shadow-sm hover:border-primary/20 transition-all">
-                        <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4">
+                    <div key={i} className="rounded-[24px] border border-zinc-100 bg-white p-5 shadow-sm transition-all hover:border-primary/20">
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                             <h.icon size={20} />
                         </div>
                         <h3 className="text-sm font-bold text-secondary uppercase font-display mb-2">{h.title}</h3>
@@ -43,22 +43,21 @@ export default function TermsPage() {
             </div>
 
             {/* Official Legal Text Block */}
-            {/* Official Legal Text Block */}
-            <div className="bg-white p-8 md:p-14 rounded-[32px] border border-zinc-100 shadow-sm text-zinc-500 text-[11px] md:text-sm leading-relaxed uppercase font-medium italic space-y-12">
+            <div className="space-y-7 rounded-[32px] border border-zinc-100 bg-white p-6 text-[11px] font-medium leading-relaxed text-zinc-500 uppercase italic shadow-sm md:p-9 md:text-sm">
               
               {/* Introduction */}
-              <div className="space-y-4">
-                <h2 className="text-xl md:text-2xl font-black text-secondary tracking-tight font-display flex items-center gap-3">
+              <div className="space-y-3">
+                <h2 className="flex items-center gap-3 text-xl font-black tracking-tight text-secondary font-display md:text-2xl">
                   End User License Agreement (EULA)
                 </h2>
-                <div className="h-[1px] w-12 bg-primary/20 mb-6" />
+                <div className="mb-4 h-[1px] w-12 bg-primary/20" />
                 <p>This End User License Agreement (“Agreement”) governs the use of the website Virginialiquidation.com; any third-party materials made available in connection with it; and any associated media, content, or documentation (collectively, the “Website”).</p>
                 <p>This Agreement is entered into by and between VirginiaLiquidation.com, a Cannella Pan Company (“Licensor”), and any individual or entity accessing or using the Website (“User”) (each a “Party” and collectively, the “Parties”).</p>
                 <p>By accessing, browsing, or using the Website, the User agrees to be bound by this Agreement. If the User does not agree, the Website must not be used.</p>
               </div>
 
               {/* Sections */}
-              <div className="space-y-10">
+              <div className="space-y-6">
                 {/* Section 1 */}
                 <div className="space-y-3">
                   <h3 className="text-sm font-black text-secondary uppercase flex items-center gap-2"><span className="text-primary">1.</span> Grant of License</h3>
@@ -91,7 +90,7 @@ export default function TermsPage() {
                 <div className="space-y-4">
                   <h3 className="text-sm font-black text-secondary uppercase flex items-center gap-2"><span className="text-primary">4.</span> Disclaimers and Limitation of Liability</h3>
                   
-                  <div className="space-y-4 ml-2">
+                  <div className="ml-2 space-y-3">
                     <div>
                       <h4 className="font-bold text-zinc-700">A. No Warranty</h4>
                       <p className="text-zinc-400">The Website is provided “as-is” and “as-available” without warranties of any kind, express or implied, including merchantability, fitness for a particular purpose, or non-infringement.</p>

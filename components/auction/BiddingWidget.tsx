@@ -294,6 +294,12 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   return (
     <div className="sticky top-24 flex flex-col bg-white border border-zinc-200/80 rounded-[32px] p-8 shadow-[0_20px_50px_rgba(11,43,83,0.05)]">
       
+      {isEnded && (
+        <div className="mb-8 rounded-[20px] bg-secondary px-6 py-5 text-center text-white shadow-lg shadow-secondary/15">
+          <p className="font-display text-4xl font-black italic tracking-[0.18em]">SOLD</p>
+        </div>
+      )}
+
       {isAdmin && (
           <div className="mb-8 p-6 bg-secondary rounded-[24px] text-white flex flex-col gap-4 shadow-xl shadow-secondary/20">
               <div className="flex items-center gap-4">
@@ -357,19 +363,21 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
               </div>
           </div>
       )}
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <div className={cn("text-[9px] font-bold uppercase tracking-[0.3em]", isUrgent ? "text-rose-500" : "text-zinc-400")}>
-            {isUrgent ? "Auction Closing Soon" : (!isStarted ? "Starts In" : "Time Remaining")}
+      {!isEnded && (
+        <div className="mb-10 flex items-center justify-between">
+          <div>
+            <div className={cn("text-[9px] font-bold uppercase tracking-[0.3em]", isUrgent ? "text-rose-500" : "text-zinc-400")}>
+              {isUrgent ? "Auction Closing Soon" : (!isStarted ? "Starts In" : "Time Remaining")}
+            </div>
+            <div className={cn("text-4xl font-bold tabular-nums font-display tracking-tight italic", isUrgent ? "text-rose-600 animate-in fade-in" : "text-secondary")}>
+              {mounted ? timeLeft : <span className="opacity-0">--:--:--</span>}
+            </div>
           </div>
-          <div className={cn("text-4xl font-bold tabular-nums font-display tracking-tight italic", isUrgent ? "text-rose-600 animate-in fade-in" : "text-secondary")}>
-            {mounted ? timeLeft : <span className="opacity-0">--:--:--</span>}
+          <div className={cn("p-3 rounded-2xl transition-all duration-500", isUrgent ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20 scale-110" : "bg-white text-zinc-300 border border-zinc-100")}>
+              <Timer className={cn("h-6 w-6", isUrgent && "animate-pulse")} />
           </div>
         </div>
-        <div className={cn("p-3 rounded-2xl transition-all duration-500", isUrgent ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20 scale-110" : "bg-white text-zinc-300 border border-zinc-100")}>
-            <Timer className={cn("h-6 w-6", isUrgent && "animate-pulse")} />
-        </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-2 gap-8 mb-10">
         <div>
@@ -386,7 +394,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
         </div>
       </div>
 
-      <form onSubmit={handleBid} className="flex flex-col gap-5 mb-8" noValidate>
+      {!isEnded && (
+        <form onSubmit={handleBid} className="mb-8 flex flex-col gap-5" noValidate>
         <div className="relative group/input">
           <label className="absolute -top-2 left-4 bg-white px-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 z-10 group-focus-within/input:text-primary transition-colors">
             {isAdmin ? "Bid Simulation (Disabled)" : "Place Your Bid / Max Bid"}
@@ -411,11 +420,18 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
              </button>
         )}
 
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-center">
-          <p className="text-xs font-black uppercase tracking-widest text-secondary">
-            <span className="block">{premiumPercent}% Buyer&apos;s Premium</span>
-            <span className="mt-1 block">Your total = Winning Bid + {premiumPercent}%</span>
-          </p>
+        <div role="note" className="rounded-[20px] border border-primary/30 bg-secondary px-5 py-4 text-white shadow-lg shadow-secondary/10">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={18} className="shrink-0 text-primary" />
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/70">Buyer&apos;s Premium</p>
+            </div>
+            <p className="font-display text-3xl font-black leading-none text-primary">{premiumPercent}%</p>
+          </div>
+          <div className="mt-3 border-t border-white/15 pt-3">
+            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/60">Your total</p>
+            <p className="mt-1 text-base font-black">Winning Bid + {premiumPercent}%</p>
+          </div>
         </div>
 
         <button type="submit" disabled={loading || isEnded || !isStarted || isAdmin} className={cn(
@@ -425,7 +441,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : (isAdmin ? <Shield className="h-6 w-6" /> : (isEnded ? <Lock className="h-6 w-6" /> : (isStarted ? <Gavel className="h-6 w-6" /> : <Clock className="h-6 w-6" />)))}
           {isAdmin ? "ADMIN MODE: CANNOT BID" : (isEnded ? "Bidding Closed" : (!isStarted ? "Bidding Not Started" : (userProfile ? `Place Bid $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}` : "Sign In to Bid")))}
         </button>
-      </form>
+        </form>
+      )}
 
       <div>
         <div className="flex items-center justify-between mb-6 px-2">

@@ -44,6 +44,9 @@ export async function markAsCollected(saleId: string) {
   
   revalidatePath(`/admin/sales/${saleId}`)
   revalidatePath('/admin/logistics')
+  revalidatePath(`/invoices/${saleId}`)
+  revalidatePath(`/gate-pass/${saleId}`)
+  revalidatePath(`/gate-pass/${saleId}/verify`)
   return { success: true }
 }
 
@@ -168,4 +171,3 @@ export async function refundSaleItem(saleItemId: string) {
     return { error: err.message }
   }
 }
-

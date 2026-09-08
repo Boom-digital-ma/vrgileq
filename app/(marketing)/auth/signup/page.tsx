@@ -139,11 +139,11 @@ export default function SignUpPage() {
   const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-3.5 sm:py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all outline-none"
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4 sm:p-6 font-sans text-secondary">
-      <div className="w-full max-w-2xl bg-white rounded-[32px] sm:rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-6 sm:p-10 relative overflow-hidden">
+    <div className="flex w-full items-center justify-center bg-zinc-50 px-3 pb-3 pt-8 font-sans text-secondary sm:px-4 sm:pb-4 sm:pt-10">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-zinc-100 bg-white p-5 shadow-2xl shadow-secondary/5 sm:p-7">
         
         {/* Modern Progress Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-end gap-6 mb-8 relative z-10">
+        <div className="relative z-10 mb-5 flex flex-col justify-end gap-4 md:flex-row md:items-center">
             <div className="flex items-center gap-2 sm:gap-3 justify-center md:justify-end">
                 {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="flex items-center gap-2 sm:gap-3">
@@ -167,7 +167,7 @@ export default function SignUpPage() {
         {/* STEP 1: IDENTITY */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+            <div className="mb-5 flex items-center gap-4 sm:gap-5">
                 <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
                     <User size={24} className="sm:size-7" />
                 </div>
@@ -177,8 +177,8 @@ export default function SignUpPage() {
                 </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                     <label className={labelClasses}>First Name</label>
                     <input type="text" value={formData.firstName} onChange={e => updateForm({ firstName: e.target.value })} className={inputClasses} placeholder="FIRST NAME" />
@@ -188,7 +188,7 @@ export default function SignUpPage() {
                     <input type="text" value={formData.lastName} onChange={e => updateForm({ lastName: e.target.value })} className={inputClasses} placeholder="LAST NAME" />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className={labelClasses}>Email Address</label>
                   <input
@@ -210,7 +210,7 @@ export default function SignUpPage() {
                     <input type="tel" value={formData.phone} onChange={e => updateForm({ phone: e.target.value })} className={inputClasses} placeholder="(703) 000-0000" />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                     <label className={labelClasses}>Password</label>
                     <input type="password" value={formData.password} onChange={e => updateForm({ password: e.target.value })} className={inputClasses} placeholder="••••••••" />
@@ -221,7 +221,7 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              <button onClick={nextStep} className="w-full bg-secondary text-white py-5 sm:py-6 rounded-3xl font-bold text-[11px] sm:text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-xl shadow-secondary/10 flex items-center justify-center gap-3">
+              <button onClick={nextStep} className="flex w-full items-center justify-center gap-3 rounded-2xl bg-secondary py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-xl shadow-secondary/10 transition-all hover:bg-primary active:scale-[0.98] sm:text-sm">
                 Next: Address Details <ArrowRight size={18} />
               </button>
             </div>
@@ -231,7 +231,7 @@ export default function SignUpPage() {
         {/* STEP 2: ADDRESS */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+            <div className="mb-5 flex items-center gap-4 sm:gap-5">
                 <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
                     <MapPin size={24} className="sm:size-7" />
                 </div>
@@ -241,12 +241,12 @@ export default function SignUpPage() {
                 </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <label className={labelClasses}>Street Address</label>
                 <input type="text" value={formData.address} onChange={e => updateForm({ address: e.target.value })} className={inputClasses} placeholder="STREET ADDRESS" />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                     <label className={labelClasses}>Country</label>
                     <select value={formData.country} onChange={e => updateForm({ country: e.target.value })} className={cn(inputClasses, "appearance-none")}>
@@ -261,7 +261,7 @@ export default function SignUpPage() {
                     </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <label className={labelClasses}>City</label>
                     <input type="text" value={formData.city} onChange={e => updateForm({ city: e.target.value })} className={inputClasses} placeholder="CITY" />
@@ -273,10 +273,10 @@ export default function SignUpPage() {
               </div>
 
               <div className="flex gap-4">
-                <button onClick={prevStep} className="bg-zinc-50 border-2 border-zinc-100 px-6 sm:px-8 py-5 sm:py-6 rounded-3xl font-bold uppercase tracking-widest text-zinc-400 hover:bg-white hover:text-secondary transition-all flex items-center justify-center">
+                <button onClick={prevStep} className="flex items-center justify-center rounded-2xl border-2 border-zinc-100 bg-zinc-50 px-6 py-4 font-bold uppercase tracking-widest text-zinc-400 transition-all hover:bg-white hover:text-secondary sm:px-8">
                     <ArrowLeft size={18} />
                 </button>
-                <button onClick={nextStep} className="flex-1 bg-secondary text-white py-5 sm:py-6 rounded-3xl font-bold text-[11px] sm:text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-xl shadow-secondary/10 flex items-center justify-center gap-3">
+                <button onClick={nextStep} className="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-secondary py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-xl shadow-secondary/10 transition-all hover:bg-primary active:scale-[0.98] sm:text-sm">
                     Next: Verification <ArrowRight size={18} />
                 </button>
               </div>
@@ -287,7 +287,7 @@ export default function SignUpPage() {
         {/* STEP 3: PAYMENT */}
         {step === 3 && (
           <div className="animate-in fade-in duration-300 relative z-30">
-            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+            <div className="mb-5 flex items-center gap-4 sm:gap-5">
                 <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
                     <CreditCard size={24} className="sm:size-7" />
                 </div>
@@ -297,7 +297,7 @@ export default function SignUpPage() {
                 </div>
             </div>
 
-            <div className="bg-white p-6 sm:p-8 rounded-[32px] border-2 border-primary/10 mb-8 shadow-xl shadow-primary/5 relative z-40">
+            <div className="relative z-40 mb-5 rounded-[28px] border-2 border-primary/10 bg-white p-5 shadow-xl shadow-primary/5 sm:p-6">
                 {stripePromise ? (
                     <Elements key="stripe-signup" stripe={stripePromise} options={{ locale: 'en' }}>
                         <CardValidation hideHeader onPaymentMethodCreated={(id) => {
@@ -312,7 +312,7 @@ export default function SignUpPage() {
                 )}
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               <button onClick={skipPayment} className="w-full bg-zinc-50 border-2 border-zinc-100 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest text-zinc-400 hover:bg-white hover:text-secondary transition-all">
                   Add Later
               </button>
@@ -326,7 +326,7 @@ export default function SignUpPage() {
         {/* STEP 4: TERMS & SUBMIT */}
         {step === 4 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+            <div className="mb-5 flex items-center gap-4 sm:gap-5">
                 <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
                     <FileText size={24} className="sm:size-7" />
                 </div>
@@ -335,7 +335,7 @@ export default function SignUpPage() {
                 </div>
             </div>
 
-            <div className="bg-zinc-50 border border-zinc-100 p-6 sm:p-8 rounded-[32px] mb-8 h-48 sm:h-64 overflow-y-auto font-medium text-[11px] text-zinc-400 leading-relaxed uppercase shadow-inner italic whitespace-pre-wrap">
+            <div className="mb-5 h-44 overflow-y-auto rounded-[28px] border border-zinc-100 bg-zinc-50 p-5 text-[11px] font-medium leading-relaxed text-zinc-400 uppercase italic shadow-inner whitespace-pre-wrap sm:h-56 sm:p-6">
 1. Acceptance of Terms
 By placing a bid on VirginiaLiquidation.com, you agree to:
 - Pay for all items won
@@ -385,12 +385,12 @@ Email: support@virginialiquidation.com
 Phone: +1 (703) 869-1965
 Resources for first-time bidders and FAQs are available on the Website.
             </div>
-            <Link href="/bid-terms" className="mb-8 inline-flex text-[10px] font-bold uppercase tracking-widest text-primary hover:text-secondary transition-colors">
+            <Link href="/bid-terms" className="mb-5 inline-flex text-[10px] font-bold uppercase tracking-widest text-primary transition-colors hover:text-secondary">
                 Read Full Bid Terms
             </Link>
 
             <label className={cn(
-                "flex items-center gap-4 p-5 sm:p-6 rounded-[24px] border-2 transition-all cursor-pointer mb-8 group",
+                "group mb-5 flex cursor-pointer items-center gap-4 rounded-[24px] border-2 p-4 transition-all sm:p-5",
                 acceptedTerms ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-zinc-50 border-zinc-100 text-zinc-400 hover:border-primary/20"
             )}>
                 <div className={cn(
@@ -404,13 +404,13 @@ Resources for first-time bidders and FAQs are available on the Website.
             </label>
 
             <div className="flex gap-4">
-                <button onClick={prevStep} disabled={loading} className="bg-zinc-50 border-2 border-zinc-100 px-6 sm:px-8 py-5 sm:py-6 rounded-3xl font-bold uppercase text-zinc-400 hover:bg-white hover:text-secondary transition-all disabled:opacity-50">
+                <button onClick={prevStep} disabled={loading} className="rounded-2xl border-2 border-zinc-100 bg-zinc-50 px-6 py-4 font-bold uppercase text-zinc-400 transition-all hover:bg-white hover:text-secondary disabled:opacity-50 sm:px-8">
                     <ArrowLeft size={18} />
                 </button>
                 <button 
                     onClick={handleFinalSignup} 
                     disabled={loading || !acceptedTerms}
-                    className="flex-1 bg-secondary text-white py-5 sm:py-6 rounded-[32px] font-bold text-[11px] sm:text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-secondary py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-2xl shadow-secondary/10 transition-all hover:bg-primary active:scale-[0.98] disabled:opacity-50 sm:text-sm"
                 >
                     {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><CheckCircle2 size={18} /> Create Account</>}
                 </button>
@@ -418,7 +418,7 @@ Resources for first-time bidders and FAQs are available on the Website.
           </div>
         )}
 
-        <div className="mt-12 pt-8 border-t border-zinc-50 text-center relative z-10 font-sans">
+        <div className="relative z-10 mt-6 border-t border-zinc-50 pt-5 text-center font-sans">
             <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-300">Virginia Liquidation</p>
         </div>
 

@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
   const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none"
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 font-sans text-secondary italic">
+    <div className="flex w-full items-center justify-center bg-zinc-50 p-6 font-sans text-secondary italic">
       <div className="w-full max-w-md bg-white rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-10 md:p-12 relative overflow-hidden">
         
         <div className="flex flex-col items-center mb-12 text-center relative z-10">

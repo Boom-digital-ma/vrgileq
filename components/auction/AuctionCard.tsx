@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, Lock, LogIn, Zap, Trophy, AlertCircle, ChevronDown, Edit3, Shield, FileText, Maximize2 } from "lucide-react";
+import { Timer, Building2, Gavel, Eye, Share2, Star, ArrowLeft, ArrowRight, MapPin, Clock, Loader2, LogIn, Zap, Trophy, AlertCircle, ChevronDown, Edit3, Shield, FileText, Maximize2 } from "lucide-react";
 import QuickViewModal from "./QuickViewModal";
 import ImageGallery from "./ImageGallery";
 import { toggleWatchlist } from "@/app/actions/watchlist";
@@ -392,8 +392,9 @@ export default function AuctionCard({
     <>
       <div className={cn(
           "group flex flex-col bg-white border rounded-[24px] transition-all duration-200 hover:shadow-[0_20px_50px_rgba(11,43,83,0.1)] overflow-hidden h-full relative italic",
-          isWinning ? "border-emerald-500/30 bg-emerald-50/5 shadow-lg shadow-emerald-500/5" : 
-          isOutbid ? "border-rose-500/30 bg-rose-50/5 shadow-lg shadow-rose-500/5" : 
+          isEnded ? "border-zinc-300 bg-zinc-50/60 shadow-sm shadow-zinc-200/40" :
+          isWinning ? "border-emerald-500 bg-emerald-50/30 shadow-lg shadow-emerald-500/10" :
+          isOutbid ? "border-rose-500 bg-rose-50/30 shadow-lg shadow-rose-500/10" :
           "border-zinc-200/80 hover:border-primary/20"
       )}>
         {/* Media Container */}
@@ -501,6 +502,7 @@ export default function AuctionCard({
             </div>
             
             <div className="flex gap-1">
+                {!isEnded && (
                 <button 
                     onClick={handleToggleWatch} 
                     aria-label={isWatched ? "Remove from Watchlist" : "Add to Watchlist"}
@@ -511,6 +513,7 @@ export default function AuctionCard({
                 >
                     <Star size={14} className={isWatched ? "fill-amber-500 text-amber-500" : ""} />
                 </button>
+                )}
                 <button onClick={handleShare} className="p-2 rounded-xl bg-zinc-50 border border-zinc-100 text-zinc-400 hover:text-primary hover:border-primary/20 transition-all">
                     <Share2 size={14} />
                 </button>
@@ -568,15 +571,23 @@ export default function AuctionCard({
           <div className="mt-auto pt-5 border-t border-zinc-100 flex items-center justify-between mb-4">
             <div className="space-y-3">
               <div>
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1 italic leading-none">Current Price</p>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1 italic leading-none">
+                  {isEnded ? 'Final Price' : 'Current Price'}
+                </p>
                 <div className="text-2xl font-bold text-secondary tabular-nums font-display leading-none" suppressHydrationWarning>
                   ${mounted ? realtimePrice.toLocaleString() : realtimePrice.toString()}
                 </div>
 
                 {/* Status Section */}
                 <div className="mt-1.5 space-y-1">
+                    {isEnded && (
+                        <span className="inline-flex border border-secondary/15 bg-zinc-100 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-secondary">
+                            Sold
+                        </span>
+                    )}
+
                     {/* Winning Status */}
-                    {isWinning && (
+                    {isWinning && !isEnded && (
                         <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[9px] uppercase tracking-widest animate-in fade-in duration-500">
                             <Trophy size={12} />
                             You are in the lead
@@ -584,7 +595,7 @@ export default function AuctionCard({
                     )}
 
                     {/* Proxy Active */}
-                    {userMaxBid && userMaxBid > realtimePrice && (
+                    {userMaxBid && userMaxBid > realtimePrice && !isEnded && (
                         <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest" suppressHydrationWarning>
                             <Zap size={10} className="fill-current" /> 
                             Proxy Active: ${mounted ? userMaxBid.toLocaleString() : userMaxBid.toString()}
@@ -612,6 +623,7 @@ export default function AuctionCard({
           </div>
 
           {/* Timer positioned above the action button */}
+          {!isEnded && (
           <div className="mb-4">
               <div className={cn(
                   "inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 font-black uppercase tracking-wider transition-all duration-500",
@@ -621,9 +633,10 @@ export default function AuctionCard({
                 <span className="text-xs tabular-nums">{mounted ? timeLeft : "---"}</span>
               </div>
           </div>
+          )}
 
           {/* Conditional Bidding / Login UI */}
-          {!user ? (
+          {!isEnded && (!user ? (
             <Link href="/auth/signin" className="w-full bg-primary/10 border-2 border-primary/20 text-primary py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 group shadow-sm">
                 <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
                 Login to Bid
@@ -635,14 +648,6 @@ export default function AuctionCard({
             >
                 <FileText size={18} />
                 Draft Mode
-            </button>
-          ) : isEnded ? (
-            <button 
-              disabled
-              className="w-full bg-zinc-100 border-2 border-zinc-200 text-zinc-400 py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 cursor-default"
-            >
-                <Lock size={18} />
-                Bidding Closed
             </button>
           ) : !isStarted ? (
             <button 
@@ -686,7 +691,7 @@ export default function AuctionCard({
                     </form>
                 )}
             </div>
-          )}
+          ))}
         </div>
       </div>
 

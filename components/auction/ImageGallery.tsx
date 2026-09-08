@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import { Loader2, X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { Loader2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ImageGalleryProps {
@@ -182,9 +182,29 @@ export default function ImageGallery({ images, title = "Auction Lot", isOpen, on
                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 italic">{title}</span>
                 {validImages.length > 1 && (
                     <div className="flex items-center gap-4">
-                        <button onClick={prevImage} className="p-2 hover:bg-zinc-50 rounded-full text-zinc-400 hover:text-primary transition-colors"><ChevronLeft size={20} /></button>
+                        <button
+                          type="button"
+                          aria-label="Previous image"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            prevImage();
+                          }}
+                          className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-primary"
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
                         <span className="text-[9px] font-bold text-zinc-400 uppercase tabular-nums">{selectedIndex + 1} / {validImages.length}</span>
-                        <button onClick={nextImage} className="p-2 hover:bg-zinc-50 rounded-full text-zinc-400 hover:text-primary transition-colors"><ChevronRight size={20} /></button>
+                        <button
+                          type="button"
+                          aria-label="Next image"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            nextImage();
+                          }}
+                          className="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-50 hover:text-primary"
+                        >
+                          <ChevronRight size={20} />
+                        </button>
                     </div>
                 )}
             </div>

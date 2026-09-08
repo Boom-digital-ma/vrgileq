@@ -168,12 +168,12 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
   const isUpcoming = !isStarted && !isAuctionEnded;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
         
         {/* LEFT: Content & Media */}
         <div className="lg:col-span-7">
-          <div className="mb-8">
+          <div className="mb-5">
               <div className="flex items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">
                       {isLive ? (
@@ -196,6 +196,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
                   </div>
                   
                   {/* Watchlist Toggle Button */}
+                  {!isAuctionEnded && (
                   <button 
                       onClick={handleToggleWatch} 
                       disabled={loadingWatch}
@@ -213,6 +214,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
                       )}
                       {isWatched ? "In Watchlist" : "Add to Watchlist"}
                   </button>
+                  )}
               </div>
               
               <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-secondary leading-tight mb-4 font-display">
@@ -224,11 +226,11 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
               </p>
           </div>
 
-          <div className="mb-12">
+          <div className="mb-7">
               <ImageGallery images={finalGallery.length > 0 ? finalGallery : ["/images/placeholder.jpg"]} title={lot.title} />
           </div>
 
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 py-12 border-t border-zinc-100">
+          <dl className="grid grid-cols-1 gap-x-8 gap-y-5 border-t border-zinc-100 py-7 sm:grid-cols-2">
               {[
                   { label: "Manufacturer", value: lot.manufacturer || "Certified OEM", icon: Package },
                   { label: "Model Reference", value: lot.model || "Industrial Standard", icon: Info },
@@ -245,9 +247,9 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
               ))}
           </dl>
 
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 py-12 border-t border-zinc-100">
+          <dl className="grid grid-cols-1 gap-x-8 gap-y-5 border-t border-zinc-100 py-7 sm:grid-cols-2">
               {[
-                  { label: "Pickup Information", value: "Pickup at event location. Logistics and extraction partners available upon request.", icon: MapPin },
+                  { label: "Pickup Information", value: "Pickup at the event location. Removal assistance is available upon request.", icon: MapPin },
                   { label: "Pickup Location", value: lot.auction_events?.location || "6415 Virginia Manor Rd, Beltsville, MD 20705", icon: Clock },
               ].map((item, i) => (
                   <div key={i} className="flex items-start gap-4">

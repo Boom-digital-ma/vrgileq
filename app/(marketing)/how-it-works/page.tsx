@@ -1,6 +1,5 @@
-import { UserPlus, LayoutGrid, Gavel, MapPin, ArrowRight, ChevronRight, ShieldCheck, Zap, Home, ShoppingBag, Package, CheckCircle2 } from "lucide-react";
+import { UserPlus, LayoutGrid, Gavel, MapPin, ShieldCheck, Zap, Home, ShoppingBag, Package, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 export default function HowItWorksPage() {
   const steps = [
@@ -52,16 +51,16 @@ export default function HowItWorksPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
+    <div className="bg-zinc-50 font-sans antialiased text-secondary">
       {/* Page Header */}
-      <section className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden italic">
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="flex items-center justify-center gap-2 mb-6">
+      <section className="relative overflow-hidden border-b border-zinc-100 bg-white px-6 py-10 italic md:py-12">
+        <div className="relative z-10 mx-auto max-w-7xl text-center">
+            <div className="mb-4 flex items-center justify-center gap-2">
                 <div className="h-[1px] w-6 bg-primary" />
                 <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Simple process</span>
                 <div className="h-[1px] w-6 bg-primary" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-secondary leading-none font-display uppercase mb-6">
+            <h1 className="mb-4 text-4xl font-black leading-none tracking-tighter text-secondary font-display uppercase md:text-5xl">
                 How It <br/> <span className="text-primary">Works</span>.
             </h1>
             <p className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg font-medium leading-relaxed uppercase">
@@ -72,7 +71,7 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Steps Section - Refined UI */}
-      <section className="py-20 px-6 bg-white relative overflow-hidden">
+      <section className="relative overflow-hidden bg-white px-6 py-10 md:py-12">
         <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {steps.map((step, i) => (
@@ -82,9 +81,9 @@ export default function HowItWorksPage() {
                             <div className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-[1px] bg-zinc-100 group-hover:bg-primary/30 transition-colors z-0" />
                         )}
                         
-                        <div className="relative z-10 bg-zinc-50/50 p-10 rounded-[48px] border border-zinc-100 transition-all duration-700 hover:bg-white hover:shadow-[0_40px_80px_rgba(11,43,83,0.08)] hover:border-primary/20 flex flex-col h-full group/card">
+                        <div className="relative z-10 flex h-full flex-col rounded-[32px] border border-zinc-100 bg-zinc-50/50 p-6 transition-all duration-700 group/card hover:border-primary/20 hover:bg-white hover:shadow-[0_40px_80px_rgba(11,43,83,0.08)] md:p-7">
                             {/* Step Indicator & Icon */}
-                            <div className="flex items-center justify-between mb-10">
+                            <div className="mb-6 flex items-center justify-between">
                                 <div className="h-14 w-14 bg-white rounded-2xl flex items-center justify-center text-zinc-400 group-hover/card:bg-primary group-hover/card:text-white transition-all duration-500 shadow-sm border border-zinc-100 group-hover/card:border-primary group-hover/card:rotate-6">
                                     <step.icon size={28} strokeWidth={1.5} />
                                 </div>
@@ -94,16 +93,16 @@ export default function HowItWorksPage() {
                             </div>
 
                             {/* Content */}
-                            <h2 className="text-2xl font-black text-secondary uppercase font-display leading-[1.1] mb-6 min-h-[50px] group-hover/card:text-primary transition-colors">
+                            <h2 className="mb-4 min-h-[50px] text-2xl font-black leading-[1.1] text-secondary font-display uppercase transition-colors group-hover/card:text-primary">
                                 {step.title}
                             </h2>
-                            <p className="text-zinc-500 text-[13px] font-bold leading-relaxed uppercase mb-8 flex-1">
+                            <p className="mb-5 flex-1 text-[13px] font-bold leading-relaxed text-zinc-500 uppercase">
                                 {step.desc}
                             </p>
                             
                             {/* Feature Badge */}
-                            <div className="pt-8 border-t border-zinc-100 group-hover/card:border-primary/10">
-                                <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-zinc-100 group-hover/card:border-primary/5 shadow-sm">
+                            <div className="border-t border-zinc-100 pt-5 group-hover/card:border-primary/10">
+                                <div className="rounded-2xl border border-zinc-100 bg-white/80 p-3 shadow-sm backdrop-blur-sm group-hover/card:border-primary/5">
                                     <p className="text-zinc-400 text-[9px] font-black uppercase tracking-widest leading-relaxed">
                                         {step.details}
                                     </p>
@@ -125,29 +124,29 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Inventory Sources Section (Merged from inventory/page.tsx) */}
-      <section className="py-24 px-6 bg-zinc-50 border-b border-zinc-100">
+      <section className="border-b border-zinc-100 bg-zinc-50 px-6 py-12 md:py-16">
         <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-                <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="mb-10 text-center">
+                <div className="mb-4 flex items-center justify-center gap-3">
                     <div className="h-1 w-8 bg-primary rounded-full" />
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Sourcing & Supply</span>
                     <div className="h-1 w-8 bg-primary rounded-full" />
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black text-secondary uppercase font-display italic tracking-tighter">Inventory <span className="text-primary">Sources.</span></h2>
-                <p className="max-w-2xl mx-auto text-zinc-400 text-sm font-bold uppercase tracking-widest mt-4">Direct from major retailers. Inspected. Verified.</p>
+                <h2 className="text-3xl font-black tracking-tighter text-secondary font-display uppercase italic md:text-4xl">Inventory <span className="text-primary">Sources.</span></h2>
+                <p className="mx-auto mt-3 max-w-2xl text-sm font-bold uppercase tracking-widest text-zinc-400">Direct from major retailers. Inspected. Verified.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {sources.map((source, i) => (
-                    <div key={i} className="group bg-white p-10 rounded-[48px] border border-zinc-100 transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.05)] hover:border-primary/20 flex flex-col italic">
-                        <div className="h-16 w-16 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all mb-10 border border-zinc-100 group-hover:border-primary/20">
+                    <div key={i} className="group flex flex-col rounded-[32px] border border-zinc-100 bg-white p-7 italic transition-all duration-500 hover:border-primary/20 hover:shadow-[0_30px_60px_rgba(11,43,83,0.05)]">
+                        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 text-zinc-400 transition-all group-hover:border-primary/20 group-hover:bg-primary/10 group-hover:text-primary">
                             <source.icon size={32} strokeWidth={1.5} />
                         </div>
-                        <h2 className="text-3xl font-bold text-secondary font-display uppercase mb-6 leading-none">{source.title}</h2>
-                        <p className="text-zinc-500 text-sm font-medium leading-relaxed uppercase mb-8 flex-1">
+                        <h2 className="mb-4 text-2xl font-bold leading-none text-secondary font-display uppercase">{source.title}</h2>
+                        <p className="mb-5 flex-1 text-sm font-medium leading-relaxed text-zinc-500 uppercase">
                             {source.desc}
                         </p>
-                        <div className="flex flex-wrap gap-2 pt-8 border-t border-zinc-50">
+                        <div className="flex flex-wrap gap-2 border-t border-zinc-50 pt-5">
                             {source.tags.map((tag, tIdx) => (
                                 <span key={tIdx} className="text-[9px] font-black uppercase tracking-widest px-3 py-1 bg-zinc-50 text-zinc-400 rounded-full border border-zinc-100">
                                     {tag}
@@ -161,17 +160,17 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Why Individual Section (Merged from inventory/page.tsx) */}
-      <section className="py-24 px-6 bg-secondary text-white relative overflow-hidden italic">
+      <section className="relative overflow-hidden bg-secondary px-6 py-12 text-white italic md:py-16">
         <div className="max-w-7xl mx-auto relative z-10">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-20">
+            <div className="flex flex-col items-center justify-between gap-10 lg:flex-row">
                 <div className="max-w-xl">
-                    <h2 className="text-4xl md:text-6xl font-bold tracking-tight uppercase font-display leading-[0.85] mb-10">
-                        Maryland's No-Pallet <br/> <span className="text-primary">Promise.</span>
+                    <h2 className="mb-5 text-4xl font-bold leading-[0.85] tracking-tight font-display uppercase md:text-5xl">
+                        Maryland&apos;s No-Pallet <br/> <span className="text-primary">Promise.</span>
                     </h2>
-                    <p className="text-xl text-white/60 font-medium mb-12 uppercase leading-relaxed">
-                        We break everything down, inspect each item, and list them individually. No "mystery pallets" or hidden junk.
+                    <p className="mb-6 text-lg font-medium leading-relaxed text-white/60 uppercase">
+                        We break everything down, inspect each item, and list them individually. No &quot;mystery pallets&quot; or hidden junk.
                     </p>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {[
                             "Transparent Condition Reports",
                             "High-Resolution Item Photos",
@@ -186,11 +185,11 @@ export default function HowItWorksPage() {
                     </div>
                 </div>
                 <div className="relative group">
-                    <div className="h-80 w-80 bg-primary/10 rounded-[60px] border border-white/10 flex items-center justify-center p-12 transition-all group-hover:scale-105 duration-700">
+                    <div className="flex h-56 w-56 items-center justify-center rounded-[48px] border border-white/10 bg-primary/10 p-8 transition-all duration-700 group-hover:scale-105 md:h-64 md:w-64">
                         <Package size={120} className="text-primary opacity-20" />
                     </div>
                     {/* Floating Tech Badges */}
-                    <div className="absolute -top-4 -right-4 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl animate-bounce duration-[3s]">
+                    <div className="absolute -right-3 -top-3 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-md animate-bounce duration-[3s]">
                         <ShieldCheck className="text-primary" size={24} />
                     </div>
                 </div>
@@ -202,12 +201,12 @@ export default function HowItWorksPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-6 bg-white border-t border-zinc-100">
+      <section className="border-t border-zinc-100 bg-white px-6 py-10 md:py-12">
         <div className="max-w-2xl mx-auto text-center italic">
-            <h2 className="text-2xl font-bold text-secondary font-display uppercase italic mb-6">
+            <h2 className="mb-4 text-2xl font-bold text-secondary font-display uppercase italic">
                 Ready to secure <span className="text-primary">your items?</span>
             </h2>
-            <Link href="/auth/signup" className="inline-block bg-primary text-white px-10 py-5 rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-secondary transition-all shadow-xl shadow-primary/10 italic">
+            <Link href="/auth/signup" className="inline-block rounded-xl bg-primary px-8 py-4 text-[11px] font-bold uppercase tracking-widest text-white italic shadow-xl shadow-primary/10 transition-all hover:bg-secondary">
                 Create Free Account
             </Link>
         </div>

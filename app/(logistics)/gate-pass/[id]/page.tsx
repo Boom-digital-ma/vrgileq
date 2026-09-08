@@ -90,13 +90,15 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
     )
   }
 
+  const isCollected = !!sale.collected_at
+
   // Generate a verification URL for the QR Code (pointing to the simplified verification page)
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'
   const verificationUrl = `${siteUrl}/gate-pass/${sale.id}/verify`
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verificationUrl)}`
 
   return (
-    <div className="min-h-screen bg-neutral-100 py-12 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0 font-sans">
+    <div className="min-h-screen bg-neutral-100 px-4 py-8 font-sans sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0">
       {/* Admin Indicator for Gate Pass */}
       {isAdmin && sale.winner_id !== user.id && (
         <div className="max-w-2xl mx-auto mb-6 bg-zinc-900 text-primary py-2 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 print:hidden">
@@ -106,7 +108,7 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
 
       <div className="max-w-2xl mx-auto print:max-w-none">
         {/* Actions - Hidden on print */}
-        <div className="flex justify-between items-center mb-8 print:hidden">
+        <div className="mb-5 flex items-center justify-between print:hidden">
           <h1 className="text-2xl font-bold text-prussian-blue font-geist italic uppercase tracking-tighter">Gate Pass / Bon de Sortie</h1>
           <PrintInvoiceButton />
         </div>
@@ -116,19 +118,20 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
           
           {/* Top Stamp / Status */}
           <div className="absolute top-8 right-8 rotate-12 opacity-20 print:opacity-100 pointer-events-none">
-            <div className="border-4 border-emerald-500 text-emerald-500 px-6 py-2 rounded-xl font-black uppercase text-3xl tracking-widest">
-              RELEASED
+            <div className={`rounded-xl border-4 px-6 py-2 text-center font-black uppercase tracking-widest ${isCollected ? 'border-emerald-500 text-emerald-500' : 'border-teal-500 text-teal-500'}`}>
+              <p className="text-3xl leading-none">{isCollected ? 'Released' : 'Authorized'}</p>
+              {!isCollected && <p className="mt-1 text-[9px] tracking-[0.2em]">For Pickup</p>}
             </div>
           </div>
 
           {/* Header */}
-          <div className="p-10 sm:p-12 border-b-4 border-double border-neutral-100">
+          <div className="border-b-4 border-double border-neutral-100 p-6 sm:p-8">
             <Image 
               src="/images/logo-virginia-transparent.png" 
               alt="Virginia Liquidation" 
               width={180} 
               height={50} 
-              className="mb-8 h-10 w-auto object-contain grayscale print:grayscale-0"
+              className="mb-5 h-10 w-auto object-contain grayscale print:grayscale-0"
             />
             <div className="flex justify-between items-end">
               <div>
@@ -142,15 +145,15 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
             </div>
           </div>
 
-          <div className="p-10 sm:p-12 space-y-12 print:p-8 print:space-y-8">
+          <div className="space-y-7 p-6 print:space-y-8 print:p-8 sm:p-8">
             
             {/* Primary Details: QR & Appointment */}
-            <div className="flex flex-col sm:flex-row gap-12 items-center sm:items-start bg-zinc-50 rounded-[32px] p-8 border border-zinc-100 print:gap-8 print:p-6 break-inside-avoid">
+            <div className="flex flex-col items-center gap-7 rounded-[28px] border border-zinc-100 bg-zinc-50 p-6 sm:flex-row sm:items-start print:gap-8 print:p-6 break-inside-avoid">
               <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-200 shrink-0">
                 <img src={qrCodeUrl} alt="Verification QR" className="w-32 h-32" />
                 <p className="text-[8px] font-bold text-center mt-2 uppercase tracking-widest text-zinc-400">Scan to Verify</p>
               </div>
-              <div className="flex-1 space-y-6">
+              <div className="flex-1 space-y-4">
                 <div>
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
                     <Truck size={12} /> Removal Appointment
@@ -182,11 +185,11 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
 
             {/* Lot Verification */}
             <div>
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6 border-b border-neutral-100 pb-2">Authorized Assets</h3>
-              <div className="space-y-6">
+              <h3 className="mb-4 border-b border-neutral-100 pb-2 text-[10px] font-black uppercase tracking-widest text-zinc-400">Authorized Assets</h3>
+              <div className="space-y-4">
                 {sale.sale_items && sale.sale_items.length > 0 ? (
                   sale.sale_items.map((item: any) => (
-                    <div key={item.id} className="flex gap-6 items-center">
+                    <div key={item.id} className="flex items-center gap-4">
                       <div className="h-20 w-20 rounded-2xl bg-zinc-50 border border-zinc-100 overflow-hidden shrink-0">
                          {item.auction?.image_url && <img src={item.auction.image_url} className="h-full w-full object-cover" />}
                       </div>
@@ -205,7 +208,7 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
                     </div>
                   ))
                 ) : sale.auction ? (
-                  <div className="flex gap-6 items-center">
+                  <div className="flex items-center gap-4">
                     <div className="h-20 w-20 rounded-2xl bg-zinc-50 border border-zinc-100 overflow-hidden shrink-0">
                        {sale.auction.image_url && <img src={sale.auction.image_url} className="h-full w-full object-cover" />}
                     </div>
@@ -228,7 +231,7 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
               </div>
 
               {/* Total Summary on Gate Pass */}
-              <div className="mt-8 pt-6 border-t border-zinc-100 flex justify-between items-center">
+              <div className="mt-6 flex items-center justify-between border-t border-zinc-100 pt-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Total Paid (Clearence Amount)</p>
                 <p className="text-2xl font-black text-emerald-600 font-geist italic tracking-tighter">
                   ${Number(sale.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -237,7 +240,7 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
             </div>
 
             {/* Holder Info */}
-            <div className="grid grid-cols-2 gap-8 pt-8 border-t border-dashed border-neutral-200">
+            <div className="grid grid-cols-2 gap-5 border-t border-dashed border-neutral-200 pt-5">
                <div>
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Registered Owner</h3>
                   <p className="font-bold text-prussian-blue">{(sale.winner as any).full_name}</p>
@@ -246,12 +249,14 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
                <div className="text-right">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Invoice Reference</h3>
                   <p className="font-bold text-prussian-blue">{sale.invoice_number}</p>
-                  <p className="text-[10px] font-bold text-emerald-600 uppercase">Status: PAID & CLEARED</p>
+                  <p className={`text-[10px] font-bold uppercase ${isCollected ? 'text-emerald-600' : 'text-teal-600'}`}>
+                    Status: {isCollected ? 'Collected & Released' : 'Paid & Authorized'}
+                  </p>
                </div>
             </div>
 
             {/* Security Notes */}
-            <div className="mt-12 p-6 bg-zinc-50 rounded-2xl border border-zinc-100">
+            <div className="mt-7 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
                <p className="text-[9px] font-bold text-zinc-400 uppercase leading-relaxed text-center">
                  This document authorizes the holder to remove the specified assets from the premises. 
                  Identity verification may be required at the gate. Any tampering with this pass 
@@ -261,7 +266,7 @@ export default async function GatePassPage({ params }: GatePassPageProps) {
           </div>
           
           {/* Footer Cut line */}
-          <div className="p-8 border-t border-neutral-100 flex justify-between items-center text-[10px] font-bold text-neutral-300 uppercase tracking-widest italic">
+          <div className="flex items-center justify-between border-t border-neutral-100 p-5 text-[10px] font-bold uppercase tracking-widest text-neutral-300 italic">
             <span>Virginia Liquidation Official Gate Pass</span>
             <span>Auth v1.0 • 2026</span>
           </div>

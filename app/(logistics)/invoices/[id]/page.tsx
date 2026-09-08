@@ -72,7 +72,7 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0">
+    <div className="min-h-screen bg-neutral-50 px-4 py-8 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0">
       {/* Admin Indicator for Invoices */}
       {isAdmin && sale.winner_id !== user.id && (
         <div className="max-w-4xl mx-auto mb-6 bg-zinc-900 text-primary py-2 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 print:hidden">
@@ -82,7 +82,7 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
 
       <div className="max-w-4xl mx-auto print:max-w-none">
         {/* Actions - Hidden on print */}
-        <div className="flex justify-between items-center mb-8 print:hidden">
+        <div className="mb-5 flex items-center justify-between print:hidden">
           <h1 className="text-2xl font-bold text-prussian-blue font-geist">Invoice Details</h1>
           <div className="flex gap-3">
             {sale.status === 'paid' && (
@@ -101,20 +101,20 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
         {/* Invoice Container */}
         <div className="bg-white rounded-[32px] shadow-xl shadow-neutral-200/50 overflow-hidden border border-neutral-100 print:shadow-none print:border-none print:rounded-none print:m-0">
           {/* Header */}
-          <div className="bg-prussian-blue p-8 sm:p-12 text-white flex flex-col sm:flex-row justify-between gap-8 items-start">
+          <div className="flex flex-col items-start justify-between gap-5 bg-white p-6 text-zinc-900 sm:flex-row sm:p-8">
             <div>
               <Image 
-                src="/images/logo-virginia-white.png" 
+                src="/images/logo-virginia-transparent.png"
                 alt="Virginia Liquidation" 
                 width={200} 
                 height={60} 
-                className="mb-6 h-12 w-auto object-contain"
+                className="mb-4 h-10 w-auto object-contain"
               />
               <div className="space-y-1 opacity-80 text-sm">
-                <p>123 Industrial Way</p>
-                <p>Richmond, VA 23219</p>
-                <p>United States</p>
+                <p>6415 Virginia Manor Rd</p>
+                <p>Beltsville, MD 20705</p>
                 <p>support@virginialiquidation.com</p>
+                <p>+1 (703) 869-1965</p>
               </div>
             </div>
             <div className="text-right sm:text-right w-full sm:w-auto">
@@ -128,20 +128,23 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
             </div>
           </div>
 
-          <div className="p-8 sm:p-12">
+          <div className="bg-prussian-blue px-6 pb-6 pt-4 sm:px-8 sm:pb-8 sm:pt-5">
             {/* Pickup Scheduling Section - Hidden on print */}
-            <div className="mb-12 print:hidden">
+            <div className="mb-7 print:hidden">
               <PickupScheduler 
                 saleId={sale.id}
                 eventId={sale.event_id}
                 currentSlotId={sale.pickup_slot_id}
                 slots={slots || []}
                 isPaid={sale.status === 'paid'}
+                isCollected={!!sale.collected_at}
               />
             </div>
+          </div>
 
+          <div className="px-6 pb-6 sm:px-8 sm:pb-8">
             {/* Bill To / Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 mb-12">
+            <div className="mb-7 grid grid-cols-1 gap-7 sm:grid-cols-2">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-4">Bill To</h3>
                 <div className="space-y-1 font-geist">
@@ -168,7 +171,7 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
             </div>
 
             {/* Table */}
-            <div className="mb-12">
+            <div className="mb-7">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b-2 border-neutral-100">
@@ -180,14 +183,14 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
                 <tbody className="divide-y divide-neutral-50">
                   {sale.sale_items?.map((item: any) => (
                     <tr key={item.id}>
-                        <td className="py-6">
+                        <td className="py-4">
                         <p className="font-bold text-prussian-blue text-lg">{item.auction?.title}</p>
                         <p className="text-sm text-neutral-500 max-w-md line-clamp-1">{item.auction?.description}</p>
                         </td>
-                        <td className="py-6 text-right font-medium text-neutral-600">
+                        <td className="py-4 text-right font-medium text-neutral-600">
                         {item.auction?.lot_number || 'N/A'}
                         </td>
-                        <td className="py-6 text-right font-bold text-prussian-blue">
+                        <td className="py-4 text-right font-bold text-prussian-blue">
                         ${Number(item.hammer_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
                     </tr>
@@ -221,7 +224,7 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
             </div>
 
             {/* Footer Notes */}
-            <div className="mt-20 pt-8 border-t border-neutral-50 text-center">
+            <div className="mt-8 border-t border-neutral-50 pt-5 text-center">
               <p className="text-neutral-400 text-sm italic">
                 Thank you for your business. Please arrange for pickup/removal within 5 business days.
               </p>

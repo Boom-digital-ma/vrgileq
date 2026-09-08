@@ -52,7 +52,7 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
         <div className="p-6 border-b border-zinc-100 bg-zinc-50/30 flex items-center justify-between">
             <div className="flex items-center gap-3">
                 <Calendar className={currentSlot ? "text-emerald-500" : "text-zinc-400"} size={18} />
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Logistics & Removal</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Pickup & Removal</h3>
             </div>
             {isCollected ? (
                 <span className="bg-zinc-900 text-primary px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10 flex items-center gap-1.5 shadow-xl">
@@ -186,7 +186,7 @@ export default function PickupScheduler({ saleId, eventId, currentSlotId, slots,
             {loading && (
                 <div className="flex flex-col items-center justify-center gap-3 py-4">
                     <Loader2 className="animate-spin text-primary" size={24} />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-300">Synchronizing Logistics...</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-300">Loading Pickup Details...</p>
                 </div>
             )}
         </div>

@@ -4,11 +4,38 @@ import { useState } from "react";
 import { Mail, Phone, MapPin, Send, MessageSquare, Clock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
+type ContactField = "name" | "email" | "subject" | "message";
+
 export default function ContactPage() {
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<ContactField, string>>>({});
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const subject = String(formData.get("subject") || "");
+    const message = String(formData.get("message") || "").trim();
+    const nextErrors: Partial<Record<ContactField, string>> = {};
+
+    if (!name) nextErrors.name = "Please enter your full name.";
+    if (!email) {
+      nextErrors.email = "Please enter your email address.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      nextErrors.email = "Please enter a valid email address.";
+    }
+    if (!subject) nextErrors.subject = "Please select a subject.";
+    if (!message) nextErrors.message = "Please enter a message.";
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      const firstInvalidField = Object.keys(nextErrors)[0] as ContactField;
+      form.querySelector<HTMLElement>(`[name="${firstInvalidField}"]`)?.focus();
+      return;
+    }
+
     setLoading(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -16,7 +43,11 @@ export default function ContactPage() {
         description: "Our technical support team will contact you within 24 business hours.",
     });
     setLoading(false);
-    (e.target as HTMLFormElement).reset();
+    form.reset();
+  };
+
+  const clearError = (field: ContactField) => {
+    setErrors((currentErrors) => ({ ...currentErrors, [field]: undefined }));
   };
 
   const contactInfo = [
@@ -27,16 +58,16 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
+    <div className="bg-zinc-50 font-sans antialiased text-secondary">
       {/* SaaS Premium Header */}
-      <section className="bg-white border-b border-zinc-100 pt-20 pb-16 relative overflow-hidden italic">
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="flex items-center justify-center gap-2 mb-6">
+      <section className="relative overflow-hidden border-b border-zinc-100 bg-white px-6 py-10 italic md:py-12">
+        <div className="relative z-10 mx-auto max-w-7xl text-center">
+            <div className="mb-4 flex items-center justify-center gap-2">
                 <div className="h-[1px] w-6 bg-primary" />
                 <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Inquiry Gateway</span>
                 <div className="h-[1px] w-6 bg-primary" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-secondary leading-none font-display uppercase mb-6">
+            <h1 className="mb-4 text-4xl font-black leading-none tracking-tighter text-secondary font-display uppercase md:text-5xl">
                 Reach <br/> <span className="text-primary">Contact</span>.
             </h1>
             <p className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg font-medium leading-relaxed uppercase">
@@ -47,50 +78,56 @@ export default function ContactPage() {
       </section>
 
       {/* Main Grid: Form & Info */}
-      <section className="py-16 px-6">
+      <section className="px-6 py-10 md:py-12">
         <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 items-start">
+            <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[1.5fr_1fr]">
                 
                 {/* Modern SaaS Form */}
-                <div className="bg-white p-8 md:p-16 rounded-[48px] border border-zinc-100 shadow-sm italic">
-                    <div className="flex items-center gap-3 mb-12">
+                <div className="rounded-[40px] border border-zinc-100 bg-white p-6 shadow-sm italic md:p-10">
+                    <div className="mb-6 flex items-center gap-3">
                         <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                             <MessageSquare size={20} />
                         </div>
                         <h2 className="text-2xl font-bold font-display uppercase text-secondary">Send a Message</h2>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <form noValidate onSubmit={handleSubmit} className="space-y-5">
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Full Name</label>
-                                <input required type="text" placeholder="Your full name" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none" />
+                                <input name="name" type="text" placeholder="Your full name" onChange={() => clearError("name")} aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined} className="w-full rounded-2xl border-2 border-zinc-100 bg-zinc-50 px-5 py-3 text-sm font-bold text-secondary italic outline-none transition-all focus:border-primary/20 focus:bg-white aria-[invalid=true]:border-rose-300" />
+                                {errors.name && <p id="name-error" className="ml-4 text-[10px] font-bold text-rose-600">{errors.name}</p>}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Email Address</label>
-                                <input required type="email" placeholder="you@example.com" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none" />
+                                <input name="email" type="email" placeholder="you@example.com" onChange={() => clearError("email")} aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined} className="w-full rounded-2xl border-2 border-zinc-100 bg-zinc-50 px-5 py-3 text-sm font-bold text-secondary italic outline-none transition-all focus:border-primary/20 focus:bg-white aria-[invalid=true]:border-rose-300" />
+                                {errors.email && <p id="email-error" className="ml-4 text-[10px] font-bold text-rose-600">{errors.email}</p>}
                             </div>
                         </div>
                         
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Subject</label>
-                            <select className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none appearance-none">
+                            <select name="subject" defaultValue="" onChange={() => clearError("subject")} aria-invalid={!!errors.subject} aria-describedby={errors.subject ? "subject-error" : undefined} className="w-full appearance-none rounded-2xl border-2 border-zinc-100 bg-zinc-50 px-5 py-3 text-sm font-bold text-secondary italic outline-none transition-all focus:border-primary/20 focus:bg-white aria-[invalid=true]:border-rose-300">
+                                <option value="" disabled>Select a subject</option>
                                 <option>BIDDING HELP</option>
                                 <option>SELLER SERVICES</option>
                                 <option>PICKUP & REMOVAL</option>
                                 <option>TECHNICAL SUPPORT</option>
+                                <option>OTHER</option>
                             </select>
+                            {errors.subject && <p id="subject-error" className="ml-4 text-[10px] font-bold text-rose-600">{errors.subject}</p>}
                         </div>
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4">Message</label>
-                            <textarea required rows={5} placeholder="How can we help?" className="w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all italic outline-none resize-none"></textarea>
+                            <textarea name="message" rows={4} placeholder="How can we help?" onChange={() => clearError("message")} aria-invalid={!!errors.message} aria-describedby={errors.message ? "message-error" : undefined} className="w-full resize-none rounded-2xl border-2 border-zinc-100 bg-zinc-50 px-5 py-3 text-sm font-bold text-secondary italic outline-none transition-all focus:border-primary/20 focus:bg-white aria-[invalid=true]:border-rose-300"></textarea>
+                            {errors.message && <p id="message-error" className="ml-4 text-[10px] font-bold text-rose-600">{errors.message}</p>}
                         </div>
 
                         <button 
                             disabled={loading}
                             type="submit" 
-                            className="w-full bg-secondary text-white py-6 rounded-3xl font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary transition-all active:scale-[0.98] shadow-2xl shadow-secondary/10 flex items-center justify-center gap-3 disabled:opacity-50 italic"
+                            className="flex w-full items-center justify-center gap-3 rounded-2xl bg-secondary py-4 text-sm font-bold uppercase tracking-[0.2em] text-white italic shadow-2xl shadow-secondary/10 transition-all hover:bg-primary active:scale-[0.98] disabled:opacity-50"
                         >
                             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send size={18} />}
                             Send Message
@@ -99,13 +136,13 @@ export default function ContactPage() {
                 </div>
 
                 {/* Sidebar Info */}
-                <div className="space-y-8 italic">
-                    <div className="bg-white border border-zinc-100 rounded-[40px] p-10 shadow-sm">
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900 mb-10 border-b border-zinc-50 pb-4">Contact Information</h3>
-                        <div className="space-y-10">
+                <div className="space-y-5 italic">
+                    <div className="rounded-[32px] border border-zinc-100 bg-white p-7 shadow-sm">
+                        <h3 className="mb-6 border-b border-zinc-50 pb-3 text-sm font-bold uppercase tracking-widest text-zinc-900">Contact Information</h3>
+                        <div className="space-y-6">
                             {contactInfo.map((info, i) => (
-                                <div key={i} className="flex items-start gap-5 group">
-                                    <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 text-zinc-300 group-hover:text-primary group-hover:bg-primary/5 transition-all">
+                                <div key={i} className="group flex items-start gap-4">
+                                    <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-2.5 text-zinc-300 transition-all group-hover:bg-primary/5 group-hover:text-primary">
                                         <info.icon size={20} />
                                     </div>
                                     <div>
@@ -117,12 +154,12 @@ export default function ContactPage() {
                         </div>
                     </div>
 
-                    <div className="bg-secondary rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl shadow-secondary/20">
+                    <div className="relative overflow-hidden rounded-[32px] bg-secondary p-7 text-white shadow-2xl shadow-secondary/20">
                         <div className="relative z-10">
-                            <div className="h-12 w-12 bg-primary/20 rounded-2xl flex items-center justify-center text-primary mb-6 border border-primary/20">
+                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/20 text-primary">
                                 <ShieldCheck size={24} />
                             </div>
-                            <h4 className="text-xl font-bold font-display uppercase mb-4">Business Services</h4>
+                            <h4 className="mb-3 text-xl font-bold font-display uppercase">Business Services</h4>
                             <p className="text-sm text-white/40 leading-relaxed uppercase font-medium">
                                 Talk with our team about selling equipment, inventory, or other business assets.
                             </p>

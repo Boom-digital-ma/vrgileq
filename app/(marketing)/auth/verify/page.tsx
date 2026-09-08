@@ -48,7 +48,7 @@ function VerifyContent() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6 font-sans text-secondary italic">
+    <div className="flex w-full items-center justify-center bg-zinc-50 p-6 font-sans text-secondary italic">
       <div className="w-full max-w-md bg-white rounded-[48px] border border-zinc-100 shadow-2xl shadow-secondary/5 p-10 md:p-12 relative overflow-hidden">
         
         <div className="flex flex-col items-center mb-12 text-center relative z-10">
@@ -119,7 +119,7 @@ function VerifyContent() {
 
 export default function VerifyPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-zinc-50 flex items-center justify-center italic text-[10px] font-bold uppercase tracking-widest text-zinc-300">Loading...</div>}>
+        <Suspense fallback={<div className="flex w-full items-center justify-center bg-zinc-50 italic text-[10px] font-bold uppercase tracking-widest text-zinc-300">Loading...</div>}>
             <VerifyContent />
         </Suspense>
     )

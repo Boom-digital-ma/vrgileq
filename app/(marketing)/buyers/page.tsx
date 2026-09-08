@@ -37,16 +37,16 @@ export default function BuyersPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-sans antialiased text-secondary">
+    <div className="bg-zinc-50 font-sans antialiased text-secondary">
       {/* SaaS Premium Header */}
-      <section className="bg-white border-b border-zinc-100 pt-16 pb-12 relative overflow-hidden italic">
+      <section className="relative overflow-hidden border-b border-zinc-100 bg-white pb-8 pt-10 italic">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="mb-5 flex items-center justify-center gap-3">
                 <div className="h-[1px] w-10 bg-primary" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Rules & Guidelines</span>
                 <div className="h-[1px] w-10 bg-primary" />
             </div>
-            <h1 className="text-6xl md:text-8xl font-bold tracking-tight text-secondary leading-[0.85] font-display uppercase mb-8">
+            <h1 className="mb-5 text-5xl font-bold leading-[0.85] tracking-tight text-secondary font-display uppercase md:text-7xl">
                 Buyer's <br/> <span className="text-primary">Guide</span>.
             </h1>
             <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl font-medium leading-relaxed uppercase">
@@ -58,17 +58,17 @@ export default function BuyersPage() {
       </section>
 
       {/* Steps Grid - Modern SaaS Cards */}
-      <section className="py-24 px-6">
+      <section className="px-6 py-12">
         <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {steps.map((step, i) => (
-                    <div key={i} className="group bg-white p-10 rounded-[40px] border border-zinc-100 transition-all duration-500 hover:shadow-[0_30px_60px_rgba(11,43,83,0.05)] hover:-translate-y-2 flex flex-col italic">
-                        <div className="h-14 w-14 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-all mb-8 border border-zinc-100 group-hover:border-primary/20">
-                            <step.icon size={28} strokeWidth={1.5} />
+                    <div key={i} className="group flex flex-col rounded-[32px] border border-zinc-100 bg-white p-6 italic transition-all duration-500 hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_20px_40px_rgba(11,43,83,0.05)]">
+                        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 text-zinc-400 transition-all group-hover:border-primary/20 group-hover:bg-primary/10 group-hover:text-primary">
+                            <step.icon size={24} strokeWidth={1.5} />
                         </div>
-                        <div className="flex items-center gap-3 mb-4">
+                        <div className="mb-3 flex items-center gap-3">
                             <span className="text-[10px] font-bold text-primary tabular-nums">0{i+1}</span>
-                            <h3 className="text-2xl font-bold text-secondary font-display uppercase leading-none">{step.title}</h3>
+                            <h3 className="text-xl font-bold leading-none text-secondary font-display uppercase">{step.title}</h3>
                         </div>
                         <p className="text-zinc-400 text-[13px] font-medium leading-relaxed uppercase">
                             {step.desc}
@@ -80,19 +80,19 @@ export default function BuyersPage() {
       </section>
 
       {/* Referral Banner - High Contrast SaaS CTA */}
-      <section className="px-6 py-12">
+      <section className="px-6 py-8">
         <div className="max-w-7xl mx-auto">
-            <div className="bg-secondary rounded-[48px] p-10 md:p-14 text-white relative overflow-hidden italic shadow-2xl shadow-secondary/20">
-                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-12 items-center">
+            <div className="relative overflow-hidden rounded-[40px] bg-secondary p-7 text-white italic shadow-2xl shadow-secondary/20 md:p-9">
+                <div className="relative z-10 grid grid-cols-1 items-center gap-7 lg:grid-cols-[1.5fr_1fr]">
                     <div>
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight uppercase font-display leading-[0.9] mb-8">
+                        <h2 className="mb-5 text-3xl font-bold leading-[0.9] tracking-tight font-display uppercase md:text-4xl">
                             Have an industrial <span className="text-primary">lead</span>? <br/> Earn up to 20% fees.
                         </h2>
-                        <p className="text-lg text-white/50 font-medium max-w-xl mb-10">
+                        <p className="mb-6 max-w-xl text-base font-medium text-white/50">
                             Virginia Liquidation is proud to pay industry-leading referral fees for successful auction placements and asset acquisitions.
                         </p>
-                        <div className="flex flex-wrap gap-6">
-                            <Link href="/contact" className="bg-primary text-white px-10 py-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-secondary transition-all shadow-xl shadow-primary/20 flex items-center gap-3 group">
+                        <div className="flex flex-wrap gap-4">
+                            <Link href="/contact" className="group flex items-center gap-3 rounded-2xl bg-primary px-7 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-xl shadow-primary/20 transition-all hover:bg-white hover:text-secondary">
                                 Contact Our Team <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
                         </div>
@@ -111,13 +111,13 @@ export default function BuyersPage() {
       </section>
 
       {/* FAQ Link Section */}
-      <section className="py-24 px-6 bg-white border-t border-zinc-100">
+      <section className="border-t border-zinc-100 bg-white px-6 py-12">
         <div className="max-w-3xl mx-auto text-center">
-            <div className="h-12 w-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 mx-auto mb-8 border border-zinc-100">
+            <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 text-zinc-400">
                 <HelpCircle size={24} />
             </div>
-            <h2 className="text-3xl font-bold text-secondary font-display uppercase italic mb-6">Need Further Clarification?</h2>
-            <p className="text-zinc-400 font-medium uppercase text-sm mb-10">
+            <h2 className="mb-4 text-3xl font-bold text-secondary font-display uppercase italic">Need Further Clarification?</h2>
+            <p className="mb-6 text-sm font-medium uppercase text-zinc-400">
                 Our support desk is available Monday - Friday to assist with bidding registration, payment processing, or removal scheduling.
             </p>
             <Link href="/contact" className="text-xs font-bold uppercase tracking-[0.2em] text-primary border-b-2 border-primary pb-1 hover:text-secondary hover:border-secondary transition-all">
