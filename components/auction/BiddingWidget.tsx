@@ -21,9 +21,10 @@ interface BiddingWidgetProps {
   bids: any[];
   minIncrement: number;
   winnerId?: string;
+  initialIsEnded: boolean;
 }
 
-export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt, startAt, bids, minIncrement, winnerId }: BiddingWidgetProps) {
+export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt, startAt, bids, minIncrement, winnerId, initialIsEnded }: BiddingWidgetProps) {
   const [timeLeft, setTimeLeft] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
   const [realtimePrice, setRealtimePrice] = useState(initialPrice);
@@ -37,7 +38,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [loadingWatch, setLoadingWatch] = useState(false);
   const [settings, setSettings] = useState<any>(null);
   const [isStarted, setIsStarted] = useState(!startAt);
-  const [isEnded, setIsEnded] = useState(false);
+  const [isEnded, setIsEnded] = useState(initialIsEnded);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   

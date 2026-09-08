@@ -13,6 +13,13 @@ interface HeaderProps {
   minimal?: boolean;
 }
 
+const accountLinks = [
+  { label: 'Profile', href: '/profile#info' },
+  { label: 'My Bids', href: '/profile#bids' },
+  { label: 'Invoices', href: '/profile#invoices' },
+  { label: 'Watchlist', href: '/profile#watchlist' },
+];
+
 export default function Header({ minimal = false }: HeaderProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,7 +37,7 @@ export default function Header({ minimal = false }: HeaderProps) {
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('full_name, role').eq('id', userId).single();
-    if (data) setProfile(data);
+    return data;
   };
 
   // 1. Initial Session & Auth Listener
@@ -39,25 +46,25 @@ export default function Header({ minimal = false }: HeaderProps) {
 
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      const profileData = currentUser ? await fetchProfile(currentUser.id) : null;
       if (isMounted) {
-        const currentUser = session?.user ?? null;
         setUser(currentUser);
-        if (currentUser) fetchProfile(currentUser.id);
+        setProfile(profileData);
         setLoading(false);
       }
     };
 
     checkSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (!isMounted) return;
       const currentUser = session?.user ?? null;
+      const profileData = currentUser ? await fetchProfile(currentUser.id) : null;
+      if (!isMounted) return;
       setUser(currentUser);
-      if (currentUser) fetchProfile(currentUser.id);
-      else {
-        setProfile(null);
-        setLoading(false);
-      }
+      setProfile(profileData);
+      setLoading(false);
     });
 
     return () => {
@@ -150,9 +157,54 @@ export default function Header({ minimal = false }: HeaderProps) {
               priority
             />
           </Link>
-          <Link href={actionHref} className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 transition-colors hover:text-primary">
-            {actionLabel}
-          </Link>
+          {isProfilePage && loading ? (
+            <div className="h-10 w-32 animate-pulse rounded-xl bg-zinc-50" />
+          ) : isProfilePage && user ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsAccountMenuOpen((open) => !open)}
+                aria-expanded={isAccountMenuOpen}
+                aria-haspopup="menu"
+                className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-2 py-1.5 text-zinc-700 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-[11px] font-black text-white">
+                  {accountInitial}
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest">My Account</span>
+                <ChevronDown size={14} className={cn("text-zinc-400 transition-transform", isAccountMenuOpen && "rotate-180")} />
+              </button>
+              {isAccountMenuOpen && (
+                <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-52 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-900/10">
+                  {accountLinks.map((item) => (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      role="menuitem"
+                      onClick={() => setIsAccountMenuOpen(false)}
+                      className="block rounded-xl px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-primary"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  <div className="my-1 border-t border-zinc-100" />
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    role="menuitem"
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest text-rose-500 transition-colors hover:bg-rose-50"
+                  >
+                    <LogOut size={14} />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link href={actionHref} className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 transition-colors hover:text-primary">
+              {actionLabel}
+            </Link>
+          )}
         </div>
       </header>
     );
@@ -281,12 +333,7 @@ export default function Header({ minimal = false }: HeaderProps) {
 
                                     {isAccountMenuOpen && (
                                         <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-52 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-900/10">
-                                            {[
-                                                { label: 'Profile', href: '/profile#info' },
-                                                { label: 'My Bids', href: '/profile#bids' },
-                                                { label: 'Invoices', href: '/profile#invoices' },
-                                                { label: 'Watchlist', href: '/profile#watchlist' },
-                                            ].map((item) => (
+                                            {accountLinks.map((item) => (
                                                 <Link
                                                     key={item.label}
                                                     href={item.href}

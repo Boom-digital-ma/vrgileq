@@ -94,7 +94,11 @@ export default async function AuctionDetailPage({ params }: { params: { id: stri
         </div>
       </div>
 
-      <AuctionDetailsRealtime initialLot={lot} initialBids={bids || []} />
+      <AuctionDetailsRealtime
+        initialLot={lot}
+        initialBids={bids || []}
+        initialIsEnded={lot.status === 'sold' || lot.status === 'ended' || new Date(lot.ends_at) <= new Date()}
+      />
     </div>
   )
 }

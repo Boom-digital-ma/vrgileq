@@ -9,11 +9,11 @@ import { cn, calculateNextIncrement } from "@/lib/utils";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { toast } from "sonner";
 
-export default function AuctionDetailsRealtime({ initialLot, initialBids }: { initialLot: any, initialBids: any[] }) {
+export default function AuctionDetailsRealtime({ initialLot, initialBids, initialIsEnded }: { initialLot: any, initialBids: any[], initialIsEnded: boolean }) {
   const [lot, setLot] = useState(initialLot);
   const [bids, setBids] = useState(initialBids);
   const [mounted, setMounted] = useState(false);
-  const [isAuctionEnded, setIsAuctionEnded] = useState(false);
+  const [isAuctionEnded, setIsAuctionEnded] = useState(initialIsEnded);
   const [user, setUser] = useState<any>(null);
   const [isWatched, setIsWatched] = useState(false);
   const [loadingWatch, setLoadingWatch] = useState(false);
@@ -274,6 +274,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids }: { in
             bids={bids}
             minIncrement={Number(lot.min_increment)}
             winnerId={lot.winner_id}
+            initialIsEnded={isAuctionEnded}
           />
           
           <div className="mt-6 flex items-center justify-center gap-3 px-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl">
