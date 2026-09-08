@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, LogOut, ChevronDown, ChevronRight, Bell, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { logout } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
@@ -127,13 +126,13 @@ export default function Header({ minimal = false }: HeaderProps) {
   }, [supabase]);
 
   const handleLogout = async () => {
-    try {
-        await supabase.auth.signOut();
-        await logout();
-        window.location.href = '/';
-    } catch (err) {
-        window.location.href = '/';
+    const { error: clientError } = await supabase.auth.signOut();
+    if (clientError) {
+      console.error('Client sign out failed:', clientError);
+      return;
     }
+
+    window.location.assign('/');
   };
 
   const isAdmin = profile?.role === 'admin';
