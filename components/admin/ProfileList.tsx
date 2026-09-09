@@ -81,7 +81,7 @@ export const ProfileList = () => {
                       </span>
                   ) : (
                       <span className="inline-flex items-center gap-1.5 text-zinc-300 font-black text-[10px] uppercase italic">
-                          <ShieldAlert size={14} /> PENDING
+                          <ShieldAlert size={14} /> PAYMENT SETUP NEEDED
                       </span>
                   )}
                 </td>

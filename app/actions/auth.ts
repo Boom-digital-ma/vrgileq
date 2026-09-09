@@ -14,6 +14,16 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
+  const adminSupabase = createAdminClient()
+  const { error: signInTrackingError } = await adminSupabase
+    .from('profiles')
+    .update({ last_sign_in_at: new Date().toISOString() })
+    .eq('id', data.user.id)
+
+  if (signInTrackingError) {
+    console.error('Login: Last sign-in tracking failed', signInTrackingError.message)
+  }
+
   // Check role to inform client of destination with error handling
   let role = 'client';
   try {
@@ -174,12 +184,24 @@ export async function requestPasswordReset(email: string) {
 
 export async function verifyOTP(email: string, token: string, type: 'signup' | 'recovery') {
   const supabase = await createClient()
-  const { error } = await supabase.auth.verifyOtp({
+  const { data, error } = await supabase.auth.verifyOtp({
     email,
     token,
     type
   })
   if (error) return { error: error.message }
+
+  if (data.user) {
+    const adminSupabase = createAdminClient()
+    const { error: signInTrackingError } = await adminSupabase
+      .from('profiles')
+      .update({ last_sign_in_at: new Date().toISOString() })
+      .eq('id', data.user.id)
+
+    if (signInTrackingError) {
+      console.error('OTP: Last sign-in tracking failed', signInTrackingError.message)
+    }
+  }
   
   revalidatePath('/', 'layout')
   return { success: true }

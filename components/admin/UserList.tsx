@@ -276,6 +276,7 @@ export const UserList = () => {
               <th className="px-8 py-5 text-center">Authorization</th>
               <th className="px-8 py-5 text-right">Verification</th>
               <th className="px-8 py-5 text-right">Registered</th>
+              <th className="px-8 py-5 text-right">Last Sign In</th>
               <th className="px-8 py-5 text-right">Actions</th>
             </tr>
           </thead>
@@ -319,7 +320,7 @@ export const UserList = () => {
                       </span>
                   ) : (
                       <span className="inline-flex items-center gap-1.5 text-rose-400 font-black text-[9px] uppercase tracking-widest italic">
-                          <ShieldAlert size={14} /> PENDING REVIEW
+                          <ShieldAlert size={14} /> PAYMENT SETUP NEEDED
                       </span>
                   )}
                 </td>
@@ -327,6 +328,12 @@ export const UserList = () => {
                     <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
                         <Calendar size={13} className="text-zinc-300" />
                         {profile.created_at ? format(new Date(profile.created_at), "MMM d, yyyy") : "Not available"}
+                    </span>
+                </td>
+                <td className="px-8 py-6 text-right">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                        <Calendar size={13} className="text-zinc-300" />
+                        {profile.last_sign_in_at ? format(new Date(profile.last_sign_in_at), "MMM d, yyyy h:mm a") : "Never"}
                     </span>
                 </td>
                 <td className="px-8 py-6 text-right font-sans">
@@ -460,7 +467,7 @@ export const UserList = () => {
                             <label className={labelClasses}>Verification Status</label>
                             <select name="is_verified" defaultValue={selectedProfile.is_verified ? 'true' : 'false'} required className={inputClasses}>
                                 <option value="true">Cleared (Verified)</option>
-                                <option value="false">Pending Review</option>
+                                <option value="false">Payment Setup Needed</option>
                             </select>
                         </div>
                     </div>

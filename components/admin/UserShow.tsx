@@ -64,7 +64,7 @@ export const UserShow = () => {
                 </div>
             ) : (
                 <div className="bg-rose-50 text-rose-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100 flex items-center gap-2 italic">
-                    <ShieldAlert size={16} /> Pending Verification
+                    <ShieldAlert size={16} /> Payment Setup Needed
                 </div>
             )}
         </div>
@@ -252,4 +252,3 @@ export const UserShow = () => {
     </div>
   )
 }
-
