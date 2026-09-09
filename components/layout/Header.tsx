@@ -302,9 +302,9 @@ export default function Header({ minimal = false }: HeaderProps) {
                 {/* Actions */}
                 <div className="flex items-center gap-4">
                     {loading ? (
-                        <div className="h-8 w-24 bg-zinc-50 animate-pulse rounded-lg" suppressHydrationWarning />
+                        <div className="hidden h-8 w-24 animate-pulse rounded-lg bg-zinc-50 lg:block" suppressHydrationWarning />
                     ) : user ? (
-                        <div className="flex items-center gap-3" suppressHydrationWarning>
+                        <div className="hidden items-center gap-3 lg:flex" suppressHydrationWarning>
                             {isAdmin ? (
                                 <Link
                                     href="/admin"
@@ -369,7 +369,7 @@ export default function Header({ minimal = false }: HeaderProps) {
                             )}
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="hidden items-center gap-2 lg:flex">
                             <Link href="/auth/signin" className="text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 px-3">
                                 Sign In
                             </Link>
