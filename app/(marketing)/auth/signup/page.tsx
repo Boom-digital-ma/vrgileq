@@ -143,8 +143,8 @@ export default function SignUpPage() {
       <div className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-zinc-100 bg-white p-5 shadow-2xl shadow-secondary/5 sm:p-7">
         
         {/* Modern Progress Header */}
-        <div className="relative z-10 mb-5 flex flex-col justify-end gap-4 md:flex-row md:items-center">
-            <div className="flex items-center gap-2 sm:gap-3 justify-center md:justify-end">
+        <div className="relative z-10 mb-5 flex justify-center">
+            <div className="flex items-center gap-2 sm:gap-3">
                 {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="flex items-center gap-2 sm:gap-3">
                         <div className={cn(
@@ -167,13 +167,18 @@ export default function SignUpPage() {
         {/* STEP 1: IDENTITY */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-            <div className="mb-5 flex items-center gap-4 sm:gap-5">
+            <div className="mb-5 flex flex-col items-center gap-3 text-center sm:gap-4">
                 <div className="h-12 w-12 sm:h-14 sm:w-14 bg-primary/10 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-primary shrink-0">
                     <User size={24} className="sm:size-7" />
                 </div>
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary font-display uppercase leading-none">Create Account</h1>
                     <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-2">Enter your details</p>
+                    <Link href="/auth/signin" className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 transition-colors hover:text-primary">
+                        <span>Already have an account?</span>
+                        <span className="text-primary">Sign In</span>
+                        <ArrowRight size={13} />
+                    </Link>
                 </div>
             </div>
 
