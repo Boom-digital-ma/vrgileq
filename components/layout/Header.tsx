@@ -259,7 +259,7 @@ export default function Header({ minimal = false }: HeaderProps) {
         >
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
                 {/* Logo */}
-                <Link href="/" className="relative h-8 w-32 md:h-10 md:w-48 transition-opacity hover:opacity-80 shrink-0">
+                <Link href="/" className="relative h-8 w-20 md:h-10 md:w-48 transition-opacity hover:opacity-80 shrink-0">
                     <Image
                         src="/images/logo-virginia-transparent.png"
                         alt="Virginia Liquidation"
@@ -304,7 +304,7 @@ export default function Header({ minimal = false }: HeaderProps) {
                     {loading ? (
                         <div className="hidden h-8 w-24 animate-pulse rounded-lg bg-zinc-50 lg:block" suppressHydrationWarning />
                     ) : user ? (
-                        <div className="hidden items-center gap-3 lg:flex" suppressHydrationWarning>
+                        <div className="flex items-center gap-2 sm:gap-3" suppressHydrationWarning>
                             {isAdmin ? (
                                 <Link
                                     href="/admin"
@@ -326,7 +326,7 @@ export default function Header({ minimal = false }: HeaderProps) {
                                         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-[11px] font-black text-white">
                                             {accountInitial}
                                         </span>
-                                        <span className="hidden text-[10px] font-black uppercase tracking-widest sm:inline">My Account</span>
+                                        <span className="text-[9px] font-black uppercase tracking-wide sm:text-[10px] sm:tracking-widest">My Account</span>
                                         <ChevronDown size={14} className={cn("text-zinc-400 transition-transform", isAccountMenuOpen && "rotate-180")} />
                                     </button>
 
