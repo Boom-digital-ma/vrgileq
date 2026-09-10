@@ -257,7 +257,7 @@ export default function RegistrationButton({
                                     required
                                     value={profileData.fullName}
                                     onChange={e => setProfileData({...profileData, fullName: e.target.value})}
-                                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 text-xs text-secondary placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                     placeholder="Enter full legal name"
                                 />
                             </div>
@@ -271,7 +271,7 @@ export default function RegistrationButton({
                                         pattern="[+]?[0-9\s\-()]{10,20}"
                                         value={profileData.phone}
                                         onChange={e => setProfileData({...profileData, phone: e.target.value})}
-                                        className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 pl-10 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 pl-10 text-xs text-secondary placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                         placeholder="+1 (555) 000-0000"
                                     />
                                 </div>
@@ -287,7 +287,7 @@ export default function RegistrationButton({
                                     required
                                     value={profileData.address}
                                     onChange={e => setProfileData({...profileData, address: e.target.value})}
-                                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 pl-10 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 pl-10 text-xs text-secondary placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                     placeholder="123 Industrial Ave"
                                 />
                             </div>
@@ -300,7 +300,7 @@ export default function RegistrationButton({
                                     required
                                     value={profileData.city}
                                     onChange={e => setProfileData({...profileData, city: e.target.value})}
-                                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 text-xs text-secondary placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                     placeholder="Richmond"
                                 />
                             </div>
@@ -310,7 +310,7 @@ export default function RegistrationButton({
                                     required
                                     value={profileData.zip}
                                     onChange={e => setProfileData({...profileData, zip: e.target.value})}
-                                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl p-3 text-xs text-secondary placeholder:text-zinc-300 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                     placeholder="23173"
                                 />
                             </div>

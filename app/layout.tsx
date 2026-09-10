@@ -81,14 +81,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const { data: settings } = await supabase
-    .from('site_settings')
-    .select('gtm_id')
-    .eq('id', 'global')
-    .maybeSingle();
-
-  const gtmId = settings?.gtm_id;
+  let gtmId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const { data: settings } = await supabase
+      .from('site_settings')
+      .select('gtm_id')
+      .eq('id', 'global')
+      .maybeSingle();
+    gtmId = settings?.gtm_id ?? null;
+  } catch (e) {
+    // Non-critical: GTM will simply not load if this fails
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>

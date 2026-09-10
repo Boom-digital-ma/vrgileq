@@ -136,7 +136,7 @@ export default function SignUpPage() {
   }
 
   const labelClasses = "block text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4 mb-2"
-  const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-3.5 sm:py-4 px-6 text-sm font-bold text-secondary focus:outline-none focus:border-primary/20 focus:bg-white transition-all outline-none"
+  const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-3.5 sm:py-4 px-6 text-sm font-bold text-secondary placeholder:text-zinc-300 focus:outline-none focus:border-primary/20 focus:bg-white transition-all outline-none [&:-webkit-autofill]:[-webkit-text-fill-color:#0B2B53] [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#fafafa_inset]"
 
   return (
     <div className="flex w-full items-center justify-center bg-zinc-50 px-3 pb-3 pt-8 font-sans text-secondary sm:px-4 sm:pb-4 sm:pt-10">
