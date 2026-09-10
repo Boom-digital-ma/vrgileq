@@ -335,7 +335,7 @@ export default async function HomePage({
 
   let eventQuery = fetchClient
     .from('auction_events')
-    .select('*', { count: 'exact' })
+    .select('*, auctions(count)', { count: 'exact' })
   
   if (!isAdmin) {
     eventQuery = eventQuery.neq('status', 'draft')
@@ -432,19 +432,21 @@ export default async function HomePage({
             const now = new Date();
             const isEnded = event.status === 'closed' || (event.status !== 'live' && event.status !== 'draft' && new Date(event.ends_at) <= now);
             const isUpcoming = event.status === 'scheduled' || (event.status === 'live' && new Date(event.start_at) > now);
+            const isInventoryPending = (event.auctions?.[0]?.count ?? 0) === 0;
             
             let displayStatus = isEnded ? 'closed' : (isUpcoming ? 'upcoming' : 'live');
             if (event.status === 'draft') displayStatus = 'draft';
 
-            return (
-              <Link 
-                href={`/events/${event.id}`} 
-                key={event.id}
-                className={cn(
-                  "group flex flex-col bg-white border border-zinc-100 rounded-[40px] overflow-hidden transition-all duration-250 hover:shadow-[0_40px_80px_rgba(11,43,83,0.1)] hover:-translate-y-2 h-full",
-                  filter === 'past' && "grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100"
-                )}
-              >
+            const cardClassName = cn(
+              "group flex h-full flex-col overflow-hidden rounded-[40px] border border-zinc-100 bg-white transition-all duration-250",
+              isInventoryPending
+                ? "cursor-not-allowed opacity-70"
+                : "hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(11,43,83,0.1)]",
+              filter === 'past' && !isInventoryPending && "grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100"
+            );
+
+            const cardContent = (
+              <>
                 <div className="relative aspect-square w-full overflow-hidden border-b border-zinc-100 bg-white">
                   {event.image_url ? (
                     <Image src={event.image_url} alt={event.title} fill className="object-contain" sizes="(max-width: 768px) 100vw, 400px" />
@@ -454,13 +456,19 @@ export default async function HomePage({
                     </div>
                   )}
                   <div className="absolute top-6 left-6 z-10 flex flex-col items-start gap-2">
-                    <EventStatusBadge 
-                        eventId={event.id}
-                        initialStatus={event.status}
-                        startAt={event.start_at}
-                        endsAt={event.ends_at}
-                    />
-                    {isUpcoming && (
+                    {isInventoryPending ? (
+                      <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-amber-700 italic">
+                        Coming Soon
+                      </span>
+                    ) : (
+                      <EventStatusBadge
+                          eventId={event.id}
+                          initialStatus={event.status}
+                          startAt={event.start_at}
+                          endsAt={event.ends_at}
+                      />
+                    )}
+                    {isUpcoming && !isInventoryPending && (
                         <EventReminderButton eventId={event.id} startAt={event.start_at} isUpcoming={isUpcoming} />
                     )}
                   </div>
@@ -483,14 +491,36 @@ export default async function HomePage({
                   </h3>
                   
                   <div className="mt-auto flex items-center justify-between border-t border-zinc-50 pt-6">
-                      <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} status={event.status} />
-                      <div className="bg-primary/10 text-primary p-4 rounded-2xl transition-all group-hover:bg-primary group-hover:text-white shadow-sm">
-                          <ArrowRight size={20} strokeWidth={3} />
+                      {isInventoryPending ? (
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-amber-400" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 italic">Inventory Coming Soon</span>
+                        </div>
+                      ) : (
+                        <EventCardStatus startAt={event.start_at} endsAt={event.ends_at} status={event.status} />
+                      )}
+                      <div className={cn(
+                        "rounded-2xl p-4 shadow-sm transition-all",
+                        isInventoryPending
+                          ? "bg-zinc-100 text-zinc-300"
+                          : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
+                      )}>
+                          {isInventoryPending ? <Package size={20} strokeWidth={3} /> : <ArrowRight size={20} strokeWidth={3} />}
                       </div>
                   </div>
                 </div>
+              </>
+            );
+
+            return isInventoryPending ? (
+              <div key={event.id} className={cardClassName} aria-label={`${event.title}: inventory coming soon`}>
+                {cardContent}
+              </div>
+            ) : (
+              <Link key={event.id} href={`/events/${event.id}`} className={cardClassName}>
+                {cardContent}
               </Link>
-            )
+            );
           })}
         </div>
 
