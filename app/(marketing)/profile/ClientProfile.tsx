@@ -43,64 +43,76 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
   }, [])
 
   async function fetchData() {
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    if (!currentUser) {
-      window.location.href = '/auth/signin'
-      return
-    }
-    setUser(currentUser)
-
-    // Admin can see other users, otherwise only themselves
-    const isAdmin = currentUser.user_metadata?.role === 'admin'
-    const finalUserId = (isAdmin && targetUserId) ? targetUserId : currentUser.id
-
-    const [profileRes, cardsRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', finalUserId).single(),
-        isAdmin && targetUserId ? [] : getPaymentMethods() // Don't fetch cards for other users as admin (privacy)
-    ])
-
-    const { data: bids } = await supabase
-      .from('bids')
-      .select('*, auctions(*, auction_images(*), auction_events(title))')
-      .eq('user_id', finalUserId)
-      .order('created_at', { ascending: false })
-
-    const uniqueBidsMap = new Map()
-    bids?.forEach((bid: any) => {
-      if (!uniqueBidsMap.has(bid.auction_id) && bid.auctions.status === 'live') {
-          uniqueBidsMap.set(bid.auction_id, bid)
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser) {
+        window.location.href = '/auth/signin'
+        return
       }
-    })
+      setUser(currentUser)
 
-    // 1. Fetch Won Lots
-    const { data: wonLots } = await supabase
-      .from('auctions')
-      .select('*, auction_images(*), auction_events(title)')
-      .eq('winner_id', finalUserId)
-      .in('status', ['sold', 'ended'])
-      .order('ends_at', { ascending: false })
+      const isAdmin = currentUser.user_metadata?.role === 'admin'
+      const finalUserId = (isAdmin && targetUserId) ? targetUserId : currentUser.id
 
-    // 2. Fetch Consolidated Invoices
-    const { data: invoices } = await supabase
-      .from('sales')
-      .select('*, sale_items(*, auction:auctions(*, auction_images(*))), event:auction_events(title)')
-      .eq('winner_id', finalUserId)
-      .order('created_at', { ascending: false })
+      console.log('[Profile] fetchData start, userId:', finalUserId)
+      const t0 = performance.now()
 
-    const { data: watch } = await supabase
-      .from('watchlist')
-      .select('*, auctions(*, auction_images(*), auction_events(title))')
-      .eq('user_id', finalUserId)
+      const [profileRes, cardsRes, bidsRes, wonLotsRes, invoicesRes, watchRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', finalUserId).single(),
+        isAdmin && targetUserId ? [] : getPaymentMethods(),
+        supabase
+          .from('bids')
+          .select('*, auctions(*, auction_images(*), auction_events(title))')
+          .eq('user_id', finalUserId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('auctions')
+          .select('*, auction_images(*), auction_events(title)')
+          .eq('winner_id', finalUserId)
+          .in('status', ['sold', 'ended'])
+          .order('ends_at', { ascending: false }),
+        supabase
+          .from('sales')
+          .select('*, sale_items(*, auction:auctions(*, auction_images(*))), event:auction_events(title)')
+          .eq('winner_id', finalUserId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('watchlist')
+          .select('*, auctions(*, auction_images(*), auction_events(title))')
+          .eq('user_id', finalUserId)
+      ])
 
-    setData({
-      bids: Array.from(uniqueBidsMap.values()),
-      wonLots: wonLots || [],
-      invoices: invoices || [],
-      watchlist: watch?.map((w: any) => w.auctions) || [],
-      profile: profileRes.data,
-      cards: cardsRes
-    })
-    setLoading(false)
+      const elapsed = Math.round(performance.now() - t0)
+      console.log(`[Profile] queries done in ${elapsed}ms`, {
+        profile: profileRes.error?.message || 'ok',
+        bids: bidsRes.error?.message || `${bidsRes.data?.length ?? 0} rows`,
+        wonLots: wonLotsRes.error?.message || `${wonLotsRes.data?.length ?? 0} rows`,
+        invoices: invoicesRes.error?.message || `${invoicesRes.data?.length ?? 0} rows`,
+        watchlist: watchRes.error?.message || `${watchRes.data?.length ?? 0} rows`,
+        cards: Array.isArray(cardsRes) ? `${cardsRes.length} cards` : 'error'
+      })
+
+      const uniqueBidsMap = new Map()
+      bidsRes.data?.forEach((bid: any) => {
+        if (!uniqueBidsMap.has(bid.auction_id) && bid.auctions.status === 'live') {
+          uniqueBidsMap.set(bid.auction_id, bid)
+        }
+      })
+
+      setData({
+        bids: Array.from(uniqueBidsMap.values()),
+        wonLots: wonLotsRes.data || [],
+        invoices: invoicesRes.data || [],
+        watchlist: watchRes.data?.map((w: any) => w.auctions) || [],
+        profile: profileRes.data,
+        cards: cardsRes
+      })
+    } catch (e) {
+      console.error('[Profile] fetchData error:', e)
+      toast.error('Failed to load profile data. Please refresh.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const participatingIdsRef = useRef<Set<string>>(new Set())
