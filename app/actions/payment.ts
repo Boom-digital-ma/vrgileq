@@ -296,23 +296,28 @@ export async function processEventPayments(eventId: string) {
 }
 
 export async function getPaymentMethods() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return []
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
 
-  const { data: profile } = await supabase.from('profiles').select('stripe_customer_id').eq('id', user.id).single()
-  if (!profile?.stripe_customer_id) return []
+    const { data: profile } = await supabase.from('profiles').select('stripe_customer_id').eq('id', user.id).single()
+    if (!profile?.stripe_customer_id) return []
 
-  const methods = await stripe.paymentMethods.list({
-    customer: profile.stripe_customer_id,
-    type: 'card',
-  })
+    const methods = await stripe.paymentMethods.list({
+      customer: profile.stripe_customer_id,
+      type: 'card',
+    })
 
-  return methods.data.map(m => ({
-    id: m.id,
-    brand: m.card?.brand,
-    last4: m.card?.last4,
-    exp_month: m.card?.exp_month,
-    exp_year: m.card?.exp_year,
-  }))
+    return methods.data.map(m => ({
+      id: m.id,
+      brand: m.card?.brand,
+      last4: m.card?.last4,
+      exp_month: m.card?.exp_month,
+      exp_year: m.card?.exp_year,
+    }))
+  } catch (e) {
+    console.error('getPaymentMethods error:', e)
+    return []
+  }
 }
