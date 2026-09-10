@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AuctionCard, { Product } from "./AuctionCard";
 import { createClient } from "@/lib/supabase/client";
 import { fetchLots } from "@/app/actions/lots";
-import { Loader2, PackageSearch, Search, X, Star, Gavel } from "lucide-react";
+import { Loader2, PackageSearch, Search, X, Star, Gavel, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AuctionGridProps {
@@ -42,6 +42,7 @@ export default function AuctionGrid({
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearchQuery);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showBiddedOnly, setShowBiddedOnly] = useState(false);
+  const [wonCount, setWonCount] = useState(0);
   const [resetKey, setResetKey] = useState(0);
   
   const mountedRef = useRef(false);
@@ -157,6 +158,13 @@ export default function AuctionGrid({
     };
     window.addEventListener('reset-auction-grid', handleReset);
     return () => window.removeEventListener('reset-auction-grid', handleReset);
+  }, []);
+
+  // Listen for won items count from EventWonDrawer
+  useEffect(() => {
+    const handleWonCount = (e: any) => setWonCount(e.detail.count);
+    window.addEventListener('won-count-updated', handleWonCount);
+    return () => window.removeEventListener('won-count-updated', handleWonCount);
   }, []);
 
   // Sync with initial props if filters change (Reset state)
@@ -506,17 +514,31 @@ export default function AuctionGrid({
                         onClick={() => setShowBiddedOnly(!showBiddedOnly)}
                         className={cn(
                             "flex items-center gap-2.5 px-6 h-11 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all flex-1 sm:flex-none justify-center active:scale-95",
-                            showBiddedOnly 
-                                ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
+                            showBiddedOnly
+                                ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
                                 : biddedLotIds.size > 0
                                     ? "bg-primary/5 border-primary/20 text-primary hover:bg-primary/10 hover:border-primary/30"
                                     : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-300"
                         )}
                     >
-                        <Gavel 
-                            size={14} 
+                        <Gavel
+                            size={14}
                         />
                         <span className="hidden sm:inline">My Bids</span> ({biddedLotIds.size})
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new CustomEvent("open-won-drawer"))}
+                        className={cn(
+                            "flex items-center gap-2.5 px-6 h-11 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all flex-1 sm:flex-none justify-center active:scale-95",
+                            wonCount > 0
+                                ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300"
+                                : "bg-white text-zinc-400 border-zinc-200 hover:border-zinc-300"
+                        )}
+                    >
+                        <Trophy size={14} />
+                        <span className="hidden sm:inline">Won</span> ({wonCount})
                     </button>
                 </div>
             )}

@@ -322,9 +322,11 @@ export default function AuctionCard({
         const { registered } = await checkRegistration(product.event_id);
         if (!registered) {
             toast.error("Authorization Required", {
-                description: "Complete authorization at the top of the event page.",
+                description: "Redirecting to complete Bidding Authorization...",
+                duration: 3000,
             });
             setLoadingBid(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 

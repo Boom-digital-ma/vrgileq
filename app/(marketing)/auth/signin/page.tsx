@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import { login } from '@/app/actions/auth'
 import Link from 'next/link'
-import { Gavel, Loader2, AlertCircle, User, ArrowRight, Terminal } from 'lucide-react'
+import { Gavel, Loader2, User, ArrowRight, Terminal } from 'lucide-react'
 
 export default function SignInPage() {
   const [loading, setLoading] = useState(false)
@@ -56,37 +56,35 @@ export default function SignInPage() {
           <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Access your account</p>
         </div>
 
-        {error && (
-          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 p-4 text-[10px] font-bold uppercase text-rose-600 animate-in fade-in slide-in-from-top-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            {error}
-          </div>
-        )}
-
         <form ref={formRef} action={handleSubmit} className="relative z-10 space-y-5">
           <div className="space-y-2">
             <label className={labelClasses}>Email Address</label>
-            <input 
-              name="email" 
-              type="email" 
-              required 
-              className={inputClasses}
+            <input
+              name="email"
+              type="email"
+              required
+              className={`${inputClasses} ${error ? 'border-rose-300' : ''}`}
               placeholder="you@example.com"
+              onChange={() => setError(null)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between items-center px-4">
               <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Password</label>
               <Link href="/auth/forgot-password" className="text-[9px] font-bold uppercase tracking-widest text-primary hover:text-secondary transition-colors underline underline-offset-4 decoration-primary/20">Forgot password?</Link>
             </div>
-            <input 
-              name="password" 
-              type="password" 
-              required 
-              className={inputClasses}
+            <input
+              name="password"
+              type="password"
+              required
+              className={`${inputClasses} ${error ? 'border-rose-300' : ''}`}
               placeholder="••••••••"
+              onChange={() => setError(null)}
             />
+            {error && (
+              <p className="ml-4 text-[10px] font-bold uppercase tracking-widest text-rose-600">{error}</p>
+            )}
           </div>
 
           <button 

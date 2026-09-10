@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { checkSignupEmail, signup } from '@/app/actions/auth'
 import Link from 'next/link'
-import { Loader2, CreditCard, ArrowRight, ArrowLeft, MapPin, User, FileText, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Loader2, CreditCard, ArrowRight, ArrowLeft, MapPin, User, FileText, CheckCircle2 } from 'lucide-react'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import CardValidation from '@/components/auth/CardValidation'
@@ -14,10 +14,10 @@ const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 const US_STATES = [
-    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", 
-    "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", 
-    "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", 
-    "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", 
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
+    "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
+    "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey",
+    "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
     "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
 ]
 
@@ -25,9 +25,10 @@ export default function SignUpPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
   const [loading, setLoading] = useState(false)
   const [checkingEmail, setCheckingEmail] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [emailError, setEmailError] = useState<string | null>(null)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const router = useRouter()
 
   const [formData, setFormData] = useState({
@@ -47,6 +48,14 @@ export default function SignUpPage() {
 
   const updateForm = (fields: Partial<typeof formData>) => {
     setFormData(prev => ({ ...prev, ...fields }))
+  }
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors(prev => {
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
   }
 
   const validateSignupEmail = async () => {
@@ -70,17 +79,22 @@ export default function SignUpPage() {
 
   const nextStep = async () => {
     if (step === 1) {
-        if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password) {
-            setError("All identity fields are required.")
-            return
-        }
-        if (formData.password !== formData.confirmPassword) {
-            setError("Passwords do not match.")
-            return
+        const errors: Record<string, string> = {}
+        if (!formData.firstName) errors.firstName = "Required"
+        if (!formData.lastName) errors.lastName = "Required"
+        if (!formData.email) errors.email = "Required"
+        if (!formData.phone) errors.phone = "Required"
+        if (!formData.password) errors.password = "Required"
+        if (!formData.confirmPassword) errors.confirmPassword = "Required"
+        if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+            errors.confirmPassword = "Passwords do not match"
         }
         const phoneRegex = /[+]?[0-9\s\-()]{10,20}/
-        if (!phoneRegex.test(formData.phone)) {
-            setError("Please enter a valid mobile phone number.")
+        if (formData.phone && !phoneRegex.test(formData.phone)) {
+            errors.phone = "Invalid phone number"
+        }
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors)
             return
         }
         if (!await validateSignupEmail()) {
@@ -88,16 +102,20 @@ export default function SignUpPage() {
         }
     }
     if (step === 2) {
-        if (!formData.address || !formData.city || !formData.zip) {
-            setError("Address details are required for invoicing.")
+        const errors: Record<string, string> = {}
+        if (!formData.address) errors.address = "Required"
+        if (!formData.city) errors.city = "Required"
+        if (!formData.zip) errors.zip = "Required"
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors)
             return
         }
     }
-    setError(null)
+    setFieldErrors({})
     setStep((currentStep) => Math.min(currentStep + 1, 4) as 1 | 2 | 3 | 4)
   }
   const prevStep = () => {
-    setError(null)
+    setFieldErrors({})
     setStep((currentStep) => Math.max(currentStep - 1, 1) as 1 | 2 | 3 | 4)
   }
 
@@ -108,7 +126,7 @@ export default function SignUpPage() {
 
   const handleFinalSignup = async () => {
     setLoading(true)
-    setError(null)
+    setSubmitError(null)
 
     const fd = new FormData()
     fd.append('email', formData.email)
@@ -124,12 +142,12 @@ export default function SignUpPage() {
     try {
       const res = await signup(fd, formData.paymentMethodId)
       if (res.error) {
-        setError(res.error)
+        setSubmitError(res.error)
       } else {
         router.push(`/auth/verify?email=${encodeURIComponent(formData.email)}&type=signup`)
       }
     } catch {
-      setError("Critical network or system failure. Please retry.")
+      setSubmitError("Critical network or system failure. Please retry.")
     } finally {
       setLoading(false)
     }
@@ -137,11 +155,13 @@ export default function SignUpPage() {
 
   const labelClasses = "block text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-4 mb-2"
   const inputClasses = "w-full bg-zinc-50 border-2 border-zinc-100 rounded-2xl py-3.5 sm:py-4 px-6 text-sm font-bold text-secondary placeholder:text-zinc-300 focus:outline-none focus:border-primary/20 focus:bg-white transition-all outline-none [&:-webkit-autofill]:[-webkit-text-fill-color:#0B2B53] [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#fafafa_inset]"
+  const errorInputClasses = "border-rose-300"
+  const errorTextClasses = "ml-4 text-[10px] font-bold uppercase tracking-widest text-rose-600"
 
   return (
     <div className="flex w-full items-center justify-center bg-zinc-50 px-3 pb-3 pt-8 font-sans text-secondary sm:px-4 sm:pb-4 sm:pt-10">
       <div className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-zinc-100 bg-white p-5 shadow-2xl shadow-secondary/5 sm:p-7">
-        
+
         {/* Modern Progress Header */}
         <div className="relative z-10 mb-5 flex justify-center">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -156,13 +176,6 @@ export default function SignUpPage() {
                 ))}
             </div>
         </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-bold uppercase flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            {error}
-          </div>
-        )}
 
         {/* STEP 1: IDENTITY */}
         {step === 1 && (
@@ -186,11 +199,13 @@ export default function SignUpPage() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                     <label className={labelClasses}>First Name</label>
-                    <input type="text" value={formData.firstName} onChange={e => updateForm({ firstName: e.target.value })} className={inputClasses} placeholder="FIRST NAME" />
+                    <input type="text" value={formData.firstName} onChange={e => { updateForm({ firstName: e.target.value }); clearFieldError('firstName') }} className={cn(inputClasses, fieldErrors.firstName && errorInputClasses)} placeholder="FIRST NAME" />
+                    {fieldErrors.firstName && <p className={errorTextClasses}>{fieldErrors.firstName}</p>}
                 </div>
                 <div className="space-y-2">
                     <label className={labelClasses}>Last Name</label>
-                    <input type="text" value={formData.lastName} onChange={e => updateForm({ lastName: e.target.value })} className={inputClasses} placeholder="LAST NAME" />
+                    <input type="text" value={formData.lastName} onChange={e => { updateForm({ lastName: e.target.value }); clearFieldError('lastName') }} className={cn(inputClasses, fieldErrors.lastName && errorInputClasses)} placeholder="LAST NAME" />
+                    {fieldErrors.lastName && <p className={errorTextClasses}>{fieldErrors.lastName}</p>}
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -202,27 +217,32 @@ export default function SignUpPage() {
                     onChange={e => {
                       updateForm({ email: e.target.value })
                       setEmailError(null)
+                      clearFieldError('email')
                     }}
                     onBlur={() => { void validateSignupEmail() }}
-                    className={inputClasses}
+                    className={cn(inputClasses, (fieldErrors.email || emailError) && errorInputClasses)}
                     placeholder="you@example.com"
                   />
                   {checkingEmail && <p className="ml-4 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Checking email...</p>}
-                  {emailError && <p className="ml-4 text-[10px] font-bold uppercase tracking-widest text-rose-600">{emailError}</p>}
+                  {emailError && <p className={errorTextClasses}>{emailError}</p>}
+                  {fieldErrors.email && <p className={errorTextClasses}>{fieldErrors.email}</p>}
                 </div>
                 <div className="space-y-2">
                     <label className={labelClasses}>Mobile Phone</label>
-                    <input type="tel" value={formData.phone} onChange={e => updateForm({ phone: e.target.value })} className={inputClasses} placeholder="(703) 000-0000" />
+                    <input type="tel" value={formData.phone} onChange={e => { updateForm({ phone: e.target.value }); clearFieldError('phone') }} className={cn(inputClasses, fieldErrors.phone && errorInputClasses)} placeholder="(703) 000-0000" />
+                    {fieldErrors.phone && <p className={errorTextClasses}>{fieldErrors.phone}</p>}
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                     <label className={labelClasses}>Password</label>
-                    <input type="password" value={formData.password} onChange={e => updateForm({ password: e.target.value })} className={inputClasses} placeholder="••••••••" />
+                    <input type="password" value={formData.password} onChange={e => { updateForm({ password: e.target.value }); clearFieldError('password') }} className={cn(inputClasses, fieldErrors.password && errorInputClasses)} placeholder="••••••••" />
+                    {fieldErrors.password && <p className={errorTextClasses}>{fieldErrors.password}</p>}
                 </div>
                 <div className="space-y-2">
                     <label className={labelClasses}>Confirm Password</label>
-                    <input type="password" value={formData.confirmPassword} onChange={e => updateForm({ confirmPassword: e.target.value })} className={inputClasses} placeholder="••••••••" />
+                    <input type="password" value={formData.confirmPassword} onChange={e => { updateForm({ confirmPassword: e.target.value }); clearFieldError('confirmPassword') }} className={cn(inputClasses, fieldErrors.confirmPassword && errorInputClasses)} placeholder="••••••••" />
+                    {fieldErrors.confirmPassword && <p className={errorTextClasses}>{fieldErrors.confirmPassword}</p>}
                 </div>
               </div>
 
@@ -249,7 +269,8 @@ export default function SignUpPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className={labelClasses}>Street Address</label>
-                <input type="text" value={formData.address} onChange={e => updateForm({ address: e.target.value })} className={inputClasses} placeholder="STREET ADDRESS" />
+                <input type="text" value={formData.address} onChange={e => { updateForm({ address: e.target.value }); clearFieldError('address') }} className={cn(inputClasses, fieldErrors.address && errorInputClasses)} placeholder="STREET ADDRESS" />
+                {fieldErrors.address && <p className={errorTextClasses}>{fieldErrors.address}</p>}
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -269,11 +290,13 @@ export default function SignUpPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <label className={labelClasses}>City</label>
-                    <input type="text" value={formData.city} onChange={e => updateForm({ city: e.target.value })} className={inputClasses} placeholder="CITY" />
+                    <input type="text" value={formData.city} onChange={e => { updateForm({ city: e.target.value }); clearFieldError('city') }} className={cn(inputClasses, fieldErrors.city && errorInputClasses)} placeholder="CITY" />
+                    {fieldErrors.city && <p className={errorTextClasses}>{fieldErrors.city}</p>}
                 </div>
                 <div className="space-y-2">
                     <label className={labelClasses}>Zip Code</label>
-                    <input type="text" value={formData.zip} onChange={e => updateForm({ zip: e.target.value })} className={inputClasses} placeholder="ZIP CODE" />
+                    <input type="text" value={formData.zip} onChange={e => { updateForm({ zip: e.target.value }); clearFieldError('zip') }} className={cn(inputClasses, fieldErrors.zip && errorInputClasses)} placeholder="ZIP CODE" />
+                    {fieldErrors.zip && <p className={errorTextClasses}>{fieldErrors.zip}</p>}
                 </div>
               </div>
 
@@ -356,7 +379,7 @@ Items will not be released until payment is completed.
 Failure to pay may result in account suspension, legal action, and loss of future bidding privileges.
 
 4. Item Condition & As-Is Sale
-Items are sold “as-is, where-is”.
+Items are sold "as-is, where-is".
 Photos and descriptions provide accurate information to the best of our knowledge.
 No warranty, express or implied, is provided.
 
@@ -408,12 +431,16 @@ Resources for first-time bidders and FAQs are available on the Website.
                 <span className="text-[10px] font-bold uppercase tracking-widest">I agree to the Terms & Conditions</span>
             </label>
 
+            {submitError && (
+              <p className="mb-4 ml-4 text-[10px] font-bold uppercase tracking-widest text-rose-600">{submitError}</p>
+            )}
+
             <div className="flex gap-4">
                 <button onClick={prevStep} disabled={loading} className="rounded-2xl border-2 border-zinc-100 bg-zinc-50 px-6 py-4 font-bold uppercase text-zinc-400 transition-all hover:bg-white hover:text-secondary disabled:opacity-50 sm:px-8">
                     <ArrowLeft size={18} />
                 </button>
-                <button 
-                    onClick={handleFinalSignup} 
+                <button
+                    onClick={handleFinalSignup}
                     disabled={loading || !acceptedTerms}
                     className="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-secondary py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white shadow-2xl shadow-secondary/10 transition-all hover:bg-primary active:scale-[0.98] disabled:opacity-50 sm:text-sm"
                 >

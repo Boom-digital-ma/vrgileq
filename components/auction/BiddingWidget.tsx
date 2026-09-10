@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Modal } from "@/components/admin/Modal";
 import { cn, formatEventDate, calculateNextIncrement } from "@/lib/utils";
 
 interface BiddingWidgetProps {
@@ -34,12 +35,15 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [isWatched, setIsWatched] = useState(false);
   const [loadingWatch, setLoadingWatch] = useState(false);
   const [settings, setSettings] = useState<any>(null);
   const [isStarted, setIsStarted] = useState(!startAt);
   const [isEnded, setIsEnded] = useState(initialIsEnded);
   const [mounted, setMounted] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [depositAmount, setDepositAmount] = useState(0);
   const router = useRouter();
   
   const supabase = createClient();
@@ -99,10 +103,18 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
                 }
             }
 
-            const { data: siteSettings } = await supabase.from('site_settings').select('*').eq('id', 'global').maybeSingle();
-            if (isMounted) setSettings(siteSettings);
+            const [siteSettingsRes, eventRes] = await Promise.all([
+                supabase.from('site_settings').select('*').eq('id', 'global').maybeSingle(),
+                supabase.from('auction_events').select('deposit_amount').eq('id', eventId).single()
+            ]);
+            if (isMounted) {
+                setSettings(siteSettingsRes.data);
+                setDepositAmount(Number(eventRes.data?.deposit_amount) || 0);
+            }
         } catch (e) {
             console.warn("Initial data fetch aborted");
+        } finally {
+            if (isMounted) setLoadingProfile(false);
         }
     }
     getInitialData();
@@ -202,11 +214,14 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[BiddingWidget] handleBid called", { isAdmin, userProfile: !!userProfile, eventId, auctionId });
     if (isAdmin) {
+      console.log("[BiddingWidget] Blocked: admin account");
       toast.error("Admin accounts cannot place bids.");
       return;
     }
     if (!userProfile) {
+        console.log("[BiddingWidget] No userProfile, redirecting to signin");
         router.push('/auth/signin');
         return;
     }
@@ -215,13 +230,13 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     setError(null);
 
     try {
+      console.log("[BiddingWidget] Calling checkRegistration for eventId:", eventId);
       const { registered } = await checkRegistration(eventId);
+      console.log("[BiddingWidget] checkRegistration result:", { registered });
       if (!registered) {
-          toast.error("Authorization Required", {
-              description: "Please complete the Bidding Authorization at the top of the page.",
-              duration: 5000,
-          });
+          console.log("[BiddingWidget] Not registered, opening auth modal");
           setLoading(false);
+          setShowAuthModal(true);
           return;
       }
 
@@ -440,7 +455,7 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
             isAdmin ? "bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none" : "bg-secondary text-white hover:bg-primary shadow-secondary/10"
           )}>
           {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : (isAdmin ? <Shield className="h-6 w-6" /> : (isEnded ? <Lock className="h-6 w-6" /> : (isStarted ? <Gavel className="h-6 w-6" /> : <Clock className="h-6 w-6" />)))}
-          {isAdmin ? "ADMIN MODE: CANNOT BID" : (isEnded ? "Bidding Closed" : (!isStarted ? "Bidding Not Started" : (userProfile ? `Place Bid $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}` : "Sign In to Bid")))}
+          {isAdmin ? "ADMIN MODE: CANNOT BID" : (isEnded ? "Bidding Closed" : (!isStarted ? "Bidding Not Started" : (loadingProfile ? "Loading..." : (userProfile ? `Place Bid $${mounted ? bidAmount.toLocaleString() : bidAmount.toString()}` : "Sign In to Bid"))))}
         </button>
         </form>
       )}
@@ -475,6 +490,18 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
           {sortedBids.length === 0 && <div className="text-center py-8 border-2 border-dashed border-zinc-100 rounded-2xl"><p className="text-[10px] font-bold text-zinc-300 uppercase italic">Waiting for first bid...</p></div>}
         </div>
       </div>
+
+      {/* Authorization Modal */}
+      <Modal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Bidding Authorization"
+        maxWidth="max-w-md"
+      >
+        <div className="p-6 sm:p-8">
+          <RegistrationButton eventId={eventId} depositAmount={depositAmount} />
+        </div>
+      </Modal>
     </div>
   );
 }

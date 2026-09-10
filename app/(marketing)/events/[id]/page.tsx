@@ -6,6 +6,7 @@ import RegistrationButton from '@/components/auction/RegistrationButton'
 import EventStatusBadge from '@/components/auction/EventStatusBadge'
 import EventReminderButton from '@/components/auction/EventReminderButton'
 import EventWatchlistDrawer from '@/components/auction/EventWatchlistDrawer'
+import EventWonDrawer from '@/components/auction/EventWonDrawer'
 import ProtocolCards from '@/components/auction/ProtocolCards'
 import ImageGallery from '@/components/auction/ImageGallery'
 import ResetFiltersButton from '@/components/auction/ResetFiltersButton'
@@ -291,8 +292,9 @@ export default async function EventPage({
 
       </div>
 
-      {/* Floating Watchlist Drawer */}
+      {/* Floating Drawers */}
       {!isEnded && <EventWatchlistDrawer eventId={id} user={user} />}
+      <EventWonDrawer eventId={id} user={user} />
     </div>
   )
 }
