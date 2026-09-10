@@ -4,33 +4,40 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function updateProfile(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) return { error: 'Unauthorized' }
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  const data = {
-    full_name: formData.get('fullName') as string,
-    phone: formData.get('phone') as string,
-    address_line: formData.get('address') as string,
-    city: formData.get('city') as string,
-    state: formData.get('state') as string,
-    zip_code: formData.get('zip') as string,
-    country: formData.get('country') as string,
-    updated_at: new Date().toISOString()
+    if (!user) return { error: 'Unauthorized' }
+
+    const data: Record<string, string> = {
+      full_name: formData.get('fullName') as string,
+      phone: formData.get('phone') as string,
+      address_line: formData.get('address') as string,
+      city: formData.get('city') as string,
+      state: formData.get('state') as string,
+      zip_code: formData.get('zip') as string,
+      updated_at: new Date().toISOString()
+    }
+
+    const country = formData.get('country') as string | null
+    if (country) data.country = country
+
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        ...data
+      }, { onConflict: 'id' })
+
+    if (error) return { error: error.message }
+
+    revalidatePath('/profile')
+    return { success: 'Profile updated successfully' }
+  } catch (e) {
+    console.error('updateProfile error:', e)
+    return { error: 'An unexpected error occurred. Please try again.' }
   }
-
-  const { error } = await supabase
-    .from('profiles')
-    .upsert({ 
-      id: user.id,
-      ...data 
-    }, { onConflict: 'id' })
-
-  if (error) return { error: error.message }
-
-  revalidatePath('/profile')
-  return { success: 'Profile updated successfully' }
 }
 
 export async function adminCreateUser(data: { email: string, password?: string, full_name: string, role: string }) {
@@ -78,19 +85,24 @@ export async function adminUpdateUser(id: string, data: { full_name?: string, ro
 }
 
 export async function deleteAccount() {
-  const supabase = await createClient()
-  const adminClient = await createAdminClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Unauthorized' }
+  try {
+    const supabase = await createClient()
+    const adminClient = await createAdminClient()
 
-  // 1. Delete user from Supabase Auth (this will cascade delete the profile due to FK)
-  const { error } = await adminClient.auth.admin.deleteUser(user.id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
 
-  if (error) return { error: error.message }
+    // 1. Delete user from Supabase Auth (this will cascade delete the profile due to FK)
+    const { error } = await adminClient.auth.admin.deleteUser(user.id)
 
-  // 2. Sign out on server side (clear cookies)
-  await supabase.auth.signOut()
+    if (error) return { error: error.message }
 
-  return { success: true }
+    // 2. Sign out on server side (clear cookies)
+    await supabase.auth.signOut()
+
+    return { success: true }
+  } catch (e) {
+    console.error('deleteAccount error:', e)
+    return { error: 'An unexpected error occurred. Please try again.' }
+  }
 }
