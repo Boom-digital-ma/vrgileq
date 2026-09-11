@@ -82,6 +82,13 @@ export const Dashboard = () => {
   // 1. Financial Performance
   const totalRevenue = sales.filter((s: any) => s.status === 'paid').reduce((acc: number, curr: any) => acc + (Number(curr.total_amount) || 0), 0)
   const pendingRevenue = sales.filter((s: any) => s.status === 'pending').reduce((acc: number, curr: any) => acc + (Number(curr.total_amount) || 0), 0)
+
+  // Won auctions not yet paid (sold status with no matching paid sale)
+  const soldAuctions = auctions.filter((a: any) => a.status === 'sold' || a.status === 'ended')
+  const paidSaleAuctionIds = new Set(sales.filter((s: any) => s.status === 'paid').map((s: any) => s.auction_id))
+  const unpaidWonTotal = soldAuctions
+    .filter((a: any) => a.winner_id && !paidSaleAuctionIds.has(a.id))
+    .reduce((acc: number, a: any) => acc + (Number(a.current_price) || 0), 0)
   
   // 2. Velocity & Engagement
   const liveLots = auctions.filter((a: any) => a.status === 'live')
@@ -155,14 +162,14 @@ export const Dashboard = () => {
         bg: "bg-emerald-50",
         border: "border-emerald-100"
     },
-    { 
-        label: "Registration Holds", 
-        value: activeHolds.toString(), 
-        subValue: "Active Stripe Auth",
-        icon: CreditCard, 
-        color: "text-blue-600", 
-        bg: "bg-blue-50",
-        border: "border-blue-100"
+    {
+        label: "Unpaid Won Bids",
+        value: `$${unpaidWonTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        subValue: `+$${pendingRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} invoiced pending`,
+        icon: CreditCard,
+        color: "text-rose-600",
+        bg: "bg-rose-50",
+        border: "border-rose-100"
     },
     { 
         label: "Total Bids Placed", 

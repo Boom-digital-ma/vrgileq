@@ -1,10 +1,9 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, Gavel, MapPin, ArrowRight, Package, LayoutGrid, SlidersHorizontal, ChevronRight, Globe2, BarChart3, History, ShieldCheck, Zap, Truck, TrendingUp, Eye } from 'lucide-react'
+import { Calendar, Gavel, MapPin, ArrowRight, Package, Globe2, ShieldCheck, Zap, Truck, TrendingUp, Eye } from 'lucide-react'
 import { cn, formatEventDate } from '@/lib/utils'
 import SearchBar from '@/components/layout/SearchBar'
-import AuctionGrid from '@/components/auction/AuctionGrid'
 import EventStatusBadge from '@/components/auction/EventStatusBadge'
 import EventCardStatus from '@/components/auction/EventCardStatus'
 import EventReminderButton from '@/components/auction/EventReminderButton'
@@ -23,7 +22,7 @@ export default async function HomePage({
   searchParams: Promise<{ q?: string, category?: string, page?: string, filter?: 'live' | 'upcoming' | 'past' | 'draft' }>
 }) {
   const [supabase, params] = await Promise.all([createClient(), searchParams])
-  const { q, category, page } = params
+  const { q, page } = params
   let filter = params.filter
   const currentPage = parseInt(page || '1')
   const PAGE_SIZE_LOTS = 12
@@ -50,96 +49,59 @@ export default async function HomePage({
   const isAdmin = userRole === 'admin'
   const fetchClient = isAdmin ? createAdminClient() : supabase
 
-  // 1. If searching or filtering by category, show Lots (Search Mode)
-  if (q || category) {
-    let query = fetchClient
-        .from('auctions')
-        .select(`
-            *,
-            lot_number,
-            categories(name),
-            auction_images(url),
-            auction_events(id, location, ends_at, start_at),
-            bids(count)
-        `, { count: 'exact' })
-    
-    // Admin sees everything, others see only live
+  // 1. If searching, show matching auctions grouped by event
+  if (q) {
+    const trimmedQ = q.trim()
+
+    // Search auctions matching the query
+    let auctionQuery = fetchClient
+      .from('auctions')
+      .select(`
+        id, title, image_url, current_price, lot_number, ends_at, status, winner_id,
+        auction_images(url),
+        auction_events!inner(id, title, image_url, status, start_at, ends_at)
+      `)
+
     if (!isAdmin) {
-        query = query.eq('status', 'live')
+      auctionQuery = auctionQuery.eq('status', 'live')
     }
 
-    if (q) {
-        const trimmedQ = q.trim()
-        const isNumeric = /^\d+$/.test(trimmedQ)
-        const lotNumberCondition = isNumeric ? `,lot_number.eq.${trimmedQ}` : ''
-        query = query.or(`title.ilike.%${trimmedQ}%,description.ilike.%${trimmedQ}%${lotNumberCondition}`)
-    }
-    if (category) query = query.eq('category_id', category)
-
-    const from = (currentPage - 1) * PAGE_SIZE_LOTS
-    const to = from + PAGE_SIZE_LOTS - 1
-
-    const { data: lots, count } = await query
-        .order('created_at', { ascending: false })
-        .range(from, to)
-
-    // 1b. Fetch User Bids for these lots (for Proxy Indicators)
-    let userBidsMap = new Map();
-    if (user && lots && lots.length > 0) {
-        const lotIds = lots.map(l => l.id);
-        const { data: userBids } = await supabase
-            .from('bids')
-            .select('auction_id, max_amount, amount')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .in('auction_id', lotIds);
-        
-        userBids?.forEach((b: any) => userBidsMap.set(b.auction_id, b));
+    if (trimmedQ) {
+      const isNumeric = /^\d+$/.test(trimmedQ)
+      const lotNumberCondition = isNumeric ? `,lot_number.eq.${trimmedQ}` : ''
+      auctionQuery = auctionQuery.or(`title.ilike.%${trimmedQ}%,description.ilike.%${trimmedQ}%${lotNumberCondition}`)
     }
 
-    // 1c. Fetch Archives (Sold/Ended) for the same query
-    let archiveQuery = supabase
-        .from('auctions')
-        .select(`
-            *,
-            lot_number,
-            categories(name),
-            auction_images(url),
-            auction_events(id, location, ends_at, start_at),
-            bids(count)
-        `)
-        .in('status', ['sold', 'ended'])
+    const { data: matchingAuctions } = await auctionQuery
+      .order('lot_number', { ascending: true })
+      .limit(60)
 
-    if (q) {
-        const trimmedQ = q.trim()
-        const isNumeric = /^\d+$/.test(trimmedQ)
-        const lotNumberCondition = isNumeric ? `,lot_number.eq.${trimmedQ}` : ''
-        archiveQuery = archiveQuery.or(`title.ilike.%${trimmedQ}%,description.ilike.%${trimmedQ}%${lotNumberCondition}`)
-    }
-    if (category) archiveQuery = archiveQuery.eq('category_id', category)
+    // Group auctions by event
+    const eventGroups = new Map<string, { event: any, auctions: any[] }>()
+    ;(matchingAuctions || []).forEach((auction: any) => {
+      const event = auction.auction_events
+      if (!event) return
+      if (!eventGroups.has(event.id)) {
+        eventGroups.set(event.id, { event, auctions: [] })
+      }
+      eventGroups.get(event.id)!.auctions.push(auction)
+    })
 
-    const { data: archives, count: archiveCount } = await archiveQuery
-        .order('ends_at', { ascending: false })
-        .range(0, 11) // First 12
-
-    const totalPages = Math.ceil((count || 0) / PAGE_SIZE_LOTS)
+    const groupedResults = Array.from(eventGroups.values())
+    const totalAuctions = matchingAuctions?.length || 0
 
     return (
         <div className="min-h-screen bg-zinc-50 pb-20">
-            {/* SaaS Header Section */}
             <div className="bg-white border-b border-zinc-100 pt-16 pb-12">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="h-1 w-8 bg-primary rounded-full" />
-                                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Search Catalog</span>
-                                {isAdmin && (
-                                    <span className="bg-secondary text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">Admin View</span>
-                                )}
+                                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Search Results</span>
                             </div>
                             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-secondary italic font-display uppercase leading-none mb-4">
-                                {q ? `Results for "${q}"` : 'Filtered Assets'}
+                                Results for &ldquo;{q}&rdquo;
                             </h1>
                             <Link href="/" className="text-zinc-400 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 hover:text-primary transition-colors group">
                                 <ArrowRight className="rotate-180 h-3 w-3 group-hover:-translate-x-1 transition-transform" /> Back to Home
@@ -153,150 +115,83 @@ export default async function HomePage({
             </div>
 
             <div className="max-w-7xl mx-auto px-6 py-12">
-                <div className="flex flex-col lg:flex-row gap-12">
-                    <aside className="lg:w-64 shrink-0">
-                        <div className="sticky top-32 space-y-10">
-                            <div>
-                                <div className="flex items-center gap-2 mb-6">
-                                    <SlidersHorizontal size={14} className="text-primary" />
-                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary italic">Refine Search</h3>
-                                </div>
-                                <nav className="flex flex-col gap-1.5">
-                                    {categories?.map((cat) => (
-                                        <Link 
-                                            key={cat.id}
-                                            href={`/?category=${cat.id}${q ? `&q=${q}` : ''}`}
-                                            className={cn(
-                                                "px-4 py-2.5 text-[11px] font-bold uppercase tracking-tight transition-all rounded-xl border flex items-center justify-between group",
-                                                category === cat.id 
-                                                    ? "bg-secondary text-white border-secondary shadow-lg shadow-secondary/10" 
-                                                    : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-200 hover:text-secondary"
-                                            )}
-                                        >
-                                            {cat.name}
-                                            {category === cat.id && <ChevronRight size={14} className="text-primary" />}
-                                        </Link>
-                                    ))}
-                                </nav>
-                            </div>
-
-                            <div className="p-6 bg-zinc-900 rounded-3xl text-white relative overflow-hidden italic shadow-xl shadow-black/5">
-                                <div className="relative z-10">
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Pro Tip</h4>
-                                    <p className="text-[11px] font-medium opacity-60 leading-relaxed uppercase">Use proxy bidding to secure assets automatically at the best price.</p>
-                                </div>
-                                <div className="absolute -bottom-4 -right-4 h-20 w-20 bg-primary/10 blur-2xl rounded-full"></div>
-                            </div>
+                {groupedResults.length > 0 ? (
+                    <>
+                        <div className="flex items-center gap-3 mb-10 border-b border-zinc-100 pb-6">
+                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                            <span className="text-[11px] font-bold text-zinc-900 uppercase tracking-widest">
+                                {totalAuctions} {totalAuctions === 1 ? 'item' : 'items'} in {groupedResults.length} {groupedResults.length === 1 ? 'event' : 'events'}
+                            </span>
                         </div>
-                    </aside>
 
-                    <div className="flex-1 min-w-0">
-                        {lots && lots.length > 0 ? (
-                            <>
-                                <div className="flex items-center gap-3 mb-10 border-b border-zinc-100 pb-6">
-                                    <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-                                    <span className="text-[11px] font-bold text-zinc-900 uppercase tracking-widest">
-                                        {isAdmin ? "Total Inventory" : "Active Bidding"} • {count} results
-                                    </span>
-                                </div>
+                        <div className="space-y-12">
+                            {groupedResults.map(({ event, auctions }) => (
+                                <div key={event.id}>
+                                    {/* Event Header */}
+                                    <Link
+                                        href={`/events/${event.id}`}
+                                        className="flex items-center gap-4 mb-6 p-4 bg-white rounded-2xl border border-zinc-100 hover:border-primary/20 transition-all group"
+                                    >
+                                        {event.image_url && (
+                                            <div className="relative h-14 w-14 rounded-xl overflow-hidden border border-zinc-100 shrink-0">
+                                                <Image src={event.image_url} alt={event.title} fill className="object-cover" sizes="56px" />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <h2 className="text-lg font-black text-secondary uppercase italic tracking-tight group-hover:text-primary transition-colors truncate font-display">
+                                                {event.title}
+                                            </h2>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                                {auctions.length} {auctions.length === 1 ? 'match' : 'matches'}
+                                            </span>
+                                        </div>
+                                        <div className="rounded-xl p-3 bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all shrink-0">
+                                            <ArrowRight size={16} strokeWidth={3} />
+                                        </div>
+                                    </Link>
 
-                                <AuctionGrid 
-                                    products={lots?.map(lot => {
-                                        const userBid = userBidsMap.get(lot.id);
-                                        const sortedGallery = (lot.auction_images?.map((i: any) => i.url) || [])
-                                            .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
-                                        const allImages = [
-                                            ...(lot.image_url ? [lot.image_url] : []),
-                                            ...sortedGallery
-                                        ].filter((v, i, a) => a.indexOf(v) === i);
+                                    {/* Auction Items Grid — 3 columns */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {auctions.map((auction: any) => {
+                                            const galleryImages = (auction.auction_images?.map((i: any) => i.url) || [])
+                                                .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }))
+                                            const mainImage = auction.image_url || galleryImages[0] || '/images/placeholder.jpg'
 
-                                        return {
-                                            id: lot.id,
-                                            event_id: lot.auction_events?.id,
-                                            lotNumber: lot.lot_number,
-                                            title: lot.title,
-                                            supplier: lot.categories?.name || 'General Industrial',
-                                            price: Number(lot.current_price),
-                                            endsAt: lot.ends_at || lot.auction_events?.ends_at,
-                                            startAt: lot.auction_events?.start_at,
-                                            image: allImages[0] || "/images/placeholder.jpg",
-                                            images: allImages,
-                                            bidCount: lot.bids?.[0]?.count || 0,
-                                            pickupLocation: lot.auction_events?.location,
-                                            description: lot.description,
-                                            minIncrement: Number(lot.min_increment),
-                                            userMaxBid: userBid?.max_amount,
-                                            userCurrentBid: userBid?.amount,
-                                            winner_id: lot.winner_id,
-                                            manufacturer: lot.manufacturer,
-                                            model: lot.model,
-                                            status: lot.status
-                                        }
-                                    }) || []} 
-                                    user={userProfile ? { ...user, ...userProfile } : user}
-                                    searchQuery={q}
-                                    categoryId={category}
-                                    initialTotalCount={count || 0}
-                                    status={isAdmin ? ['live', 'draft', 'scheduled'] : 'live'}
-                                />
-                            </>
-                        ) : (
-                            <div className="py-24 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic mb-16 px-10">
-                                <Package size={48} className="mx-auto text-zinc-100 mb-6" />
-                                <p className="text-zinc-300 font-bold uppercase text-xl tracking-tighter max-w-sm mx-auto">No active assets matching your criteria in the current live inventory.</p>
-                            </div>
-                        )}
-
-                        {/* ARCHIVE SECTION */}
-                        {archives && archives.length > 0 && (
-                            <div className="mt-20">
-                                <div className="flex items-center gap-3 mb-10 border-b border-zinc-100 pb-6">
-                                    <History size={18} className="text-zinc-300" />
-                                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest italic">Sold / Ended Archives</span>
-                                </div>
-
-                                <div className="opacity-60 grayscale-[0.5] hover:grayscale-0 transition-all">
-                                    <AuctionGrid 
-                                        products={archives.map((lot) => {
-                                            const sortedGallery = (lot.auction_images?.map((i: any) => i.url) || [])
-                                                .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }));
-                                            const allImages = [
-                                                ...(lot.image_url ? [lot.image_url] : []),
-                                                ...sortedGallery
-                                            ].filter((v, i, a) => a.indexOf(v) === i);
-
-                                            return {
-                                                id: lot.id,
-                                                event_id: lot.auction_events?.id,
-                                                lotNumber: lot.lot_number,
-                                                title: lot.title,
-                                                supplier: lot.categories?.name || 'General Industrial',
-                                                price: Number(lot.current_price),
-                                                endsAt: lot.ends_at || lot.auction_events?.ends_at,
-                                                startAt: lot.auction_events?.start_at,
-                                                image: allImages[0] || "/images/placeholder.jpg",
-                                                images: allImages,
-                                            bidCount: lot.bids?.[0]?.count || 0,
-                                            pickupLocation: lot.auction_events?.location,
-                                            description: lot.description,
-                                            minIncrement: Number(lot.min_increment),
-                                            winner_id: lot.winner_id,
-                                            manufacturer: lot.manufacturer,
-                                            model: lot.model,
-                                                status: lot.status
-                                            };
+                                            return (
+                                                <Link
+                                                    key={auction.id}
+                                                    href={`/auctions/${auction.id}`}
+                                                    className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-zinc-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all group"
+                                                >
+                                                    <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-zinc-100 shrink-0 bg-zinc-50">
+                                                        <Image src={mainImage} alt={auction.title} fill className="object-contain" sizes="80px" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-black text-secondary uppercase italic leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                                                            {auction.title}
+                                                        </p>
+                                                        {auction.lot_number && (
+                                                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Lot #{auction.lot_number}</span>
+                                                        )}
+                                                        <p className="text-sm font-black text-primary mt-1">${Number(auction.current_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                                    </div>
+                                                </Link>
+                                            )
                                         })}
-                                        user={userProfile ? { ...user, ...userProfile } : user}
-                                        searchQuery={q}
-                                        categoryId={category}
-                                        status={['sold', 'ended']}
-                                        initialTotalCount={archiveCount || 0}
-                                    />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <div className="py-24 text-center bg-white rounded-[48px] border border-zinc-100 shadow-sm italic px-10">
+                        <Package size={48} className="mx-auto text-zinc-100 mb-6" />
+                        <p className="text-zinc-300 font-bold uppercase text-xl tracking-tighter max-w-sm mx-auto">No results for &ldquo;{q}&rdquo;</p>
+                        <Link href="/" className="mt-8 inline-flex items-center gap-2 bg-secondary text-white px-8 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary transition-all">
+                            Back to Home <ArrowRight size={14} />
+                        </Link>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     )

@@ -19,9 +19,9 @@ export default function SearchBar({ className }: SearchBarProps) {
     e?.preventDefault()
     setIsSearching(true)
     if (query.trim()) {
-      router.push(`/auctions?q=${encodeURIComponent(query.trim())}`)
+      router.push(`/?q=${encodeURIComponent(query.trim())}`)
     } else {
-      router.push('/auctions')
+      router.push('/')
     }
     // Simple timeout to reset loader if navigation is fast
     setTimeout(() => setIsSearching(false), 800)

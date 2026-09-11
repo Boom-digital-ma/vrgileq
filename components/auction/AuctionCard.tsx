@@ -573,7 +573,7 @@ export default function AuctionCard({
                   {isEnded ? 'Final Price' : 'Current Price'}
                 </p>
                 <div className="text-2xl font-bold text-secondary tabular-nums font-display leading-none" suppressHydrationWarning>
-                  ${mounted ? realtimePrice.toLocaleString() : realtimePrice.toString()}
+                  ${mounted ? realtimePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : realtimePrice.toFixed(2)}
                 </div>
 
                 {/* Status Section */}
@@ -596,7 +596,7 @@ export default function AuctionCard({
                     {userMaxBid && userMaxBid > realtimePrice && !isEnded && (
                         <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-widest" suppressHydrationWarning>
                             <Zap size={10} className="fill-current" /> 
-                            Proxy Active: ${mounted ? userMaxBid.toLocaleString() : userMaxBid.toString()}
+                            Proxy Active: ${mounted ? userMaxBid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : userMaxBid.toFixed(2)}
                         </div>
                     )}
 
