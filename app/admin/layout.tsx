@@ -33,7 +33,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     check: async () => {
       try {
         const { data, error } = await supabaseClient.auth.getSession();
-        if (error || !data.session) {
+        if (error) {
+          // Ignore AbortErrors (caused by React Strict Mode / navigation)
+          if (error.message?.includes('AbortError') || error.name === 'AbortError') {
+            return { authenticated: true };
+          }
+          return { authenticated: false, redirectTo: "/admin/login" };
+        }
+        if (!data.session) {
           return { authenticated: false, redirectTo: "/admin/login" };
         }
 
@@ -51,7 +58,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
 
         return { authenticated: true };
-      } catch (err) {
+      } catch (err: any) {
+        // Ignore AbortErrors — don't treat them as auth failures
+        if (err?.name === 'AbortError' || err?.message?.includes('AbortError') || err?.message?.includes('signal is aborted')) {
+          return { authenticated: true };
+        }
         return { authenticated: false, redirectTo: "/admin/login" };
       }
     },
@@ -78,11 +89,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return null;
     },
     onError: async (error) => {
-      // More descriptive logging
+      // Ignore AbortErrors (React Strict Mode / navigation)
+      if (error?.name === 'AbortError' || error?.message?.includes('AbortError') || error?.message?.includes('signal is aborted')) {
+          return {};
+      }
       if (error?.status === 401 || error?.status === 403) {
           console.warn("Unauthorized/Forbidden access detected:", error.message);
-      } else {
-          console.error("Auth Provider Error Details:", JSON.stringify(error, null, 2));
       }
       return { error };
     },
