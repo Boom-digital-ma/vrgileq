@@ -13,7 +13,6 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn, getOptimizedImageUrl, formatEventDate, calculateNextIncrement } from "@/lib/utils";
-import { throttle } from "@/lib/throttle";
 
 export interface Product {
   id: string;
@@ -207,68 +206,58 @@ export default function AuctionCard({
     };
   }, [product.startAt, realtimeEndsAt]);
 
-  // 2. Realtime Subscription Effect
+  // 2. Realtime — DOM events from EventBroadcastProvider + postgres_changes for status
   useEffect(() => {
     if (disableRealtime) return;
 
     let isSubscriptionMounted = true;
 
-    // Throttle auction updates (300ms) to reduce re-renders during bid bursts
-    const handleAuctionUpdate = throttle((payload: any) => {
-      if (isSubscriptionMounted) {
-        setRealtimePrice(Number(payload.new.current_price));
-        setWinnerId(payload.new.winner_id);
-        if (payload.new.ends_at) {
-          setRealtimeEndsAt(payload.new.ends_at);
-        }
-      }
-    }, 300);
+    const handleAuctionUpdate = (e: Event) => {
+      const payload = (e as CustomEvent).detail;
+      if (!isSubscriptionMounted || payload.id !== product.id) return;
+      setRealtimePrice(Number(payload.current_price));
+      setWinnerId(payload.winner_id);
+      if (payload.ends_at) setRealtimeEndsAt(payload.ends_at);
+    };
 
-    const handleBidInsert = throttle((payload: any) => {
-      if (isSubscriptionMounted) {
-        setRealtimeBidCount(prev => prev + 1);
-        setRealtimePrice(prev => Math.max(prev, Number(payload.new.amount)));
-        if (payload.new.status === 'active') {
-            setWinnerId(payload.new.user_id);
-        }
-        if (user && payload.new.user_id === user.id && payload.new.status === 'active') {
-            setUserMaxBid(payload.new.max_amount ? Number(payload.new.max_amount) : undefined);
-            setUserCurrentBid(Number(payload.new.amount));
-        }
+    const handleBidNew = (e: Event) => {
+      const payload = (e as CustomEvent).detail;
+      if (!isSubscriptionMounted || payload.auction_id !== product.id) return;
+      setRealtimeBidCount(prev => prev + 1);
+      setRealtimePrice(prev => Math.max(prev, Number(payload.amount)));
+      if (payload.status === 'active') setWinnerId(payload.user_id);
+      if (user && payload.user_id === user.id && payload.status === 'active') {
+        setUserMaxBid(payload.max_amount ? Number(payload.max_amount) : undefined);
+        setUserCurrentBid(Number(payload.amount));
       }
-    }, 300);
+    };
 
+    window.addEventListener('auction:update', handleAuctionUpdate);
+    window.addEventListener('bid:new', handleBidNew);
+
+    // Keep postgres_changes for auction status changes (sold/ended from Edge Function)
     const channel = supabase
-      .channel(`auction-card-${product.id}`)
+      .channel(`card-${product.id}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'auctions',
         filter: `id=eq.${product.id}`
-      }, handleAuctionUpdate)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'bids',
-        filter: `auction_id=eq.${product.id}`
-      }, handleBidInsert)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'bids',
-        filter: `auction_id=eq.${product.id}`
       }, (payload: any) => {
-        if (isSubscriptionMounted) {
-          if (user && payload.new.user_id === user.id && payload.new.status === 'active') {
-              setUserMaxBid(payload.new.max_amount ? Number(payload.new.max_amount) : undefined);
-              setUserCurrentBid(Number(payload.new.amount));
-          }
+        if (!isSubscriptionMounted) return;
+        const status = payload.new.status;
+        if (status === 'sold' || status === 'ended') {
+          setRealtimePrice(Number(payload.new.current_price));
+          setWinnerId(payload.new.winner_id);
+          if (payload.new.ends_at) setRealtimeEndsAt(payload.new.ends_at);
         }
       })
       .subscribe();
 
     return () => {
         isSubscriptionMounted = false;
+        window.removeEventListener('auction:update', handleAuctionUpdate);
+        window.removeEventListener('bid:new', handleBidNew);
         supabase.removeChannel(channel);
     };
   }, [product.id, supabase, disableRealtime]);

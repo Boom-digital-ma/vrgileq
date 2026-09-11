@@ -5,6 +5,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { sendOutbidEmail } from '@/lib/emails'
 import { calculateNextIncrement } from '@/lib/utils'
+import { broadcastBidUpdate } from '@/lib/realtime'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-01-28.clover',
@@ -159,16 +160,48 @@ export async function placeBid({
       throw new Error(rpcError.message)
     }
 
-    // 4. Check if winner changed to send Outbid Email
+    // 4. Fetch updated auction state and broadcast
     const { data: updatedAuction } = await supabase
         .from('auctions')
-        .select('winner_id, current_price')
+        .select('winner_id, current_price, ends_at, status')
         .eq('id', auctionId)
         .single();
 
-    console.log(`[BID_PROTOCOL] Previous Winner ID: ${auction.winner_id}`);
-    console.log(`[BID_PROTOCOL] Updated Winner ID: ${updatedAuction?.winner_id}`);
-    console.log(`[BID_PROTOCOL] Previous Winner Email: ${previousWinnerEmail}`);
+    // Fetch the newly created bid for broadcast payload
+    const { data: latestBid } = await supabase
+        .from('bids')
+        .select('id, user_id, amount, max_amount, status, created_at, profiles(full_name)')
+        .eq('auction_id', auctionId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    // Broadcast via Realtime Broadcast (replaces postgres_changes for bids)
+    if (updatedAuction && latestBid && auction?.event_id) {
+      try {
+        await broadcastBidUpdate({
+          eventId: auction.event_id,
+          auctionId,
+          auction: {
+            current_price: Number(updatedAuction.current_price),
+            winner_id: updatedAuction.winner_id,
+            ends_at: updatedAuction.ends_at,
+            status: updatedAuction.status,
+          },
+          bid: {
+            id: latestBid.id,
+            user_id: latestBid.user_id,
+            amount: Number(latestBid.amount),
+            max_amount: latestBid.max_amount ? Number(latestBid.max_amount) : null,
+            status: latestBid.status,
+            created_at: latestBid.created_at,
+            full_name: (latestBid.profiles as any)?.full_name || undefined,
+          },
+        })
+      } catch (e) {
+        console.error('[BROADCAST] Failed to broadcast bid update:', e)
+      }
+    }
 
     if (previousWinnerEmail && updatedAuction?.winner_id !== previousWinnerProfile?.id) {
         console.log(`[EMAIL_SERVICE] Winner changed! Sending outbid email to ${previousWinnerEmail}`);

@@ -6,7 +6,6 @@ import ImageGallery from "@/components/auction/ImageGallery";
 import BiddingWidget from "@/components/auction/BiddingWidget";
 import { Timer, Gavel, Package, ShieldCheck, Info, MapPin, Clock, Star, Loader2 } from "lucide-react";
 import { cn, calculateNextIncrement } from "@/lib/utils";
-import { throttle } from "@/lib/throttle";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { toast } from "sonner";
 
@@ -106,54 +105,53 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids, initia
     };
   }, [lot.ends_at, lot.auction_events?.start_at]);
 
+  // Realtime — DOM events from EventBroadcastProvider + postgres_changes for status
   useEffect(() => {
     let isSubscriptionMounted = true;
-    
-    // Throttle auction updates (300ms) to batch rapid bid bursts
-    const handleAuctionUpdate = throttle((payload: any) => {
-      if (isSubscriptionMounted) {
-        setLot((prev: any) => ({ ...prev, ...payload.new }));
-      }
-    }, 300);
 
-    const handleBidInsert = throttle((payload: any) => {
-      if (isSubscriptionMounted) {
-        setBids(prev => [payload.new, ...prev]);
-        setLot((prev: any) => ({
-           ...prev,
-           current_price: Math.max(Number(prev.current_price), Number(payload.new.amount))
-        }));
-      }
-    }, 300);
+    const handleAuctionUpdate = (e: Event) => {
+      const payload = (e as CustomEvent).detail;
+      if (!isSubscriptionMounted || payload.id !== lot.id) return;
+      setLot((prev: any) => ({ ...prev, ...payload }));
+    };
 
+    const handleBidNew = (e: Event) => {
+      const payload = (e as CustomEvent).detail;
+      if (!isSubscriptionMounted || payload.auction_id !== lot.id) return;
+      setBids(prev => {
+        if (prev.some(b => b.id === payload.id)) return prev;
+        return [{ ...payload, profiles: { full_name: payload.full_name } }, ...prev];
+      });
+      setLot((prev: any) => ({
+        ...prev,
+        current_price: Math.max(Number(prev.current_price), Number(payload.amount))
+      }));
+    };
+
+    window.addEventListener('auction:update', handleAuctionUpdate);
+    window.addEventListener('bid:new', handleBidNew);
+
+    // Keep postgres_changes for auction status changes (sold/ended from Edge Function)
     const channel = supabase
-      .channel(`auction-room-${lot.id}`)
+      .channel(`detail-${lot.id}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'auctions',
         filter: `id=eq.${lot.id}`
-      }, handleAuctionUpdate)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'bids',
-        filter: `auction_id=eq.${lot.id}`
-      }, handleBidInsert)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'bids',
-        filter: `auction_id=eq.${lot.id}`
       }, (payload: any) => {
-        if (isSubscriptionMounted) {
-          setBids(prev => prev.map(b => b.id === payload.new.id ? payload.new : b));
+        if (!isSubscriptionMounted) return;
+        const status = payload.new.status;
+        if (status === 'sold' || status === 'ended') {
+          setLot((prev: any) => ({ ...prev, ...payload.new }));
         }
       })
       .subscribe();
 
     return () => {
       isSubscriptionMounted = false;
+      window.removeEventListener('auction:update', handleAuctionUpdate);
+      window.removeEventListener('bid:new', handleBidNew);
       supabase.removeChannel(channel);
     };
   }, [lot.id, supabase]);

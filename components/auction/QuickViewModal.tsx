@@ -97,29 +97,39 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
           if (isMounted) setRealtimeBids(data || []);
         });
 
-      // REALTIME SUBSCRIPTION
+      // REALTIME — DOM events from EventBroadcastProvider + postgres_changes for status
+      const handleAuctionUpdate = (e: Event) => {
+        const payload = (e as CustomEvent).detail;
+        if (!isMounted || payload.id !== product.id) return;
+        setRealtimePrice(Number(payload.current_price));
+      };
+
+      const handleBidNew = (e: Event) => {
+        const payload = (e as CustomEvent).detail;
+        if (!isMounted || payload.auction_id !== product.id) return;
+        setRealtimeBids(prev => {
+          if (prev.some((b: any) => b.id === payload.id)) return prev;
+          return [payload, ...prev].sort((a, b) => b.amount - a.amount).slice(0, 10);
+        });
+        setRealtimeBidCount(prev => prev + 1);
+        setRealtimePrice(prev => Math.max(prev, Number(payload.amount)));
+      };
+
+      window.addEventListener('auction:update', handleAuctionUpdate);
+      window.addEventListener('bid:new', handleBidNew);
+
       const channel = supabase
         .channel(`quickview-${product.id}`)
-        .on('postgres_changes', { 
-          event: 'UPDATE', 
-          schema: 'public', 
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
           table: 'auctions',
           filter: `id=eq.${product.id}`
         }, (payload: any) => {
-          if (isMounted) {
+          if (!isMounted) return;
+          const status = payload.new.status;
+          if (status === 'sold' || status === 'ended') {
             setRealtimePrice(Number(payload.new.current_price));
-          }
-        })
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'bids',
-          filter: `auction_id=eq.${product.id}`
-        }, (payload: any) => {
-          if (isMounted) {
-            setRealtimeBids(prev => [payload.new, ...prev].sort((a, b) => b.amount - a.amount).slice(0, 10));
-            setRealtimeBidCount(prev => prev + 1);
-            setRealtimePrice(prev => Math.max(prev, Number(payload.new.amount)));
           }
         })
         .subscribe();
@@ -128,6 +138,8 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
         isMounted = false;
         clearInterval(timer);
         document.body.style.overflow = "unset";
+        window.removeEventListener('auction:update', handleAuctionUpdate);
+        window.removeEventListener('bid:new', handleBidNew);
         supabase.removeChannel(channel);
       };
     }

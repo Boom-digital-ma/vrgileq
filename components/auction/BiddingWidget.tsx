@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star, Clock, Trophy, Zap, ChevronRight, Edit3, Eye, User, Shield } from "lucide-react";
 import { placeBid } from "@/app/actions/bids";
 import { toggleWatchlist } from "@/app/actions/watchlist";
@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/admin/Modal";
 import { cn, formatEventDate, calculateNextIncrement } from "@/lib/utils";
-import { throttle, debounce } from "@/lib/throttle";
+
 
 interface BiddingWidgetProps {
   auctionId: string;
@@ -153,49 +153,55 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
       }
     }, 1000);
 
-    // Throttle auction price updates (300ms) to avoid rapid re-renders during bid bursts
-    const handleAuctionUpdate = throttle((payload: any) => {
-      if (isMounted) {
-        const newPrice = Number(payload.new.current_price);
-        setRealtimePrice(newPrice);
-        setRealtimeEndsAt(new Date(payload.new.ends_at));
-        setBidAmount(Math.round((newPrice + calculateNextIncrement(newPrice)) * 100) / 100);
-      }
-    }, 300);
+    // Listen to broadcast events re-dispatched as DOM CustomEvents
+    const onAuctionUpdate = (e: Event) => {
+      const payload = (e as CustomEvent).detail;
+      if (!isMounted || payload.id !== auctionId) return;
+      const newPrice = Number(payload.current_price);
+      setRealtimePrice(newPrice);
+      setRealtimeEndsAt(new Date(payload.ends_at));
+      setBidAmount(Math.round((newPrice + calculateNextIncrement(newPrice)) * 100) / 100);
+    };
 
-    // Debounce bid list refetch (500ms) to batch rapid-fire bid inserts into one API call
-    const handleBidInsert = debounce(async () => {
-      const { data: newBids } = await supabase
-        .from('bids')
-        .select('*, profiles(full_name)')
-        .eq('auction_id', auctionId)
-        .order('amount', { ascending: false });
+    const onBidNew = (e: Event) => {
+      const payload = (e as CustomEvent).detail;
+      if (!isMounted || payload.auction_id !== auctionId) return;
+      setRealtimeBids(prev => {
+        if (prev.some((b: any) => b.id === payload.id)) return prev;
+        return [{ ...payload, profiles: { full_name: payload.full_name } }, ...prev]
+          .sort((a: any, b: any) => b.amount - a.amount);
+      });
+    };
 
-      if (isMounted && newBids) {
-        setRealtimeBids(newBids);
-      }
-    }, 500);
+    window.addEventListener('auction:update', onAuctionUpdate);
+    window.addEventListener('bid:new', onBidNew);
 
+    // Keep postgres_changes for auction status updates (sold/ended from Edge Function)
     const channel = supabase
-      .channel(`auction-${auctionId}`)
+      .channel(`bidwidget-${auctionId}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'auctions', filter: `id=eq.${auctionId}` },
-        handleAuctionUpdate
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'bids', filter: `auction_id=eq.${auctionId}` },
-        handleBidInsert
+        (payload: any) => {
+          if (!isMounted) return;
+          const status = payload.new.status;
+          if (status === 'sold' || status === 'ended') {
+            setRealtimePrice(Number(payload.new.current_price));
+            setRealtimeEndsAt(new Date(payload.new.ends_at));
+            setIsEnded(true);
+          }
+        }
       )
       .subscribe();
 
     return () => {
       isMounted = false;
       clearInterval(timer);
+      window.removeEventListener('auction:update', onAuctionUpdate);
+      window.removeEventListener('bid:new', onBidNew);
       supabase.removeChannel(channel);
     };
-  }, [auctionId, startAt, realtimeEndsAt, supabase]);
+  }, [auctionId, eventId, startAt, realtimeEndsAt, supabase]);
 
   const handleToggleWatch = async () => {
     if (!userProfile) return;

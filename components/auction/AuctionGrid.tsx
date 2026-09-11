@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchLots } from "@/app/actions/lots";
 import { Loader2, PackageSearch, Search, X, Star, Gavel, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { throttle } from "@/lib/throttle";
 
 interface AuctionGridProps {
   products: Product[];
@@ -393,61 +392,72 @@ export default function AuctionGrid({
     };
   }, [loadMore, hasMore, loading]);
 
-  // Real-time listener for current price & bid updates
+  // Real-time listener — DOM events from EventBroadcastProvider + postgres_changes for status
   useEffect(() => {
-    const channelId = `grid-${eventId || 'global'}`;
-    
-    // Throttle grid updates (300ms) to batch rapid bid bursts
-    const handleAuctionUpdate = throttle((payload: any) => {
+    const handleAuctionUpdate = (e: Event) => {
+      const payload = (e as CustomEvent).detail;
       setItems(prevItems => prevItems.map(item => {
-        if (item.id === payload.new.id) {
+        if (item.id === payload.id) {
           return {
             ...item,
-            price: Number(payload.new.current_price),
-            endsAt: payload.new.ends_at,
-            winner_id: payload.new.winner_id
+            price: Number(payload.current_price),
+            endsAt: payload.ends_at,
+            winner_id: payload.winner_id
           };
         }
         return item;
       }));
-    }, 300);
+    };
 
-    const handleBidInsert = throttle((payload: any) => {
+    const handleBidNew = (e: Event) => {
+      const payload = (e as CustomEvent).detail;
       setItems(prevItems => {
-          const targetItemIndex = prevItems.findIndex(i => i.id === payload.new.auction_id);
+          const targetItemIndex = prevItems.findIndex(i => i.id === payload.auction_id);
           if (targetItemIndex === -1) return prevItems;
 
           const newItems = [...prevItems];
           const item = { ...newItems[targetItemIndex] };
-          const isMyBid = user && payload.new.user_id === user.id;
+          const isMyBid = user && payload.user_id === user.id;
 
           newItems[targetItemIndex] = {
               ...item,
               bidCount: (item.bidCount || 0) + 1,
-              price: Math.max(item.price, Number(payload.new.amount)),
-              winner_id: payload.new.status === 'active' ? payload.new.user_id : item.winner_id,
-              userMaxBid: (isMyBid && payload.new.max_amount) ? Number(payload.new.max_amount) : item.userMaxBid,
-              userCurrentBid: isMyBid ? Number(payload.new.amount) : item.userCurrentBid
+              price: Math.max(item.price, Number(payload.amount)),
+              winner_id: payload.status === 'active' ? payload.user_id : item.winner_id,
+              userMaxBid: (isMyBid && payload.max_amount) ? Number(payload.max_amount) : item.userMaxBid,
+              userCurrentBid: isMyBid ? Number(payload.amount) : item.userCurrentBid
           };
           return newItems;
       });
-    }, 300);
+    };
 
+    window.addEventListener('auction:update', handleAuctionUpdate);
+    window.addEventListener('bid:new', handleBidNew);
+
+    // Keep postgres_changes for auction status changes (sold/ended from Edge Function)
+    const channelId = eventId ? `grid-${eventId}` : `grid-global`;
     const channel = supabase.channel(channelId)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'auctions',
         ...(eventId ? { filter: `event_id=eq.${eventId}` } : {})
-      }, handleAuctionUpdate)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'bids'
-      }, handleBidInsert)
+      }, (payload: any) => {
+        const status = payload.new.status;
+        if (status === 'sold' || status === 'ended') {
+          setItems(prevItems => prevItems.map(item => {
+            if (item.id === payload.new.id) {
+              return { ...item, price: Number(payload.new.current_price), winner_id: payload.new.winner_id };
+            }
+            return item;
+          }));
+        }
+      })
       .subscribe();
 
     return () => {
+      window.removeEventListener('auction:update', handleAuctionUpdate);
+      window.removeEventListener('bid:new', handleBidNew);
       supabase.removeChannel(channel);
     };
   }, [eventId, supabase, user?.id]);

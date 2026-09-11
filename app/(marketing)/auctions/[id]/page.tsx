@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import AuctionDetailsRealtime from '@/components/auction/AuctionDetailsRealtime'
+import EventBroadcastProvider from '@/components/auction/EventBroadcastProvider'
 import { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -94,6 +95,7 @@ export default async function AuctionDetailPage({ params }: { params: { id: stri
         </div>
       </div>
 
+      <EventBroadcastProvider eventId={lot.event_id} />
       <AuctionDetailsRealtime
         initialLot={lot}
         initialBids={bids || []}
