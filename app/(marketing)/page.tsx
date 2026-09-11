@@ -387,12 +387,8 @@ export default async function HomePage({
 
       <div className="max-w-7xl mx-auto px-6 pt-8 pb-1 md:pt-10 md:pb-1">
         {/* Tab Selection & Header */}
-        <div className="mb-10 flex flex-col justify-between gap-4 pb-1 md:flex-row md:items-center md:gap-6">
-            <div>
-                <h2 className="text-2xl font-bold leading-none tracking-tight text-secondary font-display uppercase italic md:text-3xl">Current <span className="text-primary">Auctions</span>.</h2>
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400">{(liveCount || 0) + (upcomingCount || 0)} {((liveCount || 0) + (upcomingCount || 0)) === 1 ? 'Active Event' : 'Active Events'}</p>
-            </div>
-            <div className="flex w-full flex-col items-end gap-1 md:flex-1 lg:flex-row lg:items-center">
+        <div className="mb-10 pb-1">
+            <div className="flex w-full flex-col items-end gap-1 lg:flex-row lg:items-center">
                 <div className="w-full rounded-[24px] border border-zinc-200 bg-white p-1.5 shadow-xl shadow-secondary/5 lg:flex lg:items-center">
                     <div className="w-full lg:flex-1">
                         <SearchBar className="border-0 p-0 shadow-none focus-within:ring-0" />

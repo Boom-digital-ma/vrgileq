@@ -372,9 +372,15 @@ export default function Header({ minimal = false }: HeaderProps) {
                             )}
                         </div>
                     ) : (
-                        <div className="hidden items-center gap-2 lg:flex">
-                            <Link 
-                                href="/auth/signup" 
+                        <div className="hidden items-center gap-3 lg:flex">
+                            <Link
+                                href="/auth/signin"
+                                className="px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary transition-all italic"
+                            >
+                                Sign In
+                            </Link>
+                            <Link
+                                href="/auth/signup"
                                 className="bg-secondary text-white px-5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-primary transition-all shadow-lg shadow-secondary/5 italic"
                             >
                                 Register Free
@@ -384,10 +390,10 @@ export default function Header({ minimal = false }: HeaderProps) {
 
                     {!loading && !user && (
                         <Link
-                            href="/auth/signup"
-                            className="rounded-xl bg-secondary px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-all hover:bg-primary lg:hidden"
+                            href="/auth/signin"
+                            className="rounded-xl border border-zinc-200 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-600 transition-all hover:border-primary/40 lg:hidden"
                         >
-                            Register Free
+                            Sign In
                         </Link>
                     )}
 
@@ -455,16 +461,33 @@ export default function Header({ minimal = false }: HeaderProps) {
               })}
             </nav>
 
-            <div className="pt-8 space-y-4">
+            <div className="pt-8 space-y-3">
               {user ? (
-                <Link 
-                    href={isAdmin ? "/admin" : "/profile"} 
-                    onClick={() => setIsMobileMenuOpen(false)} 
+                <Link
+                    href={isAdmin ? "/admin" : "/profile"}
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="w-full flex items-center justify-center py-4 rounded-xl font-bold bg-secondary text-white italic"
                 >
                     {isAdmin ? "Admin Console" : "My Account"}
                 </Link>
-              ) : null}
+              ) : (
+                <>
+                  <Link
+                      href="/auth/signup"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-center py-4 rounded-xl font-bold bg-secondary text-white italic uppercase tracking-widest text-[11px]"
+                  >
+                      Register Free
+                  </Link>
+                  <Link
+                      href="/auth/signin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-center py-4 rounded-xl font-bold border border-zinc-200 text-zinc-600 italic uppercase tracking-widest text-[11px] hover:border-primary/40 transition-all"
+                  >
+                      Sign In
+                  </Link>
+                </>
+              )}
             </div>
           </div>
       </div>
