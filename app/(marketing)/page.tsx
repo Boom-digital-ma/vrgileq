@@ -323,9 +323,10 @@ export default async function HomePage({
   const draftCount = draftCountResult.count
   
   // Auto-fallback logic
-  if (!filter || (filter === 'live' && !liveCount)) {
-    if (liveCount) filter = 'live'
-    else if (upcomingCount) filter = 'upcoming'
+  // "upcoming" filter is now merged into "live" — redirect legacy upcoming links
+  if (filter === 'upcoming') filter = 'live'
+  if (!filter || (filter === 'live' && !liveCount && !upcomingCount)) {
+    if (liveCount || upcomingCount) filter = 'live'
     else if (draftCount && isAdmin) filter = 'draft'
     else filter = 'past'
   }
@@ -342,12 +343,8 @@ export default async function HomePage({
   }
 
   if (filter === 'live') {
-    eventQuery = eventQuery
-      .eq('status', 'live')
-      .lte('start_at', now)
-      .gt('ends_at', now)
-  } else if (filter === 'upcoming') {
-    eventQuery = eventQuery.or(`status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
+    // Show both live AND upcoming events together
+    eventQuery = eventQuery.or(`and(status.eq.live,start_at.lte.${now},ends_at.gt.${now}),status.eq.scheduled,and(status.eq.live,start_at.gt.${now})`)
   } else if (filter === 'past') {
     eventQuery = eventQuery.eq('status', 'closed')
   } else if (filter === 'draft' && isAdmin) {
@@ -355,14 +352,13 @@ export default async function HomePage({
   }
 
   const { data: events, count: eventCount } = await eventQuery
-    .order(filter === 'past' ? 'ends_at' : (filter === 'draft' ? 'created_at' : 'start_at'), { ascending: filter === 'past' || filter === 'draft' ? false : true })
+    .order('start_at', { ascending: filter === 'past' || filter === 'draft' ? false : true })
     .range(from, to)
 
   const totalEventPages = Math.ceil((eventCount || 0) / PAGE_SIZE_EVENTS)
 
   const tabs = [
-    { id: 'live', label: 'Live Now', available: !!liveCount },
-    { id: 'upcoming', label: 'Upcoming', available: !!upcomingCount },
+    { id: 'live', label: 'Active', available: !!(liveCount || upcomingCount) },
     ...(isAdmin ? [{ id: 'draft', label: 'Drafts (Admin)', available: !!draftCount }] : []),
     { id: 'past', label: 'Closed Events', available: true }
   ]
@@ -394,7 +390,7 @@ export default async function HomePage({
         <div className="mb-10 flex flex-col justify-between gap-4 pb-1 md:flex-row md:items-center md:gap-6">
             <div>
                 <h2 className="text-2xl font-bold leading-none tracking-tight text-secondary font-display uppercase italic md:text-3xl">Current <span className="text-primary">Auctions</span>.</h2>
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400">{liveCount || 0} {liveCount === 1 ? 'Active Event' : 'Active Events'}</p>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400">{(liveCount || 0) + (upcomingCount || 0)} {((liveCount || 0) + (upcomingCount || 0)) === 1 ? 'Active Event' : 'Active Events'}</p>
             </div>
             <div className="flex w-full flex-col items-end gap-1 md:flex-1 lg:flex-row lg:items-center">
                 <div className="w-full rounded-[24px] border border-zinc-200 bg-white p-1.5 shadow-xl shadow-secondary/5 lg:flex lg:items-center">

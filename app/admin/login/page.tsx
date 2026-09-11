@@ -17,10 +17,12 @@ export default function AdminLoginPage() {
     
     const formData = new FormData(e.currentTarget)
     const result = await login(formData)
-    
+
     if (result?.error) {
       setError(result.error)
       setLoading(false)
+    } else if (result?.success) {
+      window.location.href = '/admin'
     }
   }
 

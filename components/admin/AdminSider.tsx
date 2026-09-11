@@ -21,6 +21,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
 
 export const AdminSider = ({ isOpen, onClose }: { isOpen?: boolean, onClose?: () => void }) => {
   const { mutate: logout } = useLogout()
@@ -180,7 +181,7 @@ export const AdminSider = ({ isOpen, onClose }: { isOpen?: boolean, onClose?: ()
             </Link>
         )}
         <button 
-          onClick={() => logout()}
+          onClick={() => { toast.success("You have been signed out."); logout(); }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 transition-all"
         >
           <LogOut size={18} />

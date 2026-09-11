@@ -7,6 +7,7 @@ import { Menu, X, LogOut, ChevronDown, ChevronRight, Bell, Shield } from "lucide
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { toast } from "sonner";
 
 interface HeaderProps {
   minimal?: boolean;
@@ -129,9 +130,11 @@ export default function Header({ minimal = false }: HeaderProps) {
     const { error: clientError } = await supabase.auth.signOut();
     if (clientError) {
       console.error('Client sign out failed:', clientError);
+      toast.error("Sign out failed. Please try again.");
       return;
     }
 
+    toast.success("You have been signed out.");
     window.location.assign('/');
   };
 
