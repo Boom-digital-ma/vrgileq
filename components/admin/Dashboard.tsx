@@ -83,12 +83,9 @@ export const Dashboard = () => {
   const totalRevenue = sales.filter((s: any) => s.status === 'paid').reduce((acc: number, curr: any) => acc + (Number(curr.total_amount) || 0), 0)
   const pendingRevenue = sales.filter((s: any) => s.status === 'pending').reduce((acc: number, curr: any) => acc + (Number(curr.total_amount) || 0), 0)
 
-  // Won auctions not yet paid (sold status with no matching paid sale)
-  const soldAuctions = auctions.filter((a: any) => a.status === 'sold' || a.status === 'ended')
-  const paidSaleAuctionIds = new Set(sales.filter((s: any) => s.status === 'paid').map((s: any) => s.auction_id))
-  const unpaidWonTotal = soldAuctions
-    .filter((a: any) => a.winner_id && !paidSaleAuctionIds.has(a.id))
-    .reduce((acc: number, a: any) => acc + (Number(a.current_price) || 0), 0)
+  // Won auctions not yet paid: sum of current_price for sold/ended auctions with a winner
+  const unpaidWonCount = auctions.filter((a: any) => (a.status === 'sold' || a.status === 'ended') && a.winner_id).length
+  const unpaidPaidCount = sales.filter((s: any) => s.status === 'paid').length
   
   // 2. Velocity & Engagement
   const liveLots = auctions.filter((a: any) => a.status === 'live')
@@ -163,9 +160,9 @@ export const Dashboard = () => {
         border: "border-emerald-100"
     },
     {
-        label: "Unpaid Won Bids",
-        value: `$${unpaidWonTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-        subValue: `+$${pendingRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} invoiced pending`,
+        label: "Outstanding (Unpaid)",
+        value: `$${pendingRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        subValue: `${sales.filter((s: any) => s.status === 'pending').length} pending invoices`,
         icon: CreditCard,
         color: "text-rose-600",
         bg: "bg-rose-50",
