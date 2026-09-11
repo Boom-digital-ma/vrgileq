@@ -226,7 +226,7 @@ export async function placeBid({
         revalidatePath(`/events/${auction.event_id}`)
     }
     revalidatePath('/profile')
-    return { success: true }
+    return { success: true, winnerId: updatedAuction?.winner_id || null }
 
   } catch (error: any) {
     console.error('Bid error:', error)

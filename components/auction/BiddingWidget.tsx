@@ -275,6 +275,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
       if (!result.success) throw new Error(result.error);
 
+      const isNowWinning = result.winnerId === userProfile?.id;
+
       if (isWinning) {
           if (previousProxy && bidAmount !== previousProxy) {
               if (bidAmount > previousProxy) {
@@ -291,16 +293,15 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
                   description: "Bid placed successfully."
               });
           }
+      } else if (isNowWinning) {
+          toast.success("You are in the lead!", {
+              description: isProxy ? `Your max bid is set to $${bidAmount.toLocaleString()}.` : "Bid placed successfully."
+          });
       } else {
-          if (isProxy) {
-              toast.success("You are in the lead!", {
-                  description: `Your max bid is set to $${bidAmount.toLocaleString()}.`
-              });
-          } else {
-              toast.success("You are in the lead!", {
-                  description: "Bid placed successfully."
-              });
-          }
+          toast.warning("Bid placed, but you were outbid by a proxy.", {
+              description: "Try a higher amount to take the lead.",
+              duration: 6000,
+          });
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
