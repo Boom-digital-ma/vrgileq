@@ -42,9 +42,9 @@ export default function EventWatchlistDrawer({ eventId, user: initialUser }: { e
 
   // Fetch watched items for this event (bulletproof direct query + client-side filtering)
   const fetchWatchedItems = async (currentUser = user) => {
-    console.log("[WatchlistDrawer] fetchWatchedItems starting...", { currentUser: currentUser?.id, eventId });
+
     if (!currentUser) {
-      console.log("[WatchlistDrawer] fetchWatchedItems aborted: No current user.");
+
       return;
     }
     try {
@@ -62,13 +62,10 @@ export default function EventWatchlistDrawer({ eventId, user: initialUser }: { e
 
       if (error) throw error;
 
-      console.log("[WatchlistDrawer] Raw watchlist data:", data);
-
       const watchedLots = (data || [])
         .map((entry: any) => entry.auctions)
         .filter((lot: any) => lot && lot.event_id === eventId);
 
-      console.log("[WatchlistDrawer] Filtered items for this event:", watchedLots);
       setItems(watchedLots as any[]);
     } catch (err) {
       console.error("[WatchlistDrawer] Error fetching items:", err);
@@ -80,10 +77,8 @@ export default function EventWatchlistDrawer({ eventId, user: initialUser }: { e
   // Client-side session and watchlist sync
   useEffect(() => {
     let isMounted = true;
-    console.log("[WatchlistDrawer] Mounted. eventId:", eventId, "initialUser:", initialUser?.id);
     async function getSession() {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
-      console.log("[WatchlistDrawer] getSession returned user:", currentUser?.id);
       if (isMounted) {
         setUser(currentUser);
         if (currentUser) {
@@ -94,7 +89,6 @@ export default function EventWatchlistDrawer({ eventId, user: initialUser }: { e
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      console.log("[WatchlistDrawer] onAuthStateChange event:", _event, "user:", session?.user?.id);
       if (isMounted) {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
@@ -115,7 +109,6 @@ export default function EventWatchlistDrawer({ eventId, user: initialUser }: { e
   // Real-time listener for price/expiry updates of the watched items
   useEffect(() => {
     if (!user || items.length === 0) return;
-    console.log("[WatchlistDrawer] Starting real-time channel for event:", eventId);
 
     const channel = supabase
       .channel(`watchlist-drawer-${eventId}`)
@@ -128,7 +121,6 @@ export default function EventWatchlistDrawer({ eventId, user: initialUser }: { e
           filter: `event_id=eq.${eventId}`,
         },
         (payload: any) => {
-          console.log("[WatchlistDrawer] Real-time lot update received:", payload.new.id);
           setItems((prev) =>
             prev.map((item) =>
               item.id === payload.new.id
@@ -146,7 +138,6 @@ export default function EventWatchlistDrawer({ eventId, user: initialUser }: { e
       .subscribe();
 
     return () => {
-      console.log("[WatchlistDrawer] Cleaning up real-time channel");
       supabase.removeChannel(channel);
     };
   }, [eventId, user, items.length, supabase]);

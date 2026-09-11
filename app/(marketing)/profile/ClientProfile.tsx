@@ -54,9 +54,6 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
       const isAdmin = currentUser.user_metadata?.role === 'admin'
       const finalUserId = (isAdmin && targetUserId) ? targetUserId : currentUser.id
 
-      console.log('[Profile] fetchData start, userId:', finalUserId)
-      const t0 = performance.now()
-
       const [profileRes, cardsRes, bidsRes, wonLotsRes, invoicesRes, watchRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', finalUserId).single(),
         isAdmin && targetUserId ? [] : getPaymentMethods(),
@@ -81,16 +78,6 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
           .select('*, auctions(*, auction_images(*), auction_events(title))')
           .eq('user_id', finalUserId)
       ])
-
-      const elapsed = Math.round(performance.now() - t0)
-      console.log(`[Profile] queries done in ${elapsed}ms`, {
-        profile: profileRes.error?.message || 'ok',
-        bids: bidsRes.error?.message || `${bidsRes.data?.length ?? 0} rows`,
-        wonLots: wonLotsRes.error?.message || `${wonLotsRes.data?.length ?? 0} rows`,
-        invoices: invoicesRes.error?.message || `${invoicesRes.data?.length ?? 0} rows`,
-        watchlist: watchRes.error?.message || `${watchRes.data?.length ?? 0} rows`,
-        cards: Array.isArray(cardsRes) ? `${cardsRes.length} cards` : 'error'
-      })
 
       const uniqueBidsMap = new Map()
       bidsRes.data?.forEach((bid: any) => {
@@ -135,7 +122,7 @@ export default function ProfilePage({ targetUserId }: { targetUserId?: string })
     if (!user) return
 
     const channel = supabase
-      .channel('profile-sync-channel')
+      .channel(`profile-sync-${user.id}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',

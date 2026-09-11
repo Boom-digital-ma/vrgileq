@@ -341,15 +341,6 @@ export default function AuctionGrid({
     setLoading(true);
     const nextPage = page + 1;
     
-    console.log(`[INFINITE_SCROLL] Fetching page ${nextPage}`, {
-        eventId,
-        categoryId,
-        searchQuery: debouncedSearchQuery,
-        status,
-        currentItems: items.length,
-        totalExpected: initialTotalCount
-    });
-
     try {
         const result = await fetchLots({
             eventId,
@@ -361,7 +352,6 @@ export default function AuctionGrid({
         });
 
         if (result.lots && result.lots.length > 0) {
-            console.log(`[INFINITE_SCROLL] Received ${result.lots.length} items. hasMore: ${result.hasMore}`);
             setItems(prev => {
                 const existingIds = new Set(prev.map(i => i.id));
                 const newItems = result.lots.filter(i => !existingIds.has(i.id));
@@ -370,7 +360,6 @@ export default function AuctionGrid({
             setPage(nextPage);
             setHasMore(result.hasMore);
         } else {
-            console.log(`[INFINITE_SCROLL] No more items received.`);
             setHasMore(false);
         }
     } catch (err) {
@@ -385,7 +374,6 @@ export default function AuctionGrid({
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          console.log("[INFINITE_SCROLL] Sentinel visible, triggering loadMore...");
           loadMore();
         }
       },
@@ -412,7 +400,8 @@ export default function AuctionGrid({
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
-        table: 'auctions'
+        table: 'auctions',
+        ...(eventId ? { filter: `event_id=eq.${eventId}` } : {})
       }, (payload: any) => {
         setItems(prevItems => prevItems.map(item => {
           if (item.id === payload.new.id) {
@@ -450,9 +439,7 @@ export default function AuctionGrid({
             return newItems;
         });
       })
-      .subscribe((status: any) => {
-        console.log(`[Realtime] ${channelId} status:`, status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);

@@ -214,14 +214,11 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("[BiddingWidget] handleBid called", { isAdmin, userProfile: !!userProfile, eventId, auctionId });
     if (isAdmin) {
-      console.log("[BiddingWidget] Blocked: admin account");
       toast.error("Admin accounts cannot place bids.");
       return;
     }
     if (!userProfile) {
-        console.log("[BiddingWidget] No userProfile, redirecting to signin");
         router.push('/auth/signin');
         return;
     }
@@ -230,11 +227,8 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
     setError(null);
 
     try {
-      console.log("[BiddingWidget] Calling checkRegistration for eventId:", eventId);
       const { registered } = await checkRegistration(eventId);
-      console.log("[BiddingWidget] checkRegistration result:", { registered });
       if (!registered) {
-          console.log("[BiddingWidget] Not registered, opening auth modal");
           setLoading(false);
           setShowAuthModal(true);
           return;

@@ -126,7 +126,6 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids, initia
         table: 'bids',
         filter: `auction_id=eq.${lot.id}`
       }, (payload: any) => {
-        console.log(`[AuctionDetail] INSERT Bid:`, payload.new);
         if (isSubscriptionMounted) {
           setBids(prev => [payload.new, ...prev]);
           // Optimistically update price
@@ -146,9 +145,7 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids, initia
           setBids(prev => prev.map(b => b.id === payload.new.id ? payload.new : b));
         }
       })
-      .subscribe((status: any) => {
-        console.log(`[AuctionDetail] Status:`, status);
-      });
+      .subscribe();
 
     return () => {
       isSubscriptionMounted = false;

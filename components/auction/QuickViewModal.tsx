@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { placeBid } from "@/app/actions/bids";
+import { checkRegistration } from "@/app/actions/registrations";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import { cn, calculateNextIncrement } from "@/lib/utils";
 interface QuickViewModalProps {
   product: {
     id: string;
+    event_id?: string;
     title: string;
     supplier: string;
     price: number;
@@ -114,16 +116,13 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
           table: 'bids',
           filter: `auction_id=eq.${product.id}`
         }, (payload: any) => {
-          console.log(`[QuickView] INSERT Bid:`, payload.new);
           if (isMounted) {
             setRealtimeBids(prev => [payload.new, ...prev].sort((a, b) => b.amount - a.amount).slice(0, 10));
             setRealtimeBidCount(prev => prev + 1);
             setRealtimePrice(prev => Math.max(prev, Number(payload.new.amount)));
           }
         })
-        .subscribe((status: any) => {
-            console.log(`[QuickView] Status:`, status);
-        });
+        .subscribe();
 
       return () => {
         isMounted = false;
@@ -147,6 +146,18 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userProfile) { router.push('/auth/signin'); return; }
+
+    if (product.event_id) {
+      const { registered } = await checkRegistration(product.event_id);
+      if (!registered) {
+        toast.error("Authorization Required", {
+          description: "Complete Bidding Authorization on the event page before placing bids.",
+          duration: 5000,
+        });
+        return;
+      }
+    }
+
     if (!userProfile.default_payment_method_id) { setError("Missing payment method."); return; }
     setLoading(true);
     setError(null);

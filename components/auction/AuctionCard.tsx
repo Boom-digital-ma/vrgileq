@@ -697,12 +697,12 @@ export default function AuctionCard({
         </div>
       </div>
 
-      <QuickViewModal 
-        product={{ ...product, category: product.supplier }} 
-        isOpen={isHistoryModalOpen} 
-        onClose={() => setIsHistoryModalOpen(false)} 
-        initialBid={bidAmount} 
-        onlyHistory={true} 
+      <QuickViewModal
+        product={{ ...product, event_id: product.event_id, category: product.supplier }}
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        initialBid={bidAmount}
+        onlyHistory={true}
       />
       
       <ImageGallery 
