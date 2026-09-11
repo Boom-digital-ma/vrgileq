@@ -22,19 +22,19 @@ export const closingSoonTemplate = (bidderName: string, auctionTitle: string, cu
       <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
     </div>
     <div class="content">
-      <h1 class="h1">Auction Closing Soon</h1>
-      <p>Hello <strong>${bidderName}</strong>,</p>
-      <p>An industrial asset in your watchlist is approaching its final minutes. Final authorizations are now being accepted.</p>
-      
+      <h1 class="h1">Ending Soon!</h1>
+      <p>Hi <strong>${bidderName}</strong>,</p>
+      <p>An item you're watching is about to close.</p>
+
       <div class="alert-box">
-        <div class="alert-label">Monitored Asset</div>
+        <div class="alert-label">Item</div>
         <div class="lot-title">${auctionTitle}</div>
-        
+
         <div style="margin-top: 16px;">
           <table width="100%">
             <tr>
               <td>
-                <div style="font-size: 10px; color: #94A3B8; text-transform: uppercase; font-weight: 700;">Current Valuation</div>
+                <div style="font-size: 10px; color: #94A3B8; text-transform: uppercase; font-weight: 700;">Current Price</div>
                 <div style="font-size: 20px; font-weight: 800; color: #0B2B53;">$${currentPrice.toLocaleString()}</div>
               </td>
               <td align="right">
@@ -46,15 +46,14 @@ export const closingSoonTemplate = (bidderName: string, auctionTitle: string, cu
         </div>
       </div>
 
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 32px;">Don't lose this acquisition opportunity. Place your final bid now to secure the asset.</p>
-      
+      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 32px;">Place your bid before it's too late.</p>
+
       <div style="text-align: center;">
-        <a href="${auctionUrl}" class="button">Place Final Bid</a>
+        <a href="${auctionUrl}" class="button">Bid Now</a>
       </div>
     </div>
     <div class="footer">
-      <p>© 2026 Virginia Liquidation. All rights reserved.</p>
-      <p>Industrial B2B Marketplace • Northern Virginia</p>
+      <p>© 2026 Virginialiquidation.com All rights reserved.</p>
     </div>
   </div>
 </body>

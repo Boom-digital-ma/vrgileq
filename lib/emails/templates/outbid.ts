@@ -23,29 +23,28 @@ export const outbidTemplate = (bidderName: string, auctionTitle: string, newAmou
       <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
     </div>
     <div class="content">
-      <h1 class="h1">Outbid Alert!</h1>
-      <p>Attention <strong>${bidderName}</strong>,</p>
-      
+      <h1 class="h1">You've Been Outbid!</h1>
+      <p>Hi <strong>${bidderName}</strong>,</p>
+
       ${imageUrl ? `<img src="${imageUrl}" alt="${auctionTitle}" class="product-image">` : ''}
 
-      <p>You have been outbid on the following industrial asset. Your previous authorization has been superseded by a new high bid.</p>
-      
+      <p>Someone placed a higher bid on:</p>
+
       <p class="lot-title" style="margin-top: 24px; font-size: 18px;">${auctionTitle}</p>
-      
+
       <div class="price-box">
-        <div class="price-label">Current High Bid</div>
+        <div class="price-label">New Price</div>
         <div class="price-value">$${newAmount.toLocaleString()}</div>
       </div>
 
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 32px;">Don't miss out on this opportunity. Increase your bid or set a maximum proxy bid to automatically defend your position.</p>
-      
+      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 32px;">Bid again to take back the lead.</p>
+
       <div style="text-align: center;">
-        <a href="${auctionUrl}" class="button">Increase My Bid</a>
+        <a href="${auctionUrl}" class="button">Bid Now</a>
       </div>
     </div>
     <div class="footer">
-      <p>© 2026 Virginia Liquidation. All rights reserved.</p>
-      <p>123 Industrial Way, Richmond, VA 23219</p>
+      <p>© 2026 Virginialiquidation.com All rights reserved.</p>
     </div>
   </div>
 </body>

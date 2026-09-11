@@ -23,30 +23,28 @@ export const winningTemplate = (bidderName: string, auctionTitle: string, winnin
       <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180" style="display: block; margin: 0 auto;">
     </div>
     <div class="content">
-      <h1 class="h1">You Won the Auction!</h1>
+      <h1 class="h1">You Won!</h1>
       <p>Congratulations <strong>${bidderName}</strong>,</p>
 
       ${imageUrl ? `<img src="${imageUrl}" alt="${auctionTitle}" class="product-image">` : ''}
 
-      <p>This is an official authorization confirm your acquisition. You are the winning bidder for the following asset:</p>
-      
+      <p>You are the winning bidder on:</p>
+
       <p class="lot-title" style="margin-top: 24px; font-size: 18px;">${auctionTitle}</p>
-      
+
       <div class="price-box">
-        <div class="price-label">Final Hammer Price</div>
+        <div class="price-label">Winning Price</div>
         <div class="price-value">$${winningAmount.toLocaleString()}</div>
       </div>
 
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 32px;">Please finalize your purchase by generating your invoice and scheduling your removal appointment via our secure bidder portal.</p>
-      
+      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 32px;">View your invoice and schedule your pickup from your account.</p>
+
       <div style="text-align: center;">
-        <a href="${checkoutUrl}" class="button">Access My Invoice</a>
+        <a href="${checkoutUrl}" class="button">View My Invoice</a>
       </div>
     </div>
     <div class="footer">
-      <p>© 2026 Virginia Liquidation. All rights reserved.</p>
-      <p>123 Industrial Way, Richmond, VA 23219</p>
-      <p style="margin-top: 10px;">Industrial B2B Auction Solutions</p>
+      <p>© 2026 Virginialiquidation.com All rights reserved.</p>
     </div>
   </div>
 </body>
