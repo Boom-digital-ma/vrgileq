@@ -390,8 +390,8 @@ export default function AuctionCard({
       <div className={cn(
           "group flex flex-col bg-white border rounded-[24px] transition-all duration-200 hover:shadow-[0_20px_50px_rgba(11,43,83,0.1)] overflow-hidden h-full relative italic",
           isEnded ? "border-zinc-300 bg-zinc-50/60 shadow-sm shadow-zinc-200/40" :
-          isWinning ? "border-emerald-500 bg-emerald-50/30 shadow-lg shadow-emerald-500/10" :
-          isOutbid ? "border-rose-500 bg-rose-50/30 shadow-lg shadow-rose-500/10" :
+          isWinning ? "border-4 border-[#049da1] bg-[#049da1]/10 shadow-lg shadow-[#049da1]/10" :
+          isOutbid ? "border-4 border-rose-500 bg-rose-50/30 shadow-lg shadow-rose-500/10" :
           "border-zinc-200/80 hover:border-primary/20"
       )}>
         {/* Media Container */}
