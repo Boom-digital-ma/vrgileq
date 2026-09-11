@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchLots } from "@/app/actions/lots";
 import { Loader2, PackageSearch, Search, X, Star, Gavel, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { throttle } from "@/lib/throttle";
 
 interface AuctionGridProps {
   products: Product[];
@@ -396,49 +397,54 @@ export default function AuctionGrid({
   useEffect(() => {
     const channelId = `grid-${eventId || 'global'}`;
     
+    // Throttle grid updates (300ms) to batch rapid bid bursts
+    const handleAuctionUpdate = throttle((payload: any) => {
+      setItems(prevItems => prevItems.map(item => {
+        if (item.id === payload.new.id) {
+          return {
+            ...item,
+            price: Number(payload.new.current_price),
+            endsAt: payload.new.ends_at,
+            winner_id: payload.new.winner_id
+          };
+        }
+        return item;
+      }));
+    }, 300);
+
+    const handleBidInsert = throttle((payload: any) => {
+      setItems(prevItems => {
+          const targetItemIndex = prevItems.findIndex(i => i.id === payload.new.auction_id);
+          if (targetItemIndex === -1) return prevItems;
+
+          const newItems = [...prevItems];
+          const item = { ...newItems[targetItemIndex] };
+          const isMyBid = user && payload.new.user_id === user.id;
+
+          newItems[targetItemIndex] = {
+              ...item,
+              bidCount: (item.bidCount || 0) + 1,
+              price: Math.max(item.price, Number(payload.new.amount)),
+              winner_id: payload.new.status === 'active' ? payload.new.user_id : item.winner_id,
+              userMaxBid: (isMyBid && payload.new.max_amount) ? Number(payload.new.max_amount) : item.userMaxBid,
+              userCurrentBid: isMyBid ? Number(payload.new.amount) : item.userCurrentBid
+          };
+          return newItems;
+      });
+    }, 300);
+
     const channel = supabase.channel(channelId)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'auctions',
         ...(eventId ? { filter: `event_id=eq.${eventId}` } : {})
-      }, (payload: any) => {
-        setItems(prevItems => prevItems.map(item => {
-          if (item.id === payload.new.id) {
-            return {
-              ...item,
-              price: Number(payload.new.current_price),
-              endsAt: payload.new.ends_at,
-              winner_id: payload.new.winner_id
-            };
-          }
-          return item;
-        }));
-      })
+      }, handleAuctionUpdate)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'bids'
-      }, (payload: any) => {
-        setItems(prevItems => {
-            const targetItemIndex = prevItems.findIndex(i => i.id === payload.new.auction_id);
-            if (targetItemIndex === -1) return prevItems;
-
-            const newItems = [...prevItems];
-            const item = { ...newItems[targetItemIndex] };
-            const isMyBid = user && payload.new.user_id === user.id;
-            
-            newItems[targetItemIndex] = {
-                ...item,
-                bidCount: (item.bidCount || 0) + 1,
-                price: Math.max(item.price, Number(payload.new.amount)),
-                winner_id: payload.new.status === 'active' ? payload.new.user_id : item.winner_id,
-                userMaxBid: (isMyBid && payload.new.max_amount) ? Number(payload.new.max_amount) : item.userMaxBid,
-                userCurrentBid: isMyBid ? Number(payload.new.amount) : item.userCurrentBid
-            };
-            return newItems;
-        });
-      })
+      }, handleBidInsert)
       .subscribe();
 
     return () => {

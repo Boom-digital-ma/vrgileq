@@ -6,6 +6,7 @@ import ImageGallery from "@/components/auction/ImageGallery";
 import BiddingWidget from "@/components/auction/BiddingWidget";
 import { Timer, Gavel, Package, ShieldCheck, Info, MapPin, Clock, Star, Loader2 } from "lucide-react";
 import { cn, calculateNextIncrement } from "@/lib/utils";
+import { throttle } from "@/lib/throttle";
 import { toggleWatchlist } from "@/app/actions/watchlist";
 import { toast } from "sonner";
 
@@ -108,33 +109,37 @@ export default function AuctionDetailsRealtime({ initialLot, initialBids, initia
   useEffect(() => {
     let isSubscriptionMounted = true;
     
+    // Throttle auction updates (300ms) to batch rapid bid bursts
+    const handleAuctionUpdate = throttle((payload: any) => {
+      if (isSubscriptionMounted) {
+        setLot((prev: any) => ({ ...prev, ...payload.new }));
+      }
+    }, 300);
+
+    const handleBidInsert = throttle((payload: any) => {
+      if (isSubscriptionMounted) {
+        setBids(prev => [payload.new, ...prev]);
+        setLot((prev: any) => ({
+           ...prev,
+           current_price: Math.max(Number(prev.current_price), Number(payload.new.amount))
+        }));
+      }
+    }, 300);
+
     const channel = supabase
       .channel(`auction-room-${lot.id}`)
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
         table: 'auctions',
         filter: `id=eq.${lot.id}`
-      }, (payload: any) => {
-        if (isSubscriptionMounted) {
-          setLot((prev: any) => ({ ...prev, ...payload.new }));
-        }
-      })
+      }, handleAuctionUpdate)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'bids',
         filter: `auction_id=eq.${lot.id}`
-      }, (payload: any) => {
-        if (isSubscriptionMounted) {
-          setBids(prev => [payload.new, ...prev]);
-          // Optimistically update price
-          setLot((prev: any) => ({
-             ...prev,
-             current_price: Math.max(Number(prev.current_price), Number(payload.new.amount))
-          }));
-        }
-      })
+      }, handleBidInsert)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',

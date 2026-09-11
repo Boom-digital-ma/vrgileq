@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Timer, Gavel, History, Loader2, Lock, ShieldCheck, AlertCircle, TrendingUp, Star, Clock, Trophy, Zap, ChevronRight, Edit3, Eye, User, Shield } from "lucide-react";
 import { placeBid } from "@/app/actions/bids";
 import { toggleWatchlist } from "@/app/actions/watchlist";
@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/admin/Modal";
 import { cn, formatEventDate, calculateNextIncrement } from "@/lib/utils";
+import { throttle, debounce } from "@/lib/throttle";
 
 interface BiddingWidgetProps {
   auctionId: string;
@@ -152,34 +153,40 @@ export default function BiddingWidget({ auctionId, eventId, initialPrice, endsAt
       }
     }, 1000);
 
+    // Throttle auction price updates (300ms) to avoid rapid re-renders during bid bursts
+    const handleAuctionUpdate = throttle((payload: any) => {
+      if (isMounted) {
+        const newPrice = Number(payload.new.current_price);
+        setRealtimePrice(newPrice);
+        setRealtimeEndsAt(new Date(payload.new.ends_at));
+        setBidAmount(Math.round((newPrice + calculateNextIncrement(newPrice)) * 100) / 100);
+      }
+    }, 300);
+
+    // Debounce bid list refetch (500ms) to batch rapid-fire bid inserts into one API call
+    const handleBidInsert = debounce(async () => {
+      const { data: newBids } = await supabase
+        .from('bids')
+        .select('*, profiles(full_name)')
+        .eq('auction_id', auctionId)
+        .order('amount', { ascending: false });
+
+      if (isMounted && newBids) {
+        setRealtimeBids(newBids);
+      }
+    }, 500);
+
     const channel = supabase
       .channel(`auction-${auctionId}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'auctions', filter: `id=eq.${auctionId}` },
-        (payload: any) => {
-          if (isMounted) {
-            const newPrice = Number(payload.new.current_price);
-            setRealtimePrice(newPrice);
-            setRealtimeEndsAt(new Date(payload.new.ends_at));
-            setBidAmount(Math.round((newPrice + calculateNextIncrement(newPrice)) * 100) / 100);
-          }
-        }
+        handleAuctionUpdate
       )
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'bids', filter: `auction_id=eq.${auctionId}` },
-        async () => {
-          const { data: newBids } = await supabase
-            .from('bids')
-            .select('*, profiles(full_name)')
-            .eq('auction_id', auctionId)
-            .order('amount', { ascending: false });
-          
-          if (isMounted && newBids) {
-            setRealtimeBids(newBids);
-          }
-        }
+        handleBidInsert
       )
       .subscribe();
 

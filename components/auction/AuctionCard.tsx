@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn, getOptimizedImageUrl, formatEventDate, calculateNextIncrement } from "@/lib/utils";
+import { throttle } from "@/lib/throttle";
 
 export interface Product {
   id: string;
@@ -212,40 +213,45 @@ export default function AuctionCard({
 
     let isSubscriptionMounted = true;
 
+    // Throttle auction updates (300ms) to reduce re-renders during bid bursts
+    const handleAuctionUpdate = throttle((payload: any) => {
+      if (isSubscriptionMounted) {
+        setRealtimePrice(Number(payload.new.current_price));
+        setWinnerId(payload.new.winner_id);
+        if (payload.new.ends_at) {
+          setRealtimeEndsAt(payload.new.ends_at);
+        }
+      }
+    }, 300);
+
+    const handleBidInsert = throttle((payload: any) => {
+      if (isSubscriptionMounted) {
+        setRealtimeBidCount(prev => prev + 1);
+        setRealtimePrice(prev => Math.max(prev, Number(payload.new.amount)));
+        if (payload.new.status === 'active') {
+            setWinnerId(payload.new.user_id);
+        }
+        if (user && payload.new.user_id === user.id && payload.new.status === 'active') {
+            setUserMaxBid(payload.new.max_amount ? Number(payload.new.max_amount) : undefined);
+            setUserCurrentBid(Number(payload.new.amount));
+        }
+      }
+    }, 300);
+
     const channel = supabase
       .channel(`auction-card-${product.id}`)
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
         table: 'auctions',
         filter: `id=eq.${product.id}`
-      }, (payload: any) => {
-        if (isSubscriptionMounted) {
-          setRealtimePrice(Number(payload.new.current_price));
-          setWinnerId(payload.new.winner_id);
-          if (payload.new.ends_at) {
-            setRealtimeEndsAt(payload.new.ends_at);
-          }
-        }
-      })
+      }, handleAuctionUpdate)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'bids',
         filter: `auction_id=eq.${product.id}`
-      }, (payload: any) => {
-        if (isSubscriptionMounted) {
-          setRealtimeBidCount(prev => prev + 1);
-          setRealtimePrice(prev => Math.max(prev, Number(payload.new.amount)));
-          if (payload.new.status === 'active') {
-              setWinnerId(payload.new.user_id);
-          }
-          if (user && payload.new.user_id === user.id && payload.new.status === 'active') {
-              setUserMaxBid(payload.new.max_amount ? Number(payload.new.max_amount) : undefined);
-              setUserCurrentBid(Number(payload.new.amount));
-          }
-        }
-      })
+      }, handleBidInsert)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
