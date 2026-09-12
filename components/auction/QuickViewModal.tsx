@@ -16,7 +16,7 @@ interface QuickViewModalProps {
     id: string;
     event_id?: string;
     title: string;
-    supplier: string;
+    supplier?: string | null;
     price: number;
     endsAt: string;
     image: string;
@@ -219,8 +219,12 @@ export default function QuickViewModal({ product, isOpen, onClose, initialBid, o
                         <span className="text-[10px] font-black uppercase tracking-widest text-primary">{product.category || 'Asset'}</span>
                         <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-300">#{product.id.slice(0,4)}</span>
                     </div>
-                    <div className="h-1 w-1 bg-zinc-200 rounded-full" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{product.supplier}</span>
+                    {product.supplier && (
+                        <>
+                            <div className="h-1 w-1 bg-zinc-200 rounded-full" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{product.supplier}</span>
+                        </>
+                    )}
                 </div>
                 <h2 className="text-base font-bold uppercase tracking-tight text-secondary line-clamp-2 leading-tight font-display">{product.title}</h2>
               </div>

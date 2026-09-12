@@ -19,7 +19,7 @@ export interface Product {
   event_id: string;
   lotNumber?: string | number;
   title: string;
-  supplier: string;
+  supplier: string | null;
   price: number;
   endsAt: string;
   startAt?: string;
@@ -694,7 +694,7 @@ export default function AuctionCard({
       </div>
 
       <QuickViewModal
-        product={{ ...product, event_id: product.event_id, category: product.supplier }}
+        product={{ ...product, event_id: product.event_id, category: product.supplier || undefined }}
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
         initialBid={bidAmount}

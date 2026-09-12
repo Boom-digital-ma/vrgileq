@@ -322,7 +322,7 @@ export async function fetchLots({
                 event_id: lot.event_id,
                 lotNumber: lot.lot_number,
                 title: lot.title,
-                supplier: lot.categories?.name || 'General Industrial',
+                supplier: lot.categories?.name || null,
                 price: Number(lot.current_price),
                 endsAt: lot.ends_at || lot.auction_events?.ends_at,
                 startAt: lot.auction_events?.start_at,
