@@ -35,17 +35,18 @@ import {
 import { format, subDays, startOfMonth, subMonths, isSameDay } from 'date-fns'
 
 export const Dashboard = () => {
-  // Fetching resources with strategic metadata
-  const eventsResult = useList({ resource: "auction_events", pagination: { mode: "off" } })
-  const auctionsResult = useList({ resource: "auctions", meta: { select: "*, bids(id)" }, pagination: { mode: "off" } })
-  const profilesResult = useList({ resource: "profiles", pagination: { mode: "off" } })
-  const salesResult = useList({ resource: "sales", pagination: { mode: "off" } })
-  const registrationsResult = useList({ resource: "event_registrations", pagination: { mode: "off" } })
-  const pickupSlotsResult = useList({ resource: "pickup_slots", pagination: { mode: "off" } })
-  
-  // Trend Data Query (All bids from last 7 days)
+  // Fetching resources with minimal selects
+  const eventsResult = useList({ resource: "auction_events", meta: { select: "id, title, status, start_at, ends_at, image_url" }, pagination: { mode: "off" } })
+  const auctionsResult = useList({ resource: "auctions", meta: { select: "id, status, current_price, winner_id, bids(count)" }, pagination: { mode: "off" } })
+  const profilesResult = useList({ resource: "profiles", meta: { select: "id, full_name, role, is_verified, created_at" }, pagination: { mode: "off" } })
+  const salesResult = useList({ resource: "sales", meta: { select: "id, status, total_amount, winner_id, collected_at, pickup_slot_id, auction_id" }, pagination: { mode: "off" } })
+  const registrationsResult = useList({ resource: "event_registrations", meta: { select: "id, status" }, pagination: { mode: "off" } })
+  const pickupSlotsResult = useList({ resource: "pickup_slots", meta: { select: "id, event_id, start_at, max_capacity" }, pagination: { mode: "off" } })
+
+  // Trend Data Query (Last 7 days — only fields needed for chart + leaderboard)
   const trendBidsResult = useList({
     resource: "bids",
+    meta: { select: "id, user_id, amount, created_at" },
     filters: [
         {
             field: "created_at",
@@ -56,13 +57,13 @@ export const Dashboard = () => {
     pagination: { mode: "off" }
   })
 
-  // Live Activity Feed (Recent Bids) - ENABLED REAL-TIME LIVE MODE
-  const recentBidsResult = useList({ 
-    resource: "bids", 
-    meta: { select: "*, auctions(title, lot_number), profiles:user_id(full_name, id)" },
-    pagination: { pageSize: 8 }, 
+  // Live Activity Feed (Recent Bids)
+  const recentBidsResult = useList({
+    resource: "bids",
+    meta: { select: "id, amount, created_at, auctions(title, lot_number), profiles:user_id(full_name, id)" },
+    pagination: { pageSize: 8 },
     sorters: [{ field: "created_at", order: "desc" }],
-    liveMode: "auto", 
+    liveMode: "auto",
   })
 
   // Data Extraction
@@ -87,7 +88,7 @@ export const Dashboard = () => {
   const liveLots = auctions.filter((a: any) => a.status === 'live')
   const liveWinningTotal = liveLots.filter((a: any) => a.winner_id).reduce((acc: number, a: any) => acc + (Number(a.current_price) || 0), 0)
   const liveWinningCount = liveLots.filter((a: any) => a.winner_id).length
-  const totalBidsCount = auctions.reduce((acc: number, a: any) => acc + (a.bids?.length || 0), 0)
+  const totalBidsCount = auctions.reduce((acc: number, a: any) => acc + (a.bids?.[0]?.count || 0), 0)
   const avgBidsPerLot = auctions.length > 0 ? (totalBidsCount / auctions.length).toFixed(1) : "0"
   
   // 3. New KPIs
