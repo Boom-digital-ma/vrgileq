@@ -83,12 +83,10 @@ export const Dashboard = () => {
   const totalRevenue = sales.filter((s: any) => s.status === 'paid').reduce((acc: number, curr: any) => acc + (Number(curr.total_amount) || 0), 0)
   const pendingRevenue = sales.filter((s: any) => s.status === 'pending').reduce((acc: number, curr: any) => acc + (Number(curr.total_amount) || 0), 0)
 
-  // Won auctions not yet paid: sum of current_price for sold/ended auctions with a winner
-  const unpaidWonCount = auctions.filter((a: any) => (a.status === 'sold' || a.status === 'ended') && a.winner_id).length
-  const unpaidPaidCount = sales.filter((s: any) => s.status === 'paid').length
-  
   // 2. Velocity & Engagement
   const liveLots = auctions.filter((a: any) => a.status === 'live')
+  const liveWinningTotal = liveLots.filter((a: any) => a.winner_id).reduce((acc: number, a: any) => acc + (Number(a.current_price) || 0), 0)
+  const liveWinningCount = liveLots.filter((a: any) => a.winner_id).length
   const totalBidsCount = auctions.reduce((acc: number, a: any) => acc + (a.bids?.length || 0), 0)
   const avgBidsPerLot = auctions.length > 0 ? (totalBidsCount / auctions.length).toFixed(1) : "0"
   
@@ -128,24 +126,25 @@ export const Dashboard = () => {
     }
   })
 
-  // 3. Top Bidders Leaderboard
-  const bidderStats = trendBids.reduce((acc: any, bid: any) => {
-    const userId = bid.user_id
-    if (!userId) return acc
-    if (!acc[userId]) {
+  // 3. Top Participants — currently winning on live auctions right now
+  const liveWinnerStats = liveLots
+    .filter((a: any) => a.winner_id)
+    .reduce((acc: any, a: any) => {
+      const userId = a.winner_id
+      if (!acc[userId]) {
         const profile = profiles.find((p: any) => p.id === userId)
-        acc[userId] = { 
-            name: profile?.full_name || 'Bidder ' + userId.substring(0, 4), 
-            count: 0, 
-            total: 0 
+        acc[userId] = {
+          name: profile?.full_name || 'User ' + userId.substring(0, 4),
+          count: 0,
+          total: 0
         }
-    }
-    acc[userId].count += 1
-    acc[userId].total += Number(bid.amount)
-    return acc
-  }, {})
+      }
+      acc[userId].count += 1
+      acc[userId].total += Number(a.current_price) || 0
+      return acc
+    }, {})
 
-  const topBidders = Object.values(bidderStats)
+  const topBidders = Object.values(liveWinnerStats)
     .sort((a: any, b: any) => b.total - a.total)
     .slice(0, 5)
 
@@ -160,9 +159,9 @@ export const Dashboard = () => {
         border: "border-emerald-100"
     },
     {
-        label: "Outstanding (Unpaid)",
-        value: `$${pendingRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-        subValue: `${sales.filter((s: any) => s.status === 'pending').length} pending invoices`,
+        label: "Live Bids Total",
+        value: `$${liveWinningTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        subValue: `${liveWinningCount} lots with active bids`,
         icon: CreditCard,
         color: "text-rose-600",
         bg: "bg-rose-50",
@@ -379,13 +378,13 @@ export const Dashboard = () => {
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-xs font-black uppercase tracking-tight">{bidder.name}</span>
-                                    <span className="text-[10px] font-bold text-zinc-400">{bidder.count} Total Bids</span>
+                                    <span className="text-[10px] font-bold text-zinc-400">{bidder.count} lots winning</span>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <span className="text-sm font-black text-secondary tabular-nums italic">${bidder.total.toLocaleString()}</span>
+                                <span className="text-sm font-black text-secondary tabular-nums italic">${bidder.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 <div className="flex items-center justify-end text-[9px] text-emerald-500 font-bold">
-                                    <ArrowUpRight size={10} /> VIP
+                                    <ArrowUpRight size={10} /> Live
                                 </div>
                             </div>
                         </div>
