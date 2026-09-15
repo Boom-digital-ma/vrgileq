@@ -362,17 +362,19 @@ export default async function HomePage({
                 </div>
 
                 <div className="flex flex-1 flex-col p-7 md:p-8">
+                    {!isInventoryPending && (
                     <div className="mb-4 flex items-center gap-2 text-zinc-400">
                         <Calendar size={14} className="text-primary" />
                         <span className="text-[10px] font-black uppercase tracking-widest italic">
-                            {isEnded 
-                            ? '' 
-                            : (isUpcoming 
-                                ? `Opening ${formatEventDate(event.start_at)}` 
+                            {isEnded
+                            ? ''
+                            : (isUpcoming
+                                ? `Opening ${formatEventDate(event.start_at)}`
                                 : `Ends ${formatEventDate(event.ends_at)}`)
                             }
                         </span>
                     </div>
+                    )}
                   <h3 className="mb-4 h-16 text-2xl font-black leading-tight text-secondary font-display uppercase italic transition-colors line-clamp-2 group-hover:text-primary">
                     {event.title}
                   </h3>
