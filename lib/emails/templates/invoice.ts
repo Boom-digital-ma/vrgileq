@@ -78,10 +78,10 @@ export const invoiceTemplate = (params: {
         <div class="total-value">$${params.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
       </div>
 
-      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 32px;">View your full invoice and pay online from your account.</p>
+      <p style="font-size: 14px; line-height: 1.6; margin-bottom: 32px;">View your full invoice and schedule your pickup from your account.</p>
 
       <div style="text-align: center;">
-        <a href="${params.invoiceUrl}" class="button">View & Pay Invoice</a>
+        <a href="${params.invoiceUrl}" class="button">View My Invoice</a>
       </div>
     </div>
     <div class="footer">
