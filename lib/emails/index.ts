@@ -1,6 +1,7 @@
 import { outbidTemplate } from './templates/outbid';
 import { winningTemplate } from './templates/won';
 import { closingSoonTemplate } from './templates/closing-soon';
+import { invoiceTemplate } from './templates/invoice';
 
 const FROM_EMAIL = process.env.NEXT_PUBLIC_RESEND_FROM || 'Virginia Liquidation <noreplay@virginialiquidation.com>';
 
@@ -126,6 +127,34 @@ export async function sendClosingSoonEmail({
     to,
     subject: `Closing Soon: ${auctionTitle}`,
     html: closingSoonTemplate(bidderName, auctionTitle, currentPrice, auctionUrl, timeLeft),
+  });
+}
+
+export async function sendInvoiceEmail({
+  to,
+  customerName,
+  invoiceNumber,
+  items,
+  hammerTotal,
+  buyersPremium,
+  tax,
+  totalAmount,
+  invoiceUrl,
+}: {
+  to: string;
+  customerName: string;
+  invoiceNumber: string;
+  items: { title: string; lotNumber?: number; price: number }[];
+  hammerTotal: number;
+  buyersPremium: number;
+  tax: number;
+  totalAmount: number;
+  invoiceUrl: string;
+}) {
+  await sendResendEmail({
+    to,
+    subject: `Invoice ${invoiceNumber} — Virginia Liquidation`,
+    html: invoiceTemplate({ customerName, invoiceNumber, items, hammerTotal, buyersPremium, tax, totalAmount, invoiceUrl }),
   });
 }
 

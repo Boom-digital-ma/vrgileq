@@ -1,10 +1,10 @@
 'use client'
 
 import { useShow, useNavigation } from "@refinedev/core"
-import { ArrowLeft, User, Package, Calendar, Clock, CreditCard, CheckCircle2, XCircle, Printer, Truck, Loader2, Shield } from "lucide-react"
+import { ArrowLeft, User, Package, Calendar, Clock, CreditCard, CheckCircle2, XCircle, Printer, Truck, Loader2, Shield, Mail } from "lucide-react"
 import { useParams } from "next/navigation"
 import { cn, formatEventDate } from "@/lib/utils"
-import { updateSaleStatus, refundSale, refundSaleItem } from "@/app/actions/sales"
+import { updateSaleStatus, refundSale, refundSaleItem, sendInvoiceEmailAction } from "@/app/actions/sales"
 import { toast } from "sonner"
 import { useState } from "react"
 import Link from "next/link"
@@ -17,6 +17,7 @@ export const SaleShow = () => {
   const [loading, setLoading] = useState(false)
   const [refunding, setRefunding] = useState(false)
   const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({})
+  const [sendingEmail, setSendingEmail] = useState(false)
 
   const result = useShow({
     resource: "sales",
@@ -80,6 +81,19 @@ export const SaleShow = () => {
     }
   }
 
+  const handleSendInvoice = async () => {
+    setSendingEmail(true)
+    try {
+      const res = await sendInvoiceEmailAction(id as string)
+      if (res.success) toast.success(`Invoice email sent to ${res.email}`)
+      else toast.error(res.error)
+    } catch (err: any) {
+      toast.error("Failed to send email")
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
   if (isLoading) return <div className="p-20 text-center text-zinc-400 font-bold uppercase tracking-widest text-[10px]">Loading Transaction Record...</div>
   if (!sale) return <div className="p-20 text-center">Sale not found</div>
 
@@ -110,13 +124,22 @@ export const SaleShow = () => {
         </div>
         
         <div className="flex items-center gap-3">
-            <Link 
-              href={`/invoices/${sale.id}`} 
+            <Link
+              href={`/invoices/${sale.id}`}
               target="_blank"
               className="bg-white text-zinc-900 border border-zinc-200 px-6 py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all flex items-center gap-2"
             >
                 <Printer size={16} className="text-zinc-400" /> View Invoice
             </Link>
+
+            <button
+              disabled={sendingEmail}
+              onClick={handleSendInvoice}
+              className="bg-primary text-white px-6 py-3 rounded-xl text-xs font-bold shadow-lg active:scale-95 transition-all flex items-center gap-2 hover:bg-primary/90 disabled:opacity-50"
+            >
+                {sendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                {sendingEmail ? 'Sending...' : 'Send Invoice'}
+            </button>
 
             {sale.status === 'paid' && (
                 <Link 

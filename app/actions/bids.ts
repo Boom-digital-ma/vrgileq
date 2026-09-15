@@ -233,3 +233,72 @@ export async function placeBid({
     return { success: false, error: error.message }
   }
 }
+
+export async function adminCancelBid(bidId: string) {
+  try {
+    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
+
+    // Verify admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (profile?.role !== 'admin') throw new Error('Admin only')
+
+    // Get the bid
+    const { data: bid, error: bidError } = await adminSupabase
+      .from('bids')
+      .select('id, auction_id, user_id, amount, status')
+      .eq('id', bidId)
+      .single()
+
+    if (bidError || !bid) throw new Error('Bid not found')
+    if (bid.status === 'cancelled') throw new Error('Bid already cancelled')
+
+    const wasActive = bid.status === 'active'
+
+    // 1. Cancel the bid
+    await adminSupabase.from('bids').update({ status: 'cancelled' }).eq('id', bidId)
+
+    // 2. If it was the winning (active) bid, recalculate auction winner
+    if (wasActive) {
+      const { data: auction } = await adminSupabase
+        .from('auctions')
+        .select('id, start_price, winner_id, status')
+        .eq('id', bid.auction_id)
+        .single()
+
+      if (auction && auction.winner_id === bid.user_id) {
+        // Find the next highest active bid
+        const { data: nextBid } = await adminSupabase
+          .from('bids')
+          .select('id, user_id, amount')
+          .eq('auction_id', bid.auction_id)
+          .eq('status', 'active')
+          .order('amount', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (nextBid) {
+          // Promote next bid as winner
+          await adminSupabase.from('auctions').update({
+            current_price: nextBid.amount,
+            winner_id: nextBid.user_id
+          }).eq('id', bid.auction_id)
+        } else {
+          // No more bids — reset to start price
+          await adminSupabase.from('auctions').update({
+            current_price: auction.start_price || 0,
+            winner_id: null
+          }).eq('id', bid.auction_id)
+        }
+      }
+    }
+
+    revalidatePath('/admin/bids')
+    return { success: true }
+  } catch (err: any) {
+    console.error('Cancel bid error:', err.message)
+    return { success: false, error: err.message }
+  }
+}

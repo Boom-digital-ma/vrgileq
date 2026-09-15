@@ -1,7 +1,8 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendInvoiceEmail } from '@/lib/emails'
 
 export async function bookPickupSlot(saleId: string, slotId: string) {
   const supabase = await createClient()
@@ -73,17 +74,21 @@ export async function generateEventInvoicesAction(eventId: string) {
 export async function refundSale(saleId: string) {
   try {
     const supabase = await createClient()
-    
-    // 1. Get the sale details including Stripe PI
-    const { data: sale, error: fetchError } = await supabase
+
+    // 1. Atomically claim the sale for refund (prevents double-refund)
+    const { data: sale, error: claimError } = await supabase
         .from('sales')
-        .select('stripe_payment_intent_id, total_amount, status')
+        .update({ status: 'refunding', updated_at: new Date().toISOString() })
         .eq('id', saleId)
+        .eq('status', 'paid')
+        .select('stripe_payment_intent_id, total_amount')
         .single()
 
-    if (fetchError || !sale) throw new Error("Sale not found")
-    if (sale.status !== 'paid') throw new Error("Only paid sales can be refunded")
-    if (!sale.stripe_payment_intent_id) throw new Error("No Stripe transaction linked to this sale")
+    if (claimError || !sale) throw new Error("Sale not found or not in paid status")
+    if (!sale.stripe_payment_intent_id) {
+      await supabase.from('sales').update({ status: 'paid' }).eq('id', saleId)
+      throw new Error("No Stripe transaction linked to this sale")
+    }
 
     // 2. Initialize Stripe
     const Stripe = (await import('stripe')).default
@@ -92,17 +97,21 @@ export async function refundSale(saleId: string) {
     })
 
     // 3. Create Refund on Stripe
-    await stripe.refunds.create({
-        payment_intent: sale.stripe_payment_intent_id,
-    })
+    try {
+      await stripe.refunds.create({
+          payment_intent: sale.stripe_payment_intent_id,
+      })
+    } catch (stripeErr: any) {
+      // Stripe failed — revert status
+      await supabase.from('sales').update({ status: 'paid' }).eq('id', saleId)
+      throw stripeErr
+    }
 
-    // 4. Update Database
-    const { error: updateError } = await supabase
+    // 4. Finalize in Database
+    await supabase
         .from('sales')
         .update({ status: 'refunded', updated_at: new Date().toISOString() })
         .eq('id', saleId)
-
-    if (updateError) throw updateError
 
     revalidatePath(`/admin/sales/${saleId}`)
     revalidatePath('/admin/sales')
@@ -117,26 +126,35 @@ export async function refundSale(saleId: string) {
 export async function refundSaleItem(saleItemId: string) {
   try {
     const supabase = await createClient()
-    
-    // 1. Get the sale item and its parent sale details
-    const { data: item, error: itemError } = await supabase
+
+    // 1. Atomically claim the item for refund (prevents double-refund race condition)
+    const { data: claimed, error: claimError } = await supabase
         .from('sale_items')
-        .select('*, sales(*)')
+        .update({ status: 'refunding' })
         .eq('id', saleItemId)
+        .neq('status', 'refunded')
+        .neq('status', 'refunding')
+        .select('*, sales(*)')
         .single()
 
-    if (itemError || !item) throw new Error("Sale item not found")
-    if (item.status === 'refunded') throw new Error("Item already refunded")
-    
-    const sale = item.sales
-    if (sale.status !== 'paid') throw new Error("Parent sale must be paid to refund items")
-    if (!sale.stripe_payment_intent_id) throw new Error("No Stripe transaction linked to this sale")
+    if (claimError || !claimed) throw new Error("Item already refunded or not found")
+
+    const sale = claimed.sales
+    if (sale.status !== 'paid') {
+      // Revert claim
+      await supabase.from('sale_items').update({ status: 'active' }).eq('id', saleItemId)
+      throw new Error("Parent sale must be paid to refund items")
+    }
+    if (!sale.stripe_payment_intent_id) {
+      await supabase.from('sale_items').update({ status: 'active' }).eq('id', saleItemId)
+      throw new Error("No Stripe transaction linked to this sale")
+    }
 
     // 2. Calculate refund amount (Hammer + its proportional Buyer's Premium)
-    const hammer = Number(item.hammer_price)
+    const hammer = Number(claimed.hammer_price)
     const bpRate = Number(sale.buyers_premium_rate) / 100
     const taxRate = Number(sale.tax_rate) / 100
-    
+
     const bpAmount = hammer * bpRate
     const taxAmount = (hammer + bpAmount) * taxRate
     const totalRefundCents = Math.round((hammer + bpAmount + taxAmount) * 100)
@@ -148,18 +166,22 @@ export async function refundSaleItem(saleItemId: string) {
     })
 
     // 4. Create Partial Refund on Stripe
-    await stripe.refunds.create({
-        payment_intent: sale.stripe_payment_intent_id,
-        amount: totalRefundCents,
-        reason: 'requested_by_customer',
-        metadata: { sale_item_id: saleItemId, invoice: sale.invoice_number }
-    })
+    try {
+      await stripe.refunds.create({
+          payment_intent: sale.stripe_payment_intent_id,
+          amount: totalRefundCents,
+          reason: 'requested_by_customer',
+          metadata: { sale_item_id: saleItemId, invoice: sale.invoice_number }
+      })
+    } catch (stripeErr: any) {
+      // Stripe failed — revert the claim
+      await supabase.from('sale_items').update({ status: 'active' }).eq('id', saleItemId)
+      throw stripeErr
+    }
 
-    // 5. Update Database
-    // Mark item as refunded
+    // 5. Finalize in Database
     await supabase.from('sale_items').update({ status: 'refunded' }).eq('id', saleItemId)
-    
-    // Increment total refunded on parent sale
+
     const newRefundTotal = Number(sale.refunded_amount || 0) + (totalRefundCents / 100)
     await supabase.from('sales').update({ refunded_amount: newRefundTotal }).eq('id', sale.id)
 
@@ -168,6 +190,62 @@ export async function refundSaleItem(saleItemId: string) {
 
   } catch (err: any) {
     console.error("Partial refund error:", err.message)
+    return { error: err.message }
+  }
+}
+
+export async function sendInvoiceEmailAction(saleId: string) {
+  try {
+    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
+
+    // Verify admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (profile?.role !== 'admin') throw new Error('Admin only')
+
+    // Get sale with items and winner
+    const { data: sale, error } = await adminSupabase
+      .from('sales')
+      .select('*, sale_items(*, auction:auctions(title, lot_number)), winner:profiles(full_name, email)')
+      .eq('id', saleId)
+      .single()
+
+    if (error || !sale) throw new Error('Sale not found')
+
+    let recipientEmail = sale.winner?.email
+    if (!recipientEmail) {
+      const { data: { user: authUser } } = await adminSupabase.auth.admin.getUserById(sale.winner_id)
+      recipientEmail = authUser?.email
+    }
+    if (!recipientEmail) throw new Error('No email found for this customer')
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://virginialiquidation.vercel.app'
+
+    const items = (sale.sale_items || [])
+      .filter((i: any) => i.status !== 'refunded')
+      .map((i: any) => ({
+        title: i.auction?.title || 'Item',
+        lotNumber: i.auction?.lot_number,
+        price: Number(i.hammer_price),
+      }))
+
+    await sendInvoiceEmail({
+      to: recipientEmail,
+      customerName: sale.winner?.full_name || 'Customer',
+      invoiceNumber: sale.invoice_number,
+      items,
+      hammerTotal: Number(sale.hammer_price),
+      buyersPremium: Number(sale.buyers_premium_amount),
+      tax: Number(sale.tax_amount),
+      totalAmount: Number(sale.total_amount),
+      invoiceUrl: `${siteUrl}/invoices/${saleId}`,
+    })
+
+    return { success: true, email: recipientEmail }
+  } catch (err: any) {
+    console.error('Send invoice email error:', err.message)
     return { error: err.message }
   }
 }

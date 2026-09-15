@@ -11,74 +11,58 @@ const SITE_URL = Deno.env.get("SITE_URL") || "https://virginialiquidation.vercel
 const FROM_EMAIL = "Virginia Liquidation <noreplay@virginialiquidation.com>"
 
 serve(async (req) => {
-  console.log(">>> NOTIFY-WATCHLIST-CLOSING STARTING <<<")
   try {
-    const results = {
-      live_notifications: 0,
-      closing_notifications: 0,
-      errors: [] as string[]
-    }
-
+    const results = { live_notifications: 0, closing_notifications: 0, errors: [] as string[] }
     const batchEmails: any[] = []
     const updateTasks: any[] = []
 
-    console.log("Checking pending sales...")
-    // --- 1. PREPARE WINNING NOTIFICATIONS (NEW) ---
-    const { data: pendingSales } = await supabaseAdmin
-      .from("sales")
-      .select(`
-        id, hammer_price,
-        auction:auctions(title, image_url),
-        winner:profiles(full_name, email)
-      `)
-      .eq("winning_notified", false)
-      .limit(50) // Limit to avoid too large payload
-
-    for (const sale of (pendingSales || [])) {
-      const { winner, auction } = sale as any
-      if (winner?.email && auction) {
-        batchEmails.push({
-          from: FROM_EMAIL,
-          to: winner.email,
-          subject: `CONGRATULATIONS! You won: ${auction.title}`,
-          html: generateWinningHtml({
-            userName: winner.full_name || 'Valued Bidder',
-            auctionTitle: auction.title,
-            amount: Number(sale.hammer_price || 0),
-            invoiceUrl: `${SITE_URL}/invoices/${sale.id}`,
-            imageUrl: auction.image_url
-          })
-        })
-        updateTasks.push({ id: sale.id, table: 'sales', field: 'winning_notified' })
-      }
-    }
-
-    console.log("Checking live items...")
-    // --- 2. PREPARE LIVE NOTIFICATIONS ---
-    const { data: liveItems } = await supabaseAdmin
+    // --- 1. LIVE NOTIFICATIONS ---
+    // Step 1a: Get watchlist items that haven't been notified
+    const { data: pendingLive } = await supabaseAdmin
       .from("watchlist")
-      .select(`
-        id, auction_id,
-        auctions!inner(title, current_price, status, auction_events!inner(start_at)),
-        profiles!inner(full_name, email)
-      `)
+      .select("id, auction_id, user_id")
       .eq("notified_live", false)
-      .eq("auctions.status", "live")
-      .lte("auctions.auction_events.start_at", new Date().toISOString())
 
-    for (const item of (liveItems || [])) {
-      const { profiles: user, auctions: auction } = item as any
-      if (user?.email && auction) {
+    if (pendingLive && pendingLive.length > 0) {
+      // Step 1b: Get auction details separately (no !inner join)
+      const auctionIds = [...new Set(pendingLive.map(w => w.auction_id))]
+      const { data: liveAuctions } = await supabaseAdmin
+        .from("auctions")
+        .select("id, title, current_price, status, event_id, auction_events(start_at)")
+        .in("id", auctionIds)
+        .eq("status", "live")
+
+      const liveAuctionMap = new Map((liveAuctions || []).map((a: any) => [a.id, a]))
+      const now = new Date()
+
+      // Step 1c: Get user profiles separately
+      const userIds = [...new Set(pendingLive.map(w => w.user_id))]
+      const { data: userProfiles } = await supabaseAdmin
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds)
+
+      const profileMap = new Map((userProfiles || []).map((p: any) => [p.id, p]))
+
+      for (const item of pendingLive) {
+        const auction = liveAuctionMap.get(item.auction_id)
+        if (!auction) continue
+        const eventData = Array.isArray(auction.auction_events) ? auction.auction_events[0] : auction.auction_events
+        if (eventData?.start_at && new Date(eventData.start_at) > now) continue
+
+        const user = profileMap.get(item.user_id)
+        if (!user?.email) continue
+
         batchEmails.push({
           from: FROM_EMAIL,
           to: user.email,
           subject: `NOW LIVE: ${auction.title}`,
           html: generateHtml({
             title: "Bidding is Now Open!",
-            message: `The industrial asset you are watching is now officially open for bidding.`,
+            message: "An item you're watching is now open for bidding.",
             auctionTitle: auction.title,
             currentPrice: Number(auction.current_price || 0),
-            buttonText: "Go to Bidding Room",
+            buttonText: "Bid Now",
             auctionUrl: `${SITE_URL}/auctions/${item.auction_id}`
           })
         })
@@ -86,33 +70,53 @@ serve(async (req) => {
       }
     }
 
-    // --- 3. PREPARE CLOSING NOTIFICATIONS ---
-    const { data: closingItems } = await supabaseAdmin
+    // --- 2. CLOSING SOON NOTIFICATIONS ---
+    const { data: pendingClosing } = await supabaseAdmin
       .from("watchlist")
-      .select(`
-        id, auction_id,
-        auctions!inner(title, current_price, ends_at, status),
-        profiles!inner(full_name, email)
-      `)
+      .select("id, auction_id, user_id")
       .eq("notified_closing_soon", false)
-      .eq("auctions.status", "live")
-      .lt("auctions.ends_at", new Date(Date.now() + 60 * 60 * 1000).toISOString())
-      .gt("auctions.ends_at", new Date().toISOString())
 
-    for (const item of (closingItems || [])) {
-      const { profiles: user, auctions: auction } = item as any
-      if (user?.email && auction) {
+    if (pendingClosing && pendingClosing.length > 0) {
+      const auctionIds = [...new Set(pendingClosing.map(w => w.auction_id))]
+      const now = new Date()
+      const oneHourLater = new Date(Date.now() + 60 * 60 * 1000)
+
+      const { data: closingAuctions } = await supabaseAdmin
+        .from("auctions")
+        .select("id, title, current_price, ends_at, status")
+        .in("id", auctionIds)
+        .eq("status", "live")
+        .lt("ends_at", oneHourLater.toISOString())
+        .gt("ends_at", now.toISOString())
+
+      const closingMap = new Map((closingAuctions || []).map((a: any) => [a.id, a]))
+
+      const userIds = [...new Set(pendingClosing.map(w => w.user_id))]
+      const { data: userProfiles } = await supabaseAdmin
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds)
+
+      const profileMap = new Map((userProfiles || []).map((p: any) => [p.id, p]))
+
+      for (const item of pendingClosing) {
+        const auction = closingMap.get(item.auction_id)
+        if (!auction) continue
+
+        const user = profileMap.get(item.user_id)
+        if (!user?.email) continue
+
         const diffMins = Math.round((new Date(auction.ends_at).getTime() - Date.now()) / (1000 * 60))
         batchEmails.push({
           from: FROM_EMAIL,
           to: user.email,
           subject: `CLOSING SOON: ${auction.title}`,
           html: generateHtml({
-            title: "Final Authorization Alert",
-            message: `Current protocol closing in approximately ${diffMins} minutes.`,
+            title: "Ending Soon!",
+            message: `An item you're watching closes in about ${diffMins} minutes.`,
             auctionTitle: auction.title,
             currentPrice: Number(auction.current_price || 0),
-            buttonText: "Place Final Bid",
+            buttonText: "Bid Now",
             auctionUrl: `${SITE_URL}/auctions/${item.auction_id}`,
             isUrgent: true
           })
@@ -121,8 +125,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Preparing to send ${batchEmails.length} emails...`)
-    // --- 4. EXECUTE BATCH SENDING ---
+    // --- 3. SEND BATCH ---
     if (batchEmails.length > 0) {
       for (let i = 0; i < batchEmails.length; i += 100) {
         const chunk = batchEmails.slice(i, i + 100)
@@ -135,11 +138,9 @@ serve(async (req) => {
         })
 
         if (res.ok) {
-          // Update notified flags in DB
           for (const task of taskChunk) {
             await supabaseAdmin.from(task.table).update({ [task.field]: true }).eq("id", task.id)
-            if (task.table === 'sales') results.winning_notifications = (results.winning_notifications || 0) + 1
-            else if (task.field === 'notified_live') results.live_notifications++
+            if (task.field === 'notified_live') results.live_notifications++
             else results.closing_notifications++
           }
         } else {
@@ -153,69 +154,13 @@ serve(async (req) => {
     })
 
   } catch (error: any) {
-    console.error("CRITICAL ERROR in notify-watchlist-closing:", error.message)
+    console.error("ERROR in notify-watchlist-closing:", error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     })
   }
 })
-
-function generateWinningHtml(params: {
-  userName: string,
-  auctionTitle: string,
-  amount: number,
-  invoiceUrl: string,
-  imageUrl?: string
-}) {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #F9FAFB; color: #464646; }
-        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #E5E7EB; }
-        .header { background-color: #0B2B53; padding: 40px; text-align: center; }
-        .content { padding: 40px; }
-        .h1 { color: #049A9E; font-size: 28px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; font-style: italic; }
-        .info-box { background-color: #f9f9f9; padding: 24px; border: 1px solid #eee; border-radius: 16px; margin: 24px 0; }
-        .button { display: inline-block; background-color: #049A9E; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px; box-shadow: 4px 4px 0px 0px #0B2B53; }
-        .footer { padding: 30px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #F3F4F6; }
-        .product-image { width: 100%; max-height: 300px; object-fit: cover; border-radius: 16px; margin-bottom: 24px; border: 1px solid #E5E7EB; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
-        </div>
-        <div class="content">
-          <h1 class="h1">YOU WON!</h1>
-          <p>Hello ${params.userName},</p>
-          <p>Congratulations! You are the official winner of the following industrial asset:</p>
-          
-          ${params.imageUrl ? `<img src="${params.imageUrl}" alt="${params.auctionTitle}" class="product-image">` : ''}
-
-          <div class="info-box">
-            <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #0B2B53; text-transform: uppercase;">${params.auctionTitle}</h2>
-            <p style="margin: 0; font-size: 16px;"><strong>Final Hammer Price:</strong> $${(params.amount || 0).toLocaleString()}</p>
-          </div>
-
-          <p>Please review your invoice and prepare for pickup scheduling.</p>
-
-          <div style="margin: 32px 0; text-align: center;">
-            <a href="${params.invoiceUrl}" class="button">View My Invoice</a>
-          </div>
-        </div>
-        <div class="footer">
-          <p>© 2026 Virginia Liquidation. All rights reserved.</p>
-          <p>Industrial B2B Auction Solutions • Richmond, VA</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `
-}
 
 function generateHtml(params: {
   title: string,
@@ -226,45 +171,42 @@ function generateHtml(params: {
   auctionUrl: string,
   isUrgent?: boolean
 }) {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #F9FAFB; color: #464646; }
-        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #E5E7EB; }
-        .header { background-color: #0B2B53; padding: 40px; text-align: center; }
-        .content { padding: 40px; }
-        .h1 { color: ${params.isUrgent ? '#E11D48' : '#0B2B53'}; font-size: 24px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; font-style: italic; }
-        .info-box { background-color: #f9f9f9; padding: 24px; border: 1px solid #eee; border-radius: 16px; margin: 24px 0; }
-        .button { display: inline-block; background-color: #049A9E; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px; box-shadow: 4px 4px 0px 0px #0B2B53; }
-        .footer { padding: 30px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #F3F4F6; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
-        </div>
-        <div class="content">
-          <h1 class="h1">${params.title}</h1>
-          <p>${params.message}</p>
-          
-          <div class="info-box">
-            <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #049A9E; text-transform: uppercase;">${params.auctionTitle}</h2>
-            <p style="margin: 0; font-size: 14px;"><strong>Current Price:</strong> $${(params.currentPrice || 0).toLocaleString()}</p>
-          </div>
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; background-color: #F9FAFB; color: #464646; }
+    .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #E5E7EB; }
+    .header { background-color: #0B2B53; padding: 40px; text-align: center; }
+    .content { padding: 40px; }
+    .h1 { color: ${params.isUrgent ? '#E11D48' : '#0B2B53'}; font-size: 24px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; font-style: italic; }
+    .info-box { background-color: #f9f9f9; padding: 24px; border: 1px solid #eee; border-radius: 16px; margin: 24px 0; }
+    .button { display: inline-block; background-color: #049A9E; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 14px; box-shadow: 4px 4px 0px 0px #0B2B53; }
+    .footer { padding: 30px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #F3F4F6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://xiqvzoedklamiwpgizfy.supabase.co/storage/v1/object/public/auction-images/images/logo-virginia-white.png" alt="Virginia Liquidation" width="180">
+    </div>
+    <div class="content">
+      <h1 class="h1">${params.title}</h1>
+      <p>${params.message}</p>
 
-          <div style="margin: 32px 0; text-align: center;">
-            <a href="${params.auctionUrl}" class="button">${params.buttonText}</a>
-          </div>
-        </div>
-        <div class="footer">
-          <p>© 2026 Virginia Liquidation. All rights reserved.</p>
-          <p>Industrial B2B Auction Solutions • Richmond, VA</p>
-        </div>
+      <div class="info-box">
+        <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #049A9E; text-transform: uppercase;">${params.auctionTitle}</h2>
+        <p style="margin: 0; font-size: 14px;"><strong>Current Price:</strong> $${(params.currentPrice || 0).toLocaleString()}</p>
       </div>
-    </body>
-    </html>
-  `
+
+      <div style="margin: 32px 0; text-align: center;">
+        <a href="${params.auctionUrl}" class="button">${params.buttonText}</a>
+      </div>
+    </div>
+    <div class="footer">
+      <p>&copy; 2026 Virginialiquidation.com All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`
 }
